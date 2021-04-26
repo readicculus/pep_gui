@@ -1,0 +1,6 @@
+Datasets:
+  debug:
+    a:
+      thermal_image_list: /home/yuval/Documents/XNOR/kwiver_batch_runner/data/a_ir.txt
+      color_image_list: /home/yuval/Documents/XNOR/kwiver_batch_runner/data/a_rgb.txt
+      transformation_file: /data2/2019/Homographies/A90_RGB-IR_C_100mm_0deg_20190509_fl4.h5
