@@ -1,13 +1,12 @@
-import regex as re
-
-from src.config.types import ConfigIntType, ConfigFloatType, parse_type
+from src.config.types import parse_type
 
 class ConfigOption():
-    def __init__(self, name, default, type, value=None):
+    def __init__(self, name, default, type, env_variable, value=None):
         self.name = name
         self.default = default
         self.__value = value
         self.validator = parse_type(type)
+        self.env_variable = env_variable
 
     def value(self):
         if self.__value:
@@ -29,7 +28,7 @@ class PipelineGlobalConfig:
         self.__config = {}
 
         for name, attributes in config.items():
-            o = ConfigOption(name, attributes.get('default'), attributes.get('type'))
+            o = ConfigOption(name, attributes.get('default'), attributes.get('type'), attributes.get('env_variable'))
             self.__config[name] = o
 
     def get_config(self):
@@ -38,7 +37,7 @@ class PipelineGlobalConfig:
     def get_config_option(self, name):
         return self.__config.get(name)
 
-    def set_config_option(self, name, value):
+    def set_config_option(self, name, value) -> bool:
         opt = self.__config.get(name)
         if opt == None:
             return False
@@ -56,5 +55,16 @@ class PipelineGlobalConfig:
     def __len__(self):
         return len(self.__config)
 
-    def  __getitem__(self, name):
+    def  __getitem__(self, name) -> ConfigOption:
         return self.get_config_option(name)
+
+    # def __setattr__(self, k, v):
+    #     self.data[k] = v
+    #
+    # def __getattr__(self, k) -> ConfigOption:
+    #     # we don't need a special call to super here because getattr is only
+    #     # called when an attribute is NOT found in the instance's dictionary
+    #     try:
+    #         return self.data[k]
+    #     except KeyError:
+    #         raise AttributeError

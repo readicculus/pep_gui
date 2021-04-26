@@ -4,7 +4,7 @@ from typing import List
 import yaml
 import regex as re
 
-class DatasetManifestParser():
+class DatasetManifest():
     root = 'Datasets'
     key_sep = ':'
     dataset_attributes = ['thermal_image_list', 'color_image_list', 'transformation_file']

@@ -14,7 +14,7 @@ from prompt_toolkit.styles import Style
 from prompt_toolkit.widgets import TextArea, Button, Box
 
 from src.config.parser import ConfigOption, PipelineGlobalConfig
-from src.pipelines import PipelineManifestParser
+from src.pipelines import PipelineManifest
 
 OptionValue = Optional[AnyFormattedText]
 Option = Dict[
@@ -92,7 +92,7 @@ class SelectionControl(FormattedTextControl):
 
 
 
-class SelectionPrompt:
+class ConfigurationPrompt:
     def __init__(
             self,
             message: AnyFormattedText = "",

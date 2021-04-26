@@ -11,15 +11,8 @@ class PipelineMeta:
 
         self.config = PipelineGlobalConfig(config)
 
-    def build_config(self):
-        cfg = self.config.get_config()
-        for k, v in cfg.items():
-            env_k = v['env_variable']
-            env_v = v['value']
-            os.environ[env_k] = str(env_v)
 
-
-class PipelineManifestParser:
+class PipelineManifest:
     __root = 'PipelineManifest'
 
     def __init__(self, manifest_file):
