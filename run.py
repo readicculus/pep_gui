@@ -1,18 +1,16 @@
-from prompt_toolkit.shortcuts import ProgressBar
-from prompt_toolkit.shortcuts.progress_bar import formatters
 from prompt_toolkit import prompt, HTML
-from prompt_toolkit.completion import Completer, Completion
-import regex as re
+from prompt_toolkit.shortcuts import ProgressBar
 
 from src import SETUP_VIAME
+from src.cli.configure_pipeline import configure_pipeline
+from src.cli.dialogs.completers import DatasetCompleter
+from src.cli.dialogs.formatters import rainbow_progress_bar
 from src.config import pipeline_environment
-from src.kwiver import kwiver_environment
-from src.config.configure_pipeline import configure_pipeline
 from src.datasets import DatasetManifest, VIAMEDataset
+from src.kwiver import kwiver_environment
 from src.pipelines import PipelineManifest
 
-
-pipeline_manifest = '/home/yuval/Documents/XNOR/kwiver_batch_runner/conf/pipeline_manifest.yaml'
+pipeline_manifest = 'conf/pipeline_manifest.yaml'
 pipeline_manifest = PipelineManifest(pipeline_manifest)
 # parser = DatasetsParser('conf/debug_datasets.yaml')
 # datasets = parser.get_dataset('debug:a')
@@ -27,27 +25,18 @@ parser = DatasetManifest('conf/datasets.yaml')
 
 
 
-class MyCustomCompleter(Completer):
-    datasets = parser.get_dataset('.*')
-    options = list(datasets.keys())
-    def get_completions(self, document, complete_event):
-        text = document.text_before_cursor
-        regkey = '^'+text+'.*$'
-        for option in self.options:
-            if re.match(regkey, option):
-            # if option.startswith(option):
-                yield Completion(option, start_position=-len(text))
+
 
 class CLIFlow:
     def start(self):
         self.part1()
 
     def part1(self):
-        datasets_filter = prompt('Select which dataset/s you want to use > ', completer=MyCustomCompleter())
+        datasets_filter = prompt('Select which dataset/s you want to use > ', completer=DatasetCompleter(parser))
         datasets = parser.get_dataset(datasets_filter)
 
         while len(datasets) == 0 or not self.part2(datasets):
-            datasets_filter = prompt('Select which dataset/s you want to use > ', completer=MyCustomCompleter())
+            datasets_filter = prompt('Select which dataset/s you want to use > ', completer=DatasetCompleter(parser))
             datasets = parser.get_dataset(datasets_filter)
 
     def part2(self, selected_datasets):
@@ -72,14 +61,8 @@ class CLIFlow:
 
             title = HTML('Running %s on <style bg="yellow" fg="black">%d datasets...</style>' %
                          (pipeline.name, len(datasets)))
-            custom_formatters = [
-                formatters.Label(),
-                formatters.Text(" "),
-                formatters.Rainbow(formatters.Bar()),
-                formatters.Text(" left: "),
-                formatters.Rainbow(formatters.TimeLeft()),
-            ]
-            with ProgressBar(title=title, formatters=custom_formatters) as pb:
+
+            with ProgressBar(title=title, formatters=rainbow_progress_bar) as pb:
                 progress_bars = {}
                 workers = []
                 for name, dataset in datasets.items():

@@ -1,20 +1,20 @@
 from functools import partial
-from typing import List, Optional, Tuple, Union, Dict
+from textwrap import wrap
+from typing import Optional, Tuple, Dict
+
 from prompt_toolkit.application import Application, get_app
 from prompt_toolkit.filters import IsDone
 from prompt_toolkit.formatted_text import AnyFormattedText
-from prompt_toolkit.key_binding import KeyBindings, KeyPressEvent
-from prompt_toolkit.layout.containers import Window, VSplit
+from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.layout.containers import ConditionalContainer, HSplit, Window, VSplit
 from prompt_toolkit.layout.controls import FormattedTextControl
-from prompt_toolkit.layout.layout import Layout
 from prompt_toolkit.layout.dimension import Dimension
-from prompt_toolkit.layout.containers import ConditionalContainer, HSplit
+from prompt_toolkit.layout.layout import Layout
 from prompt_toolkit.mouse_events import MouseEventType
 from prompt_toolkit.styles import Style
 from prompt_toolkit.widgets import TextArea, Button, Box
 
 from src.config.parser import ConfigOption, PipelineGlobalConfig
-from src.pipelines import PipelineManifest
 
 OptionValue = Optional[AnyFormattedText]
 Option = Dict[
@@ -28,7 +28,7 @@ IndexedOption = Tuple[
 ]
 
 
-class SelectionControl(FormattedTextControl):
+class ConfigPromptSelectionControl(FormattedTextControl):
     def __init__(
             self,
             global_config: PipelineGlobalConfig,
@@ -36,7 +36,6 @@ class SelectionControl(FormattedTextControl):
     ) -> None:
         self.global_config = global_config
         self.config_index = {i: k for i, (k,v) in enumerate(global_config.get_config().items())}
-        self.answered = False
         self.selected_option_index = 0
         super().__init__(**kwargs)
 
@@ -50,16 +49,13 @@ class SelectionControl(FormattedTextControl):
 
 
 
-    def _select_option(self, index):
+    def _select_option(self, index, text_area):
 
         def handler(mouse_event):
-            if mouse_event.event_type != MouseEventType.MOUSE_DOWN:
-                raise NotImplemented
-
-            # bind option with this index to mouse event
-            self.selected_option_index = index
-            self.answered = True
-            get_app().exit(result=self.selected_option)
+            if mouse_event.event_type == MouseEventType.MOUSE_DOWN:
+                get_app().layout.focus(text_area)
+                # bind option with this index to mouse event
+                self.selected_option_index = index
 
         return handler
 
@@ -67,6 +63,7 @@ class SelectionControl(FormattedTextControl):
             self,
             idx,
             option: ConfigOption,
+            text_area,
             *,
             selected_style_class: str = '',
             selected_prefix_char: str = '>',
@@ -77,10 +74,10 @@ class SelectionControl(FormattedTextControl):
         value = str(option.value())
         if self.selected_option_index == idx:
             option_prefix = selected_prefix_char + option_prefix
-            return selected_style_class, f'{option_prefix}{name}\n', self._select_option(idx)
+            return selected_style_class, f'{option_prefix}{name}\n', self._select_option(idx, text_area)
 
         option_prefix += ' '
-        return '', f'{option_prefix}{name}\n', self._select_option(idx)
+        return '', f'{option_prefix}{name}\n', self._select_option(idx, text_area)
 
 
     def update_config(self, name, text):
@@ -90,7 +87,13 @@ class SelectionControl(FormattedTextControl):
         if not success:
             self.global_config.reset_config_option(k)
 
-
+    def get_selection_description(self):
+        if not self.selected_option_index in self.config_index:
+            return []
+        selection = self.global_config[self.config_index[self.selected_option_index]]
+        if not selection.description:
+            return []
+        return [('class:description', 'Description\n'),  ('', "\n".join(wrap(selection.description, width=50)))]
 
 class ConfigurationPrompt:
     def __init__(
@@ -131,8 +134,8 @@ class ConfigurationPrompt:
         button_reset = Button("Reset Defaults", handler=partial(self.btn_reset_defaults), width=len("Reset Defaults") + 4)
         self.num_buttons = 3
 
-        def callback_factory(idx, m):
-            return lambda: [self.control.format_option(idx, m, selected_style_class='class:reverse')]
+        def callback_factory(idx, m, text_area):
+            return lambda: [self.control.format_option(idx, m, text_area, selected_style_class='class:reverse')]
 
         form = []
         for idx, opt_name in self.control.config_index.items():
@@ -145,7 +148,7 @@ class ConfigurationPrompt:
                     height=Dimension.exact(1),
                     width=Dimension.exact(50),
                     content=FormattedTextControl(
-                        callback_factory(idx, opt))
+                        callback_factory(idx, opt, ta))
                 ),
                 ta]))
 
@@ -157,7 +160,18 @@ class ConfigurationPrompt:
                     show_cursor=False
                 ),
             ),
-            HSplit(form),
+            VSplit(
+                [
+                    HSplit(form),
+                    Window(
+                        content=FormattedTextControl(self.control.get_selection_description),
+                        wrap_lines=True,
+                        width=Dimension.exact(60),
+                        height=Dimension.exact(len(self.control.config_index))
+
+                    )
+                ])
+            ,
             Box(
                 body=VSplit([cancel_button, button_submit, button_reset], padding=1),
                 padding=1,
@@ -217,13 +231,15 @@ class ConfigurationPrompt:
         style = Style.from_dict(
             {
                 "status": "reverse",
+                'description': '#012345 bold'
             }
         )
         app = Application(
             layout=self.layout,
             key_bindings=self.key_bindings,
             style=style,
-            full_screen=False
+            full_screen=False,
+            mouse_support=True
         )
         return app
 
@@ -236,7 +252,7 @@ class ConfigurationPrompt:
             self.message = message
 
         if self.app is None:
-            self.control = SelectionControl(self.global_config)
+            self.control = ConfigPromptSelectionControl(self.global_config)
             self.layout = self._create_layout()
             self.key_bindings = self._create_key_bindings()
             self.app = self._create_application()
@@ -244,12 +260,3 @@ class ConfigurationPrompt:
         return self.app.run()
 
 
-# if __name__ == '__main__':
-#     pipeline_manifest = '/home/yuval/Documents/XNOR/kwiver_batch_runner/conf/pipeline_manifest.yaml'
-#     pipeline_manifest = PipelineManifestParser(pipeline_manifest)
-#
-#     pipeline = pipeline_manifest.get_pipeline('JoBBS_seal_yolo_ir_eo_region_trigger')
-#     p = SelectionPrompt(options=pipeline.config)
-#
-#     v = p.prompt('choose one')
-#     print(f'you choose: {v}')

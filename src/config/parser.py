@@ -1,12 +1,13 @@
 from src.config.types import parse_type
 
 class ConfigOption():
-    def __init__(self, name, default, type, env_variable, value=None):
+    def __init__(self, name, default, type, env_variable, description=None, value=None):
         self.name = name
         self.default = default
         self.__value = value
         self.validator = parse_type(type)
         self.env_variable = env_variable
+        self.description = description
 
     def value(self):
         if self.__value:
@@ -28,7 +29,7 @@ class PipelineGlobalConfig:
         self.__config = {}
 
         for name, attributes in config.items():
-            o = ConfigOption(name, attributes.get('default'), attributes.get('type'), attributes.get('env_variable'))
+            o = ConfigOption(name, attributes.get('default'), attributes.get('type'), attributes.get('env_variable'), attributes.get('description'))
             self.__config[name] = o
 
     def get_config(self):

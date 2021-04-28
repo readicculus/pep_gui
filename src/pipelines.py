@@ -8,7 +8,6 @@ class PipelineMeta:
     def __init__(self, name, path, config):
         self.name = name
         self.path = os.path.join(PLUGIN_PATH, path)
-
         self.config = PipelineGlobalConfig(config)
 
 

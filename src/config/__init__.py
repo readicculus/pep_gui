@@ -6,8 +6,9 @@ from src.pipelines import PipelineMeta
 
 @contextmanager
 def pipeline_environment(pipeline: PipelineMeta):
-    """Temporarily set environment variables inside the context manager and
-    fully restore previous environment afterwards
+    """
+        Given a pipeline will set the environment variables required to configure the parameters
+        defined for the pipeline in the pipeline_manifest.yaml.
     """
     original_env = os.environ
 

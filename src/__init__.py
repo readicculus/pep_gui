@@ -1,5 +1,4 @@
 import os
-from contextlib import contextmanager
 
 PLUGIN_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VIAME_INSTALL = "/data/software/viame-build/build/install/"

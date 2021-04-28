@@ -1,32 +1,34 @@
 import os
-from typing import List
 
-import yaml
 import regex as re
+import yaml
+
+from src.util.glob2re import glob2re
+
 
 class DatasetManifest():
-    root = 'Datasets'
-    key_sep = ':'
-    dataset_attributes = ['thermal_image_list', 'color_image_list', 'transformation_file']
+    __root = 'Datasets'
+    __key_sep = ':'
+    __dataset_attributes = ['thermal_image_list', 'color_image_list', 'transformation_file']
 
-    def __init__(self, manifest_file):
-        with open(manifest_file, 'r') as stream:
+    def __init__(self, manifest_filepath: str):
+        with open(manifest_filepath, 'r') as stream:
             try: dataset_yaml = yaml.safe_load(stream)
             except yaml.YAMLError as exc: print(exc)
 
-        self.datasets_data = dataset_yaml[self.root]
+        self.datasets_data = dataset_yaml[self.__root]
         self.dataset_keys = self.list_dataset_keys()
 
     def list_dataset_keys(self):
         def parse_recursive(data):
             dataset_keys = []
             for k, v in data.items():
-                if any([x in self.dataset_attributes for x in list(v.keys())]):
+                if any([x in self.__dataset_attributes for x in list(v.keys())]):
                     dataset_keys.append(k)
                 else:
                     res = parse_recursive(v)
                     for a in res:
-                        dataset_keys.append('%s%s%s' % (k, self.key_sep, a))
+                        dataset_keys.append('%s%s%s' % (k, self.__key_sep, a))
             return dataset_keys
 
         return parse_recursive(self.datasets_data)
@@ -48,7 +50,7 @@ class DatasetManifest():
         Returns a dictionary of dataset keystrings to datasets
         """
         keys_list_wildcards = []
-        regkey = '^'+key+'$'
+        regkey = '^'+glob2re(key)+'$'
         for existing_key in self.dataset_keys:
             if re.match(regkey, existing_key):
                 keys_list_wildcards.append(existing_key)
@@ -61,7 +63,7 @@ class DatasetManifest():
         out = {}
         for wkey in keys_list_wildcards:
             cur = self.datasets_data
-            for k in wkey.split(self.key_sep):
+            for k in wkey.split(self.__key_sep):
                 cur = cur[k]
             out[wkey] = cur
 
