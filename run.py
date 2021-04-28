@@ -1,3 +1,6 @@
+import os
+from src.kwiver import shell_source
+
 from prompt_toolkit import prompt, HTML
 from prompt_toolkit.shortcuts import ProgressBar
 
@@ -7,7 +10,6 @@ from src.cli.dialogs.completers import DatasetCompleter
 from src.cli.dialogs.formatters import rainbow_progress_bar
 from src.config import pipeline_environment
 from src.datasets import DatasetManifest, VIAMEDataset
-from src.kwiver import kwiver_environment
 from src.pipelines import PipelineManifest
 
 pipeline_manifest = 'conf/pipeline_manifest.yaml'
@@ -56,7 +58,7 @@ class CLIFlow:
         return self.part3(datasets)
 
     def part3(self, datasets):
-        with kwiver_environment(SETUP_VIAME), pipeline_environment(pipeline):
+        with pipeline_environment(pipeline):
             from src.kwiver.embedded_runner import EmbeddedPipelineWorker
 
             title = HTML('Running %s on <style bg="yellow" fg="black">%d datasets...</style>' %
@@ -79,9 +81,8 @@ class CLIFlow:
 
 
 
-
-
-flow = CLIFlow()
-flow.start()
+if __name__ == "__main__":
+        flow = CLIFlow()
+        flow.start()
 
 
