@@ -9,3 +9,4 @@ SETUP_VIAME = os.path.join(VIAME_INSTALL, 'setup_viame.sh')
 
 new_env = shell_source(os.path.join(VIAME_INSTALL, 'setup_viame.sh'))
 set_env(new_env)
+

@@ -200,7 +200,7 @@ class ConfigurationPrompt:
         @kb.add('c-q', eager=True)
         @kb.add('c-c', eager=True)
         def _(event):
-            raise KeyboardInterrupt()
+            get_app().exit()
 
         @kb.add('down', eager=True)
         def move_cursor_down(event):
@@ -231,7 +231,7 @@ class ConfigurationPrompt:
         style = Style.from_dict(
             {
                 "status": "reverse",
-                'description': '#012345 bold'
+                'description': 'reverse bold'
             }
         )
         app = Application(

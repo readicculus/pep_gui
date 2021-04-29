@@ -1,6 +1,6 @@
 PipelineManifest:
   JoBBS_seal_yolo_ir_eo_region_trigger:
-    path: conf/pipelines/VIAME-JoBBS-Models/embedded_dual_stream/JoBBS_seal_yolo_ir_eo_region_trigger.pipe
+    path: conf/pipelines/VIAME-JoBBS-Models/embedded_dual_stream/JoBBS_seal_yolo_ir_eo_region_trigger2.pipe
     config:
       trigger_threshold:
         default: 0.1

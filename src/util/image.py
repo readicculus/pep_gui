@@ -19,3 +19,4 @@ def load_image_kvr_container(fp, load_fn):
     vital_im = kvt.Image(np_image)
     im_container = kvt.ImageContainer(vital_im)
     return im_container
+

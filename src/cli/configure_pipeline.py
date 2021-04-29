@@ -8,7 +8,6 @@ from src.pipelines import PipelineMeta
 
 def configure_pipeline(pipeline: PipelineMeta):
     config = pipeline.config
-
     answer = confirm("Would you like to modify the pipeline parameter configuration?", suffix='(y/[n])')
     if answer == '': answer = False
     if answer:

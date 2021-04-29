@@ -12,18 +12,6 @@ from src.config import pipeline_environment
 from src.datasets import DatasetManifest, VIAMEDataset
 from src.pipelines import PipelineManifest
 
-pipeline_manifest = 'conf/pipeline_manifest.yaml'
-pipeline_manifest = PipelineManifest(pipeline_manifest)
-# parser = DatasetsParser('conf/debug_datasets.yaml')
-# datasets = parser.get_dataset('debug:a')
-# dataset = datasets['debug:a']
-#
-pipeline = pipeline_manifest.get_pipeline('JoBBS_seal_yolo_ir_eo_region_trigger')
-
-
-configure_pipeline(pipeline)
-
-parser = DatasetManifest('conf/datasets.yaml')
 
 
 
@@ -35,11 +23,11 @@ class CLIFlow:
 
     def part1(self):
         datasets_filter = prompt('Select which dataset/s you want to use > ', completer=DatasetCompleter(parser))
-        datasets = parser.get_dataset(datasets_filter)
+        datasets = parser.get_datasets(datasets_filter)
 
         while len(datasets) == 0 or not self.part2(datasets):
             datasets_filter = prompt('Select which dataset/s you want to use > ', completer=DatasetCompleter(parser))
-            datasets = parser.get_dataset(datasets_filter)
+            datasets = parser.get_datasets(datasets_filter)
 
     def part2(self, selected_datasets):
         print("\nYou've selected the following %d datasets:" % len(selected_datasets))
@@ -65,6 +53,7 @@ class CLIFlow:
                          (pipeline.name, len(datasets)))
 
             with ProgressBar(title=title, formatters=rainbow_progress_bar) as pb:
+            # with ProgressBar(title=title) as pb:
                 progress_bars = {}
                 workers = []
                 for name, dataset in datasets.items():
@@ -82,7 +71,24 @@ class CLIFlow:
 
 
 if __name__ == "__main__":
+    from kwiver.vital.algo.algos import VideoInput
+    from kwiver.vital.algo.algos import _algorithm
+    try:
+        pipeline_manifest = 'conf/pipeline_manifest.yaml'
+        pipeline_manifest = PipelineManifest(pipeline_manifest)
+        # parser = DatasetsParser('conf/debug_datasets.yaml')
+        # datasets = parser.get_dataset('debug:a')
+        # dataset = datasets['debug:a']
+        #
+        pipeline = pipeline_manifest.get_pipeline('JoBBS_seal_yolo_ir_eo_region_trigger')
+
+        configure_pipeline(pipeline)
+
+        parser = DatasetManifest('conf/datasets.yaml')
+        # parser = DatasetManifest('conf/debug_datasets.yaml')
+
         flow = CLIFlow()
         flow.start()
-
+    except KeyboardInterrupt:
+        pass
 

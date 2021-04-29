@@ -4,6 +4,9 @@ rainbow_progress_bar = [
     formatters.Label(),
     formatters.Text(" "),
     formatters.Rainbow(formatters.Bar()),
-    formatters.Text(" left: "),
+    formatters.Progress(),
+    formatters.Text(" it/s: "),
+    formatters.IterationsPerSecond(),
+    formatters.Text(" eta: "),
     formatters.Rainbow(formatters.TimeLeft()),
 ]

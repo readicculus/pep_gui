@@ -8,6 +8,7 @@ from prompt_toolkit.patch_stdout import patch_stdout
 
 from src.datasets import align_multimodal_image_lists
 from src.util.image import load_image_kvr_container, ocv_load
+from src.util.image_thread import ImageLoader
 from src.util.logging import stderr_redirected
 
 
@@ -89,7 +90,8 @@ class EmbeddedPipelineWorker:
         if 'transformation_file' in self.dataset.attributes:
             os.environ['PIPE_ARG_TRANSFORMATION_FILE'] = self.dataset.attributes['transformation_file']
     def set_progress_iterator(self, iterator):
-        self.progress_iterator =iterator
+        self.progress_iterator = iterator
+
 
     def run(self):
         with stderr_redirected('stderr.txt'):
@@ -130,8 +132,10 @@ class EmbeddedPipelineWorker:
                         self.progress += 1
                         # print('Skipped')
                         continue
+                    t = datetime.datetime.now()
                     im_eo_kvr = load_image_kvr_container(eo_fp, ocv_load)
                     im_ir_kvr = load_image_kvr_container(ir_fp, ocv_load)
+                    print(datetime.datetime.now()-t)
                     pipe_runner.send({'image_eo': im_eo_kvr, 'image_ir': im_ir_kvr})
                     self.progress += 1
 

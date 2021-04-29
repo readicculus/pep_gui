@@ -1,6 +1,20 @@
 Datasets:
-  debug:
-    a:
-      thermal_image_list: /home/yuval/Documents/XNOR/kwiver_batch_runner/data/a_ir.txt
-      color_image_list: /home/yuval/Documents/XNOR/kwiver_batch_runner/data/a_rgb.txt
-      transformation_file: /data2/2019/Homographies/A90_RGB-IR_C_100mm_0deg_20190509_fl4.h5
+  kotz:
+    fl04:
+      LEFT:
+        thermal_image_list: /data2/example_kotz/fl04/LEFT/thermal_images.txt
+        color_image_list: /data2/example_kotz/fl04/LEFT/color_images.txt
+        transformation_file: /data2/example_kotz/transformations/A90_RGB-IR_L_100mm_25deg_20190509-11_fl4-7.h5
+      CENT:
+        thermal_image_list: /data2/example_kotz/fl04/CENT/thermal_images.txt
+        color_image_list: /data2/example_kotz/fl04/CENT/color_images.txt
+        transformation_file: /data2/example_kotz/transformations/A90_RGB-IR_C_100mm_0deg_20190509_fl4.h5
+    fl05:
+      LEFT:
+        thermal_image_list: /data2/example_kotz/fl05/LEFT/thermal_images.txt
+        color_image_list: /data2/example_kotz/fl05/LEFT/color_images.txt
+        transformation_file: /data2/example_kotz/transformations/A90_RGB-IR_L_100mm_25deg_20190509-11_fl4-7.h5
+      CENT:
+        thermal_image_list: /data2/example_kotz/fl05/CENT/thermal_images.txt
+        color_image_list: /data2/example_kotz/fl05/CENT/color_images.txt
+        transformation_file: /data2/example_kotz/transformations/A90_RGB-IR_C_100mm_0deg_20190509-10_fl5-6.h5

@@ -17,27 +17,27 @@ Datasets:
         transformation_file: /data2/2019/Homographies/A90_RGB-IR_C_100mm_0deg_20190509-10_fl5-6.h5
       LEFT:
         thermal_image_list: /data2/2019/fl05/LEFT/2019TestF5L_imagesIR.txt
-        color_image_list: /data2/2019/fl05/LEFT/LEFT/2019TestF5L_imagesRGB.txt
+        color_image_list: /data2/2019/fl05/LEFT/2019TestF5L_imagesRGB.txt
         transformation_file: /data2/2019/Homographies/A90_RGB-IR_L_100mm_25deg_20190509-11_fl4-7.h5
 
     fl06:
       CENT:
-        thermal_image_list: /data2/2019/fl06/CENT/2019TestF6C_imagesIR.txt
-        color_image_list: /data2/2019/fl06/CENT/2019TestF6C_imagesRGB.txt
+        thermal_image_list: /data2/2019/fl06/CENT/2019TestF6C_imagesIR_all.txt
+        color_image_list: /data2/2019/fl06/CENT/2019TestF6C_imagesRGB_all.txt
         transformation_file: /data2/2019/Homographies/A90_RGB-IR_C_100mm_0deg_20190509-10_fl5-6.h5
       LEFT:
-        thermal_image_list: /data2/2019/fl06/LEFT/2019TestF6L_imagesIR.txt
-        color_image_list: /data2/2019/fl06/LEFT/LEFT/2019TestF6L_imagesRGB.txt
+        thermal_image_list: /data2/2019/fl06/LEFT/2019TestF6L_imagesIR_all.txt
+        color_image_list: /data2/2019/fl06/LEFT/2019TestF6L_imagesRGB_all.txt
         transformation_file: /data2/2019/Homographies/A90_RGB-IR_L_100mm_25deg_20190509-11_fl4-7.h5
 
     fl07:
       CENT:
         thermal_image_list: /data2/2019/fl07/CENT/2019TestF7C_tinyYolo_eo_20200219_original_imagesIR_all.txt
-        color_image_list: /data2/2017/fl06/CENT/2019TestF7C_tinyYolo_eo_20200219_original_imagesRGB_all.txt
+        color_image_list: /data2/2019/fl07/CENT/2019TestF7C_tinyYolo_eo_20200219_original_imagesRGB_all.txt
         transformation_file: /data2/2019/Homographies/A90_RGB-IR_C_100mm_0deg_20190511_fl7.h5
       LEFT:
         thermal_image_list: /data2/2019/fl07/LEFT/2019TestF7L_tinyYolo_eo_20200221_original_imagesIR_all.txt
-        color_image_list: /data2/2019/fl07/LEFT/LEFT/2019TestF7L_tinyYolo_eo_20200221_original_imagesRGB_all.txt
+        color_image_list: /data2/2019/fl07/LEFT/2019TestF7L_tinyYolo_eo_20200221_original_imagesRGB_all.txt
         transformation_file: /data2/2019/Homographies/A90_RGB-IR_L_100mm_25deg_20190509-11_fl4-7.h5
 
   CHESS-us-2016:

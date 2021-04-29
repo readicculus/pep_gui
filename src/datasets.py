@@ -33,7 +33,13 @@ class DatasetManifest():
 
         return parse_recursive(self.datasets_data)
 
-    def get_dataset(self, key):
+    def get_dataset(self, path):
+        cur = self.datasets_data
+        for k in path.split(self.__key_sep):
+            cur = cur[k]
+        return cur
+
+    def get_datasets(self, key):
         """Gets a dataset using a key
         A Key can contain regex wildcard expressions, so getting all Kotz datasets the key could be 'Kotz-2019:fl04:.*'
         which would return the following.
@@ -62,10 +68,7 @@ class DatasetManifest():
 
         out = {}
         for wkey in keys_list_wildcards:
-            cur = self.datasets_data
-            for k in wkey.split(self.__key_sep):
-                cur = cur[k]
-            out[wkey] = cur
+            out[wkey] = self.get_dataset(wkey)
 
         return out
 
@@ -116,7 +119,7 @@ class VIAMEDataset:
         self.attributes = {k:self.__attribute_types_map[k](v) for k,v in attributes.items()}
 
 
-def align_multimodal_image_lists(list1: ImageList, list2: ImageList):
+def align_multimodal_image_lists(list1: ImageList, list2: ImageList, max_dist=100):
     def file_key(fn):
         fn = os.path.basename(fn)
         return '_'.join(fn.split('_')[:-1])
@@ -128,6 +131,8 @@ def align_multimodal_image_lists(list1: ImageList, list2: ImageList):
         found = False
         for i2_idx, i2 in enumerate(list2[i1_idx:]):
             i2_idx = i2_idx + i1_idx
+            if i2_idx > i1_idx + max_dist:
+                continue
             i2_key = file_key(i2)
             if i1_key == i2_key:
                 if i2_idx - i1_idx > diff:
@@ -141,14 +146,3 @@ def align_multimodal_image_lists(list1: ImageList, list2: ImageList):
         if not found:
             aligned.append((i1, None))
     return aligned
-
-
-# parser = DatasetManifestParser('../conf/datasets.yaml')
-# dataset = parser.get_dataset('Kotz-2019:fl04:CENT')
-# x=1
-# mapper = PipelineMapper('conf/pipeline_mapper.yaml')
-# mapper.get_mappings(dataset)
-# print(parser.list_dataset_keys())
-# print(json.dumps(datasets, indent=1))
-# # print(ds.get_datasets(['Kotz-2019:fl04:.*']))
-# x=1
