@@ -114,12 +114,15 @@ class VIAMEDataset:
                              'color_image_list': ImageList,
                              'transformation_file': str,
                              'timestamp_format': str}
-    def __init__(self, dataset_name, attributes):
+    def __init__(self, dataset_name, attributes, load_images):
+        if not load_images:
+            self.__attribute_types_map['thermal_image_list'] = str
+            self.__attribute_types_map['color_image_list'] = str
         self.dataset_name = dataset_name
         self.attributes = {k:self.__attribute_types_map[k](v) for k,v in attributes.items()}
 
 
-def align_multimodal_image_lists(list1: ImageList, list2: ImageList, max_dist=100):
+def align_multimodal_image_lists(list1: ImageList, list2: ImageList, keep_unmatched, max_dist=100):
     def file_key(fn):
         fn = os.path.basename(fn)
         return '_'.join(fn.split('_')[:-1])
@@ -145,4 +148,12 @@ def align_multimodal_image_lists(list1: ImageList, list2: ImageList, max_dist=10
 
         if not found:
             aligned.append((i1, None))
+
+    if not keep_unmatched:
+        res = []
+        for a,b in aligned:
+            if a is None or b is None:
+                continue
+            res.append((a,b))
+        return res
     return aligned

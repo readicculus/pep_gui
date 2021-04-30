@@ -1,16 +1,28 @@
 #https://github.com/Kitware/kwiver/blob/master/python/kwiver/sprokit/adapters/embedded_pipeline.cxx
 import datetime
 import os
+from asyncio import sleep
 
 from kwiver.sprokit.adapters import embedded_pipeline
 from kwiver.sprokit.adapters import adapter_data_set
 from prompt_toolkit.patch_stdout import patch_stdout
+from prompt_toolkit.shortcuts import ProgressBarCounter
 
 from src.datasets import align_multimodal_image_lists
-from src.util.image import load_image_kvr_container, ocv_load
-from src.util.image_thread import ImageLoader
+from src.util.image_thread import ImageLoader, dual_stream_loading_fn
 from src.util.logging import stderr_redirected
 
+def handle_det(det):
+    index = det.index
+    bbox = det.bounding_box
+    confidence = det.confidence
+    classes = det.type.class_names()
+    x1 = bbox.min_x()
+    x2 = bbox.max_x()
+    y1 = bbox.min_y()
+    y2 = bbox.max_y()
+    print('%d, (%d,%d  %d,%d) - %s - %.3f' % (index, int(x1), int(y1), int(x2), int(y2),
+                                              ','.join(classes), confidence))
 
 class EmbeddedPipelineRunner:
     def __init__(self, pipeline_file):
@@ -56,7 +68,8 @@ class EmbeddedPipelineRunner:
     def send(self, args_dict):
         for k,v in args_dict.items():
             self.input_adapter[k] = v
-        self.ep.connect_input_adapter()
+        if not self.ep.input_adapter_connected():
+            self.ep.connect_input_adapter()
         self.ep.send(self.input_adapter)
 
 
@@ -82,62 +95,45 @@ class EmbeddedPipelineWorker:
         self.dataset = dataset
         self.pipeline_fp = pipeline_fp
 
-        self.aligned_images = align_multimodal_image_lists(self.dataset.attributes['color_image_list'],
-                                                      self.dataset.attributes['thermal_image_list'])
+        self.aligned_images = align_multimodal_image_lists(list1=self.dataset.attributes['color_image_list'],
+                                                           list2=self.dataset.attributes['thermal_image_list'],
+                                                           keep_unmatched=False)
 
         self.total = len(self.aligned_images)
         self.progress = 0
-        if 'transformation_file' in self.dataset.attributes:
-            os.environ['PIPE_ARG_TRANSFORMATION_FILE'] = self.dataset.attributes['transformation_file']
-    def set_progress_iterator(self, iterator):
-        self.progress_iterator = iterator
 
+    def set_progress_counter(self, progress_counter: ProgressBarCounter):
+        self.progress_counter = progress_counter
 
-    def run(self):
+    def run(self, threaded=False):
+        def processing_fn(data):
+            while pipe_runner.full():
+                sleep(.1)
+            im_eo_kvr, im_ir_kvr = data
+            pipe_runner.send({'image_eo': im_eo_kvr, 'image_ir': im_ir_kvr})
+            self.progress_counter.item_completed()
+
+            if not pipe_runner.ep.empty():
+                dets_eo, dets_ir = pipe_runner.receive()
+                for det in dets_eo:
+                    handle_det(det)
+
+                for det in dets_ir:
+                    handle_det(det)
+
         with stderr_redirected('stderr.txt'):
             with patch_stdout():
+
                 pipe_runner = EmbeddedPipelineRunner(self.pipeline_fp)
                 pipe_runner.load()
                 pipe_runner.start()
-                self.progress_iterator.start_time = datetime.datetime.now()
-                for i in self.progress_iterator:
-                    # print(self.progress)
-                    if pipe_runner.full():
-                        dets_eo, dets_ir = pipe_runner.receive()
-                        for det in dets_eo:
-                            index = det.index
-                            bbox = det.bounding_box
-                            confidence = det.confidence
-                            classes = det.type.class_names()
-                            x1 = bbox.min_x()
-                            x2 = bbox.max_x()
-                            y1 = bbox.min_y()
-                            y2 = bbox.max_y()
-                            # print('%d, (%d,%d  %d,%d) - %s - %.3f' % (index, int(x1), int(y1), int(x2), int(y2),
-                            #                                           ','.join(classes), confidence))
-                        for det in dets_ir:
-                            index = det.index
-                            bbox = det.bounding_box
-                            confidence = det.confidence
-                            classes = det.type.class_names()
-                            x1 = bbox.min_x()
-                            x2 = bbox.max_x()
-                            y1 = bbox.min_y()
-                            y2 = bbox.max_y()
-                    #         print('%d, (%d,%d  %d,%d) - %s - %.3f' % (index, int(x1), int(y1), int(x2), int(y2),
-                    #                                                   ','.join(classes), confidence))
-                    # x = 1
-                    eo_fp, ir_fp = self.aligned_images[self.progress]
-                    if eo_fp is None or ir_fp is None:
-                        self.progress += 1
-                        # print('Skipped')
-                        continue
-                    t = datetime.datetime.now()
-                    im_eo_kvr = load_image_kvr_container(eo_fp, ocv_load)
-                    im_ir_kvr = load_image_kvr_container(ir_fp, ocv_load)
-                    print(datetime.datetime.now()-t)
-                    pipe_runner.send({'image_eo': im_eo_kvr, 'image_ir': im_ir_kvr})
-                    self.progress += 1
+                self.progress_counter.start_time = datetime.datetime.now()
+                if threaded:
+                    loader = ImageLoader(n_workers=4, batch_size=4, input_size=16, buffer_size=8)
+                    loader.run(self.aligned_images, processing_fn, dual_stream_loading_fn)
+                else:
+                    for data in self.aligned_images:
+                        processing_fn(dual_stream_loading_fn(data))
 
                 pipe_runner.ep.send_end_of_input()
                 pipe_runner.stop()

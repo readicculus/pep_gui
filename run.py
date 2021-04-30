@@ -10,6 +10,7 @@ from src.cli.dialogs.completers import DatasetCompleter
 from src.cli.dialogs.formatters import rainbow_progress_bar
 from src.config import pipeline_environment
 from src.datasets import DatasetManifest, VIAMEDataset
+from src.kwiver.subprocess_runner import KwiverRunner
 from src.pipelines import PipelineManifest
 
 
@@ -41,12 +42,12 @@ class CLIFlow:
             if res == 'N':
                 return False
 
-        datasets = {dataset_name: VIAMEDataset(dataset_name, attributes) for dataset_name, attributes in
+        datasets = {dataset_name: VIAMEDataset(dataset_name, attributes, True) for dataset_name, attributes in
                         selected_datasets.items()}
         return self.part3(datasets)
 
     def part3(self, datasets):
-        with pipeline_environment(pipeline):
+
             from src.kwiver.embedded_runner import EmbeddedPipelineWorker
 
             title = HTML('Running %s on <style bg="yellow" fg="black">%d datasets...</style>' %
@@ -57,11 +58,12 @@ class CLIFlow:
                 progress_bars = {}
                 workers = []
                 for name, dataset in datasets.items():
-                    worker = EmbeddedPipelineWorker(name,dataset, pipeline.path)
-                    label = HTML('<ansired>%s</ansired>: ' % name)
-                    progress_bars[name] = pb(range(worker.total), label=label)
-                    worker.set_progress_iterator(progress_bars[name])
-                    workers.append(worker)
+                    with pipeline_environment(pipeline, dataset):
+                        worker = EmbeddedPipelineWorker(name,dataset, pipeline.path)
+                        label = HTML('<ansired>%s</ansired>: ' % name)
+                        progress_bars[name] = pb(range(worker.total), label=label)
+                        worker.set_progress_counter(progress_bars[name])
+                        workers.append(worker)
 
                 for w in workers:
                     w.run()

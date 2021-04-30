@@ -4,7 +4,7 @@
 include ../JoBBS.config
 
 config _pipeline:_edge
-   :capacity                                   5
+   :capacity                                   10
 
 config _scheduler
   :type                                                 pythread_per_process

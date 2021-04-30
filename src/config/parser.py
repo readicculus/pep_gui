@@ -8,6 +8,7 @@ class ConfigOption():
         self.validator = parse_type(type)
         self.env_variable = env_variable
         self.description = description
+        self.type = type
 
     def value(self):
         if self.__value:
@@ -23,6 +24,18 @@ class ConfigOption():
 
     def reset(self):
         self.__value = self.default
+
+class PipelineOutputConfig:
+    def __init__(self, config):
+        self.__config = {}
+        if config is not None:
+            for name, attributes in config.items():
+                o = ConfigOption(name, attributes.get('default'), attributes.get('type'), attributes.get('env_variable'),
+                                 attributes.get('description'))
+                self.__config[name] = o
+
+    def get_config(self):
+        return self.__config
 
 class PipelineGlobalConfig:
     def __init__(self, config):
