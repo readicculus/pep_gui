@@ -1,0 +1,3 @@
+[submodule "lib/python3.6/site-packages/python-prompt-toolkit"]
+	path = lib/python3.6/site-packages/python-prompt-toolkit
+	url = https://github.com/prompt-toolkit/python-prompt-toolkit.git
