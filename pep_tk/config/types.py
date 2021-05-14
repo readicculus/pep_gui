@@ -26,6 +26,7 @@ class ConfigIntType(ConfigType):
         self.max = max
 
     def validate(self, text):
+        text = str(text)
         if not text.isdigit():
             return False, text
         try:
@@ -67,27 +68,38 @@ class ConfigFloatType(ConfigType):
         if not self.max is not None and self.min is not None: return 'decimal greater than %f' % self.max
         return 'decimal'
 
-class ConfigFilePathPatternType(StringType):
+class ConfigOutputImageListType(StringType):
     def __init__(self):
         StringType.__init__(self)
 
     def validate(self, text):
         fp_pattern, ext = os.path.splitext(text)
-        return True, fp_pattern
+        return ext=='.txt', fp_pattern
+
+    def description(self): return 'file pattern'
+
+class ConfigOutputDetectionsType(StringType):
+    def __init__(self):
+        StringType.__init__(self)
+
+    def validate(self, text):
+        fp_pattern, ext = os.path.splitext(text)
+        return ext=='.csv', fp_pattern
 
     def description(self): return 'file pattern'
 
 
-def parse_type(type_str):
+def parse_type(type_str: str):
     '''
     Parse a type
     int[]
     str
     float
     '''
-    int_exp = '^int(?:\[(\d+)\,(\d+)?\])?$'
-    float_exp = '^float(?:\[([+-]?(?:[0-9]*[.])?[0-9]+)\,([+-]?(?:[0-9]*[.])?[0-9]+)?\])?$'
-    filepattern_exp = '^file_path_pattern$'
+    int_exp = r'^int(?:\[(\d+)\,(\d+)?\])?$'
+    float_exp = r'^float(?:\[([+-]?(?:[0-9]*[.])?[0-9]+)\,([+-]?(?:[0-9]*[.])?[0-9]+)?\])?$'
+    out_imagelist_exp = '^output_image_list$'
+    out_detections_exp = '^output_detections_file$'
     m = re.match(int_exp, type_str)
     if m:
         groups = m.groups()
@@ -100,8 +112,12 @@ def parse_type(type_str):
         min = float(groups[0]) if groups[0] is not None else None
         max = float(groups[1]) if groups[1] is not None else None
         return ConfigFloatType(min, max)
-    m = re.match(filepattern_exp, type_str)
+
+    m = re.match(out_imagelist_exp, type_str)
     if m:
-        return ConfigFilePathPatternType()
+        return ConfigOutputImageListType()
+    m = re.match(out_detections_exp, type_str)
+    if m:
+        return ConfigOutputDetectionsType()
 
     return StringType()

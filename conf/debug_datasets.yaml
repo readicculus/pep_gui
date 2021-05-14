@@ -1,5 +1,5 @@
 Datasets:
-  kotz:
+  Kotz-2019:
     fl04:
       LEFT:
         thermal_image_list: /data2/example_kotz/fl04/LEFT/thermal_images.txt

@@ -3,14 +3,19 @@ import datetime
 import os
 from asyncio import sleep
 
-from kwiver.sprokit.adapters import embedded_pipeline
-from kwiver.sprokit.adapters import adapter_data_set
+try:
+    from kwiver.sprokit.adapters import embedded_pipeline
+    from kwiver.sprokit.adapters import adapter_data_set
+except ImportError:
+    raise ImportError('Kwiver adapters not found, '
+                      'requires a kwiver version with the EmbeddedPipeline python bindings.')
+
 from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.shortcuts import ProgressBarCounter
 
-from src.datasets import align_multimodal_image_lists
-from src.util.image_thread import ImageLoader, dual_stream_loading_fn
-from src.util.logging import stderr_redirected
+from pep_tk.datasets import align_multimodal_image_lists
+from pep_tk.util.image_thread import ImageLoader, dual_stream_loading_fn
+from pep_tk.util.logging import stderr_redirected
 
 def handle_det(det):
     index = det.index
@@ -21,8 +26,8 @@ def handle_det(det):
     x2 = bbox.max_x()
     y1 = bbox.min_y()
     y2 = bbox.max_y()
-    print('%d, (%d,%d  %d,%d) - %s - %.3f' % (index, int(x1), int(y1), int(x2), int(y2),
-                                              ','.join(classes), confidence))
+    # print('%d, (%d,%d  %d,%d) - %s - %.3f' % (index, int(x1), int(y1), int(x2), int(y2),
+    #                                           ','.join(classes), confidence))
 
 class EmbeddedPipelineRunner:
     def __init__(self, pipeline_file):
@@ -95,8 +100,8 @@ class EmbeddedPipelineWorker:
         self.dataset = dataset
         self.pipeline_fp = pipeline_fp
 
-        self.aligned_images = align_multimodal_image_lists(list1=self.dataset.attributes['color_image_list'],
-                                                           list2=self.dataset.attributes['thermal_image_list'],
+        self.aligned_images = align_multimodal_image_lists(list1=self.dataset.color_images,
+                                                           list2=self.dataset.thermal_images,
                                                            keep_unmatched=False)
 
         self.total = len(self.aligned_images)
@@ -137,3 +142,4 @@ class EmbeddedPipelineWorker:
 
                 pipe_runner.ep.send_end_of_input()
                 pipe_runner.stop()
+                self.progress_counter.done = True

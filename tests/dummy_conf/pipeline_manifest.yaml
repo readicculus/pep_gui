@@ -1,0 +1,66 @@
+PipelineManifest:
+  test_pipeline_1:
+    path: conf/pipelines/VIAME-JoBBS-Models/cl_dual_stream/JoBBS_seal_yolo_ir_eo_region_trigger.pipe
+    parameters_config:
+      param_int_0-1:
+        default: 1
+        type: float[0,1]
+        env_variable: PIPE_ARG_TRIGGER_THRESHOLD
+        description: Threshold required for a thermal detection to trigger detection on the color image region.
+      param_float-0-1:
+        default: 0.1
+        type: float[0,1]
+        env_variable: PIPE_ARG_DET_THRESH_HS
+        description: The minimum detection threshold that the thermal hotspot detector will output detections for.
+
+    output_config:
+      output_dummy_detections_csv:
+        default: '[TIMESTAMP]_[DATASET].csv'
+        type: output_detections_csv
+        env_variable: PIPE_ARG_DETECTIONS_CSV
+      output_dummy_image_list:
+        default: '[TIMESTAMP]_[DATASET]_images.txt'
+        type: output_image_list
+        env_variable: PIPE_ARG_OUTPUT_IMAGE_LIST
+
+    dataset_pipeline_adapters:
+      thermal_image_list:
+        dataset_attribute: param_int_0-1
+        env_variable: PIPE_ARG_THERMAL_INPUT
+
+  test_pipeline_2:
+    path: conf/pipelines/VIAME-JoBBS-Models/cl_dual_stream/JoBBS_seal_yolo_ir_eo_region_trigger.pipe
+    parameters_config:
+      param_int_0-1:
+        default: 1
+        type: float[0,1]
+        env_variable: PIPE_ARG_TRIGGER_THRESHOLD
+        description: Threshold required for a thermal detection to trigger detection on the color image region.
+      param_float-0-1:
+        default: 0.1
+        type: float[0,1]
+        env_variable: PIPE_ARG_DET_THRESH_HS
+        description: The minimum detection threshold that the thermal hotspot detector will output detections for.
+
+    output_config:
+      output_optical_detections:
+        default: '[TIMESTAMP]_[DATASET]_EO.csv'
+        type: output_detections_csv
+        env_variable: PIPE_ARG_OPTICAL_OUTPUT_DETS
+      output_optical_image_list:
+        default: '[TIMESTAMP]_[DATASET]_EO_images.txt'
+        type: output_image_list
+        env_variable: PIPE_ARG_OPTICAL_OUTPUT_IMAGE_LIST
+      output_thermal_detections:
+        default: '[TIMESTAMP]_[DATASET]_IR.csv'
+        type: output_detections_csv
+        env_variable: PIPE_ARG_THERMAL_OUTPUT_DETS
+      output_thermal_image_list:
+        default: '[TIMESTAMP]_[DATASET]_images.txt'
+        type: output_image_list
+        env_variable: PIPE_ARG_THERMAL_OUTPUT_IMAGE_LIST
+
+    dataset_pipeline_adapters:
+      thermal_image_list:
+        dataset_attribute: param_int_0-1
+        env_variable: PIPE_ARG_THERMAL_INPUT

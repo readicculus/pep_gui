@@ -1,0 +1,26 @@
+Datasets:
+  test:
+    a:
+      a1:
+        thermal_image_list: dummy_images.txt
+        color_image_list: dummy_images.txt
+        transformation_file: dummy.h5
+      a2:
+        thermal_image_list: dummy_images.txt
+        color_image_list: dummy_images.txt
+        transformation_file: dummy.h5
+
+    b:
+      b1:
+        thermal_image_list: dummy_images.txt
+        color_image_list: dummy_images.txt
+        transformation_file: dummy.h5
+      b2:
+        thermal_image_list: dummy_images.txt
+        color_image_list: dummy_images.txt
+        transformation_file: dummy.h5
+
+
+  c:
+      thermal_image_list: dummy_images.txt
+      color_image_list: dummy_images.txt

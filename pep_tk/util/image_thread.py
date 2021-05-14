@@ -1,6 +1,6 @@
 from typing import Callable, List
 
-from src.util.image import load_image_kvr_container, ocv_load
+from pep_tk.util.image import load_image_kvr_container, ocv_load
 
 try:
     import Queue

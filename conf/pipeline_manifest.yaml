@@ -1,7 +1,7 @@
 PipelineManifest:
   JoBBS_seal_yolo_ir_eo_region_trigger:
     path: conf/pipelines/VIAME-JoBBS-Models/embedded_dual_stream/JoBBS_seal_yolo_ir_eo_region_trigger.pipe
-    config:
+    parameters_config:
       trigger_threshold:
         default: 0.1
         type: float[0,1]
@@ -32,7 +32,7 @@ PipelineManifest:
         type: float[0,1]
         env_variable: PIPE_ARG_DET_THRESH_HS
         description: The minimum detection threshold that the thermal hotspot detector will output detections for.
-    dataset_ports:
+    dataset_pipeline_adapters:
       transform_file:
         dataset_attribute: transformation_file
         env_variable: PIPE_ARG_TRANSFORMATION_FILE
@@ -41,7 +41,7 @@ PipelineManifest:
 
   cl_JoBBS_seal_yolo_ir_eo_region_trigger:
     path: conf/pipelines/VIAME-JoBBS-Models/cl_dual_stream/JoBBS_seal_yolo_ir_eo_region_trigger.pipe
-    config:
+    parameters_config:
       trigger_threshold:
         default: 0.1
         type: float[0,1]
@@ -75,19 +75,24 @@ PipelineManifest:
 
 
     output_config:
-      output_optical_file_pattern:
-        default: .tmp/detector_pb_seal_yolo_ir_eo_region_trigger-[CURRENT_TIME]_EO
-        type: file_path_pattern
-        env_variable: PIPE_ARG_OPTICAL_OUPUT_FP
-      output_thermal_file_pattern:
-        default: .tmp/detector_pb_seal_yolo_ir_eo_region_trigger-[CURRENT_TIME]_IR
-        type: file_path_pattern
-        env_variable: PIPE_ARG_THERMAL_OUPUT_FP
-        description: >
-                    The filename pattern(meaning without extension) to save the file, can include macros such as [TIMESTAMP]
+      output_optical_detections:
+        default: 'region-trigger_[TIMESTAMP]_[DATASET]_EO.csv'
+        type: output_detections_csv
+        env_variable: PIPE_ARG_OPTICAL_OUTPUT_DETS
+      output_optical_image_list:
+        default: 'region-trigger_[TIMESTAMP]_[DATASET]_EO_images.txt'
+        type: output_image_list
+        env_variable: PIPE_ARG_OPTICAL_OUTPUT_IMAGE_LIST
+      output_thermal_detections:
+        default: 'region-trigger_[TIMESTAMP]_[DATASET]_IR.csv'
+        type: output_detections_csv
+        env_variable: PIPE_ARG_THERMAL_OUTPUT_DETS
+      output_thermal_image_list:
+        default: 'region-trigger_[TIMESTAMP]_[DATASET]_images.txt'
+        type: output_image_list
+        env_variable: PIPE_ARG_THERMAL_OUTPUT_IMAGE_LIST
 
-
-    dataset_ports:
+    dataset_pipeline_adapters:
       thermal_image_list:
         dataset_attribute: thermal_image_list
         env_variable: PIPE_ARG_THERMAL_INPUT

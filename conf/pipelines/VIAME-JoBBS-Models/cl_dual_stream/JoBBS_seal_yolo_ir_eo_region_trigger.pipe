@@ -1,13 +1,20 @@
 # =============================================================================
-# global pipeline config
-#
-include ../JoBBS.config
-
 config _pipeline:_edge
   :capacity                                    5
 
 config _scheduler
   :type                                        pythread_per_process
+
+# =============================================================================
+# global pipeline config
+#
+config global
+   # output metadata information
+   :version_identifier                       VIAME-JoBBS-Models-v2021.02.23
+   :eo_seal_model_identifier                 eo_seals_yolo_tiny_3l_512_1to1bg_nounk.cfg@$ENV{PIPE_ARG_DET_THRESH_PB}
+   :eo_polar_bear_model_identifier           eo_pb_yolo_tiny_3l.cfg@$ENV{PIPE_ARG_DET_THRESH_PB}
+   :ir_hotspot_model_identifier              ir_yolo_tiny_1L64x80.cfg@$ENV{PIPE_ARG_DET_THRESH_HS}
+
 
 # =============================================================================
 
@@ -57,17 +64,47 @@ connect from thermal_input.file_name
         to   align_images.thermal_file_name
 
 # =============================================================================
-include ../common_ir_yolo_detector.pipe
+process thermal_detector_input
+  :: image_filter
+  :filter:type                                 npy_percentile_norm
+
+process thermal_detector
+  :: image_object_detector
+  :detector:type                               darknet
+
+  block detector:darknet
+    # Network config, weights, and names
+    relativepath net_config  =                 models/ir_yolo_tiny_1L64x80.cfg
+    relativepath weight_file =                 models/ir_yolo_tiny_1L64x80.weights
+    relativepath class_names =                 models/ir_yolo_tiny_1L64x80.names
+
+    # Detector parameters
+    :thresh                                    $ENV{PIPE_ARG_DET_THRESH_HS}
+    :hier_thresh                               0.001
+    :gpu_index                                 0
+
+    # Image scaling parameters
+    :resize_option                             disabled
+
+    # Prevent grayscale input from being loaded as rgb
+    :gs_to_rgb                                 false
+
+  endblock
+
 
 connect from align_images.thermal_image
         to   thermal_detector_input.image
 
+connect from thermal_detector_input.image
+        to   thermal_detector.image
+
+
 # ================================= EO DETECTOR ====================================
 process warp_ir_detections_to_eo
   :: itk_warp_detections
-  transformation_file = $CONFIG{global:transformation_file}
+  transformation_file = $ENV{PIPE_ARG_TRANSFORMATION_FILE}
 
-connect from thermal_detector_output.detected_object_set
+connect from thermal_detector.detected_object_set
         to   warp_ir_detections_to_eo.detected_object_set
 
 #  ===================================================
@@ -77,10 +114,10 @@ process optical_subregion_selector1
   :: detect_in_subregions
 
   :method                                      fixed_size
-  :max_subregion_count                         $CONFIG{global:seal_max_subregion_count}
+  :max_subregion_count                         $ENV{PIPE_ARG_SEAL_MAX_SUBREGION_COUNT}
   :fixed_size                                  512
   :include_input_dets                          false
-  :threshold                                   $CONFIG{global:trigger_threshold}
+  :threshold                                   $ENV{PIPE_ARG_TRIGGER_THRESHOLD}
 
   :detector:type                               darknet
 
@@ -92,7 +129,7 @@ process optical_subregion_selector1
     relativepath class_names =                 ../models/eo_seals_yolo_tiny_3l_512_1to1bg_nounk.names
 
     # Detector parameters
-    :thresh                                    $CONFIG{global:detection_threshold_seal}
+    :thresh                                    $ENV{PIPE_ARG_DET_THRESH_SEAL}
     :hier_thresh                               0.001
     :gpu_index                                 0
 
@@ -113,10 +150,10 @@ process optical_subregion_selector2
   :: detect_in_subregions
 
   :method                                      fixed_size
-  :max_subregion_count                         $CONFIG{global:polar_bear_max_subregion_count}
+  :max_subregion_count                         $ENV{PIPE_ARG_PB_MAX_SUBREGION_COUNT}
   :fixed_size                                  416
   :include_input_dets                          false
-  :threshold                                   $CONFIG{global:trigger_threshold}
+  :threshold                                   $ENV{PIPE_ARG_TRIGGER_THRESHOLD}
 
   :detector:type                               darknet
 
@@ -128,7 +165,7 @@ process optical_subregion_selector2
     relativepath class_names =                 ../models/eo_pb_yolo_tiny_3l.names
 
     # Detector parameters
-    :thresh                                    $CONFIG{global:detection_threshold_polar_bear}
+    :thresh                                    $ENV{PIPE_ARG_DET_THRESH_PB}
     :hier_thresh                               0.001
     :gpu_index                                 0
 
@@ -145,28 +182,13 @@ connect from warp_ir_detections_to_eo.detected_object_set
 #  ===================================================
 # Combine Seal + Polar Bear dets then NMS
 #  ===================================================
-process optical_detector_combined
+process optical_detector_output
   :: merge_detection_sets
 
 connect from optical_subregion_selector1.detected_object_set
-        to   optical_detector_combined.detected_object_set1
+        to   optical_detector_output.detected_object_set1
 connect from optical_subregion_selector2.detected_object_set
-        to   optical_detector_combined.detected_object_set2
-
-process optical_detector_output
-  :: refine_detections
-  :refiner:type                                nms
-
-  block refiner:nms
-    :max_overlap                               0.80
-    :max_scale_difference                      0    # 0 means disabled
-    :nms_scale_factor                          1.0
-    :output_scale_factor                       1.0
-  endblock
-
-connect from optical_detector_combined.detected_object_set
-        to   optical_detector_output.detected_object_set
-
+        to   optical_detector_output.detected_object_set2
 
 # ================================== CSV WRITERS ===================================
 
@@ -174,11 +196,11 @@ process optical_writer_csv
   :: detected_object_output
 
   # Type of file to output
-  :file_name                                   $ENV{PIPE_ARG_OPTICAL_OUPUT_FP}.csv
-  :frame_list_output                           $ENV{PIPE_ARG_OPTICAL_OUPUT_FP}_images.txt
+  :file_name                                   $ENV{PIPE_ARG_OPTICAL_OUTPUT_DETS}
+  :frame_list_output                           $ENV{PIPE_ARG_OPTICAL_OUTPUT_IMAGE_LIST}
   :writer:type                                 viame_csv
 
-  :writer:viame_csv:model_identifier           $CONFIG{global:eo_seal_model_identifier}@$CONFIG{global:detection_threshold_seal} $CONFIG{global:eo_polar_bear_model_identifier}@$CONFIG{global:detection_threshold_polar_bear} trigger@$CONFIG{global:trigger_threshold}
+  :writer:viame_csv:model_identifier           $CONFIG{global:eo_seal_model_identifier} $CONFIG{global:eo_polar_bear_model_identifier}
   :writer:viame_csv:version_identifier         $CONFIG{global:version_identifier}
 
 connect from optical_detector_output.detected_object_set
@@ -190,14 +212,14 @@ process thermal_writer_csv
   :: detected_object_output
 
   # Type of file to output
-  :file_name                                   $ENV{PIPE_ARG_THERMAL_OUPUT_FP}.csv
-  :frame_list_output                           $ENV{PIPE_ARG_THERMAL_OUPUT_FP}_images.txt
+  :file_name                                   $ENV{PIPE_ARG_THERMAL_OUTPUT_DETS}
+  :frame_list_output                           $ENV{PIPE_ARG_THERMAL_OUTPUT_IMAGE_LIST}
   :writer:type                                 viame_csv
 
-  :writer:viame_csv:model_identifier           $CONFIG{global:ir_hotspot_model_identifier}@$CONFIG{global:detection_threshold_hotspot}
+  :writer:viame_csv:model_identifier           $CONFIG{global:ir_hotspot_model_identifier}
   :writer:viame_csv:version_identifier         $CONFIG{global:version_identifier}
 
-connect from thermal_detector_output.detected_object_set
+connect from thermal_detector.detected_object_set
         to   thermal_writer_csv.detected_object_set
 connect from thermal_input.file_name
         to   thermal_writer_csv.image_file_name
