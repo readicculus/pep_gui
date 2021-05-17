@@ -1,17 +1,12 @@
-import os
-from src.kwiver import shell_source
-
 from prompt_toolkit import prompt, HTML
 from prompt_toolkit.shortcuts import ProgressBar
 
-from src import SETUP_VIAME
-from src.cli.configure_pipeline import configure_pipeline
-from src.cli.dialogs.completers import DatasetCompleter
-from src.cli.dialogs.formatters import rainbow_progress_bar
-from src.config import pipeline_environment
-from src.datasets import DatasetManifest, VIAMEDataset
-from src.kwiver.subprocess_runner import KwiverRunner
-from src.pipelines import PipelineManifest
+from archive.cli import configure_pipeline
+from archive.cli.dialogs import DatasetCompleter
+from archive.cli.dialogs import rainbow_progress_bar
+from pep_tk.config import pipeline_environment
+from pep_tk.datasets import DatasetManifest, VIAMEDataset
+from config.pipelines import PipelineManifest
 
 
 
@@ -42,13 +37,13 @@ class CLIFlow:
             if res == 'N':
                 return False
 
-        datasets = {dataset_name: VIAMEDataset(dataset_name, attributes, True) for dataset_name, attributes in
+        datasets = {dataset_name: VIAMEDataset(dataset_name, attributes) for dataset_name, attributes in
                         selected_datasets.items()}
         return self.part3(datasets)
 
     def part3(self, datasets):
 
-            from src.kwiver.embedded_runner import EmbeddedPipelineWorker
+            from pep_tk.kwiver.embedded_runner import EmbeddedPipelineWorker
 
             title = HTML('Running %s on <style bg="yellow" fg="black">%d datasets...</style>' %
                          (pipeline.name, len(datasets)))
@@ -73,8 +68,6 @@ class CLIFlow:
 
 
 if __name__ == "__main__":
-    from kwiver.vital.algo.algos import VideoInput
-    from kwiver.vital.algo.algos import _algorithm
     try:
         pipeline_manifest = 'conf/pipeline_manifest.yaml'
         pipeline_manifest = PipelineManifest(pipeline_manifest)
@@ -82,11 +75,11 @@ if __name__ == "__main__":
         # datasets = parser.get_dataset('debug:a')
         # dataset = datasets['debug:a']
         #
-        pipeline = pipeline_manifest.get_pipeline('JoBBS_seal_yolo_ir_eo_region_trigger')
+        pipeline = pipeline_manifest['JoBBS_seal_yolo_ir_eo_region_trigger']
 
         configure_pipeline(pipeline)
 
-        parser = DatasetManifest('conf/datasets.yaml')
+        parser = DatasetManifest('conf/debug_datasets.yaml')
         # parser = DatasetManifest('conf/debug_datasets.yaml')
 
         flow = CLIFlow()

@@ -41,8 +41,8 @@ class ConfigIntType(ConfigType):
 
     def description(self):
         if self.min is not None and self.max is not None: return 'integer between %d and %d' % (self.min, self.max)
-        if not self.min is not None and self.max is not None: return 'integer less than %d' % self.max
-        if not self.max is not None and self.min is not None: return 'integer greater than %d' % self.max
+        if self.min is None and self.max is not None: return 'integer less than %d' % self.max
+        if self.max is None and self.min is not None: return 'integer greater than %d' % self.min
         return 'integer'
 
 class ConfigFloatType(ConfigType):
@@ -63,9 +63,9 @@ class ConfigFloatType(ConfigType):
         return True, text
 
     def description(self):
-        if not self.min is not None and self.max is not None: return 'decimal between %f and %f' % (self.min, self.max)
-        if not self.min is not None and self.max is not None: return 'decimal less than %f' % self.max
-        if not self.max is not None and self.min is not None: return 'decimal greater than %f' % self.max
+        if self.min is not None and self.max is not None: return 'decimal between %.1f and %.1f' % (self.min, self.max)
+        if self.min is None and self.max is not None: return 'decimal less than %.1f' % self.max
+        if self.max is None and self.min is not None: return 'decimal greater than %.1f' % self.min
         return 'decimal'
 
 class ConfigOutputImageListType(StringType):

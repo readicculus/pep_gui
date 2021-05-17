@@ -1,19 +1,14 @@
 # https://github.com/PySimpleGUI/PySimpleGUI/issues/3058
 import os
-import sys
-from io import BytesIO
 
 import PySimpleGUI as sg
-from PIL import Image, ImageDraw
 
-from config import PipelineManifest
-from core.task import TaskContextController
-from datasets import DatasetManifest
 from view import get_settings
 
 class SettingsNames:
     setup_viame_filepath = 'setup_viame_filepath'
     dataset_manifest_filepath = 'dataset_manifest_filepath'
+    window_location = 'window_location'
 
 def initial_setup():
     gui_settings = get_settings()

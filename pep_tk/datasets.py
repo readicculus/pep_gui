@@ -110,6 +110,18 @@ class DatasetManifest():
             return dataset_keys
 
         return parse_recursive(self.datasets_data)
+    def list_dataset_keys_exp(self, exp):
+        keys_list_wildcards = []
+        regkey = '^'+glob2re(exp)+'$'
+        for existing_key in self.dataset_keys:
+            if re.match(regkey, existing_key):
+                keys_list_wildcards.append(existing_key)
+
+        if len(keys_list_wildcards) == 0:
+            msg = '\n'.join(self.dataset_keys)
+            print(exp + ' does not exist or does not match any existing datasets.\nFollowing datasets were found:\n' + msg + '\n')
+            return []
+        return keys_list_wildcards
 
     def get_dataset(self, path: str) -> Optional[VIAMEDataset]:
         cur = self.datasets_data
@@ -135,16 +147,7 @@ class DatasetManifest():
 
         Returns a dictionary of dataset keystrings to datasets
         """
-        keys_list_wildcards = []
-        regkey = '^'+glob2re(key)+'$'
-        for existing_key in self.dataset_keys:
-            if re.match(regkey, existing_key):
-                keys_list_wildcards.append(existing_key)
-
-        if len(keys_list_wildcards) == 0:
-            msg = '\n'.join(self.dataset_keys)
-            print(key + ' does not exist or does not match any existing datasets.\nFollowing datasets were found:\n' + msg + '\n')
-            return []
+        keys_list_wildcards = self.list_dataset_keys_exp(key)
 
         out = []
         for wkey in keys_list_wildcards:

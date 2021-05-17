@@ -1,7 +1,6 @@
-import PySimpleGUI as sg
 import abc
 
-class TabLayout(metaclass=abc.ABCMeta):
+class LayoutSection(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_layout(self):
@@ -13,5 +12,5 @@ class TabLayout(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def tab_name(self) -> str:
+    def layout_name(self) -> str:
         return ''
