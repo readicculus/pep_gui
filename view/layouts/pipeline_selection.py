@@ -2,7 +2,7 @@ from typing import Dict
 
 from config import PipelineManifest, ConfigOption, PipelineConfig
 from fonts import Fonts
-from layouts.tabs import LayoutSection
+from layouts.layout import LayoutSection
 import PySimpleGUI as sg
 
 
@@ -122,6 +122,7 @@ class PipelineSelectionLayout(LayoutSection):
              sg.Button('Select', key=self.select_pipeline_key)],
             frames
         ]
+
 
     # event loop handler
     def handle(self, window, event, values):

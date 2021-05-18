@@ -2,7 +2,7 @@ import PySimpleGUI as sg
 
 from datasets import DatasetManifest
 from fonts import Fonts
-from layouts.tabs import LayoutSection
+from layouts.layout import LayoutSection
 
 
 class DatasetSelectionLayout(LayoutSection):

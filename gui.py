@@ -3,7 +3,7 @@ from layouts import DatasetSelectionLayout, PipelineSelectionLayout
 from datasets import DatasetManifest
 from fonts import Fonts
 from initial_setup import initial_setup, SettingsNames
-from layouts.tabs import LayoutSection
+from layouts.layout import LayoutSection
 from view import get_settings
 import PySimpleGUI as sg
 sg.theme('SystemDefaultForReal')
@@ -19,7 +19,7 @@ dataset_tab = DatasetSelectionLayout(dm)
 pipeline_tab = PipelineSelectionLayout(pm)
 
 def create_frame(tl: LayoutSection):
-    return sg.Frame(layout=tl.get_layout(), title=tl.tab_name, font=Fonts.title_medium, title_color='#0b64c5')
+    return sg.Frame(layout=tl.get_layout(), title=tl.layout_name, font=Fonts.title_medium, title_color='#0b64c5')
 
 
 
@@ -29,7 +29,7 @@ layout = [[sg.Text('Polar Ecosystems Program Batch Runner', size=(38, 1), justif
 layout += [[create_frame(dataset_tab)],
            [create_frame(pipeline_tab)]]
 
-layout += [[sg.Button('Create Run')]]
+layout += [[sg.Button('Begin Run', key='-BEGIN_RUN-')]]
 # layout += [[sg.TabGroup([[
 #                             sg.Tab(dataset_tab.tab_name(), dataset_tab.get_layout()),
 #                             sg.Tab(pipeline_tab.tab_name(), pipeline_tab.get_layout())
@@ -49,6 +49,9 @@ while True:
     except: pass
     if event == sg.WIN_CLOSED:           # always,  always give a way out!
         break
+    if event == '-BEGIN_RUN-':
+        pass
+        continue
     dataset_tab.handle(window, event, values)
     pipeline_tab.handle(window, event, values)
 window.close()
