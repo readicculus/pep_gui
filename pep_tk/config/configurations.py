@@ -187,6 +187,7 @@ class PipelineConfig:
         """
         self.name = pipeline_name
         self.path = os.path.join(PLUGIN_PATH, config_dict['path'])
+        self.directory = os.path.dirname(self.path)
         if not os.path.exists(self.path):
             raise Exception('pipeline %s does not exist' % self.path)
         self.parameters_group = PipelineParametersOptionGroup(config_dict)

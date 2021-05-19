@@ -74,9 +74,9 @@ process thermal_detector
 
   block detector:darknet
     # Network config, weights, and names
-    relativepath net_config  =                 models/ir_yolo_tiny_1L64x80.cfg
-    relativepath weight_file =                 models/ir_yolo_tiny_1L64x80.weights
-    relativepath class_names =                 models/ir_yolo_tiny_1L64x80.names
+    relativepath net_config  =                 ../models/ir_yolo_tiny_1L64x80.cfg
+    relativepath weight_file =                 ../models/ir_yolo_tiny_1L64x80.weights
+    relativepath class_names =                 ../models/ir_yolo_tiny_1L64x80.names
 
     # Detector parameters
     :thresh                                    $ENV{PIPE_ARG_DET_THRESH_HS}

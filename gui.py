@@ -5,6 +5,7 @@ from fonts import Fonts
 from initial_setup import initial_setup, SettingsNames
 from layouts.layout import LayoutSection
 from view import get_settings
+from pep_tk.kwiver.pipeline_compiler import compile_pipeline
 import PySimpleGUI as sg
 sg.theme('SystemDefaultForReal')
 initial_setup()
@@ -50,7 +51,17 @@ while True:
     if event == sg.WIN_CLOSED:           # always,  always give a way out!
         break
     if event == '-BEGIN_RUN-':
-        pass
+        # TODO:
+        #   validate pipeline selected and more than 0 datasets selected
+        #   create the state
+        #   state then generates the pipeline files and handles running them one by one
+        pipeline = pipeline_tab.get_selected_pipeline()
+        datasets = dataset_tab.get_selected_datasets()
+        for dataset in datasets:
+            res = compile_pipeline(pipeline, dataset)
+            new_pipe_path = f'/data2/kwiver_cli_tasks/test/{dataset.name}-{pipeline.name}.pipe'
+            with open(new_pipe_path, 'w') as f:
+                f.write(res)
         continue
     dataset_tab.handle(window, event, values)
     pipeline_tab.handle(window, event, values)

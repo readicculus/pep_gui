@@ -6,22 +6,30 @@ PipelineManifest:
         default: 0.1
         type: float[0,1]
         env_variable: PIPE_ARG_TRIGGER_THRESHOLD
-#        setting: 'optical_input:video_filename'
+#        settings:
+#          - 'optical_subregion_selector1:threshold'
+#          - 'optical_subregion_selector2:threshold'
         description: Threshold required for a thermal detection to trigger detection on the color image region.
       seal_max_subregion_count:
         default: 30
         type: int[0,]
         env_variable: PIPE_ARG_SEAL_MAX_SUBREGION_COUNT
+#        settings:
+#          - 'optical_subregion_selector1:max_subregion_count'
         description: The maximum number of subregions the color seal detector can check in any given color image.
       polar_bear_max_subregion_count:
         default: 2
         type: int[0,]
         env_variable: PIPE_ARG_PB_MAX_SUBREGION_COUNT
+#        settings:
+#          - 'optical_subregion_selector2:max_subregion_count'
         description: The maximum number of subregions the color polar bear detector can check in any given color image.
       detection_threshold_seal:
         default: 0.1
         type: float[0,1]
         env_variable: PIPE_ARG_DET_THRESH_SEAL
+        settings:
+
         description: The minimum detection threshold that the color seal detector will output detections for.
       detection_threshold_polar_bear:
         default: 0.5
@@ -37,19 +45,19 @@ PipelineManifest:
 
     output_config:
       output_optical_detections:
-        default: 'region-trigger_[TIMESTAMP]_[DATASET]_EO.csv'
+        default: '[CURRENT_TIME]_region-trigger_[DATASET]_EO.csv'
         type: output_detections_csv
         env_variable: PIPE_ARG_OPTICAL_OUTPUT_DETS
       output_optical_image_list:
-        default: 'region-trigger_[TIMESTAMP]_[DATASET]_EO_images.txt'
+        default: '[CURRENT_TIME]_region-trigger_[DATASET]_EO_images.txt'
         type: output_image_list
         env_variable: PIPE_ARG_OPTICAL_OUTPUT_IMAGE_LIST
       output_thermal_detections:
-        default: 'region-trigger_[TIMESTAMP]_[DATASET]_IR.csv'
+        default: '[CURRENT_TIME]_region-trigger[DATASET]_IR.csv'
         type: output_detections_csv
         env_variable: PIPE_ARG_THERMAL_OUTPUT_DETS
       output_thermal_image_list:
-        default: 'region-trigger_[TIMESTAMP]_[DATASET]_images.txt'
+        default: '[CURRENT_TIME]_region-trigger_[DATASET]_IR_images.txt'
         type: output_image_list
         env_variable: PIPE_ARG_THERMAL_OUTPUT_IMAGE_LIST
 
