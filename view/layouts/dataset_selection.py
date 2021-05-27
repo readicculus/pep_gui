@@ -1,3 +1,5 @@
+from typing import List
+
 import PySimpleGUI as sg
 
 from datasets import DatasetManifest
@@ -8,12 +10,15 @@ from layouts.layout import LayoutSection
 class DatasetSelectionLayout(LayoutSection):
     def __init__(self, dataset_manifest, event_key='_dataset_tab_', selected_datasets=None):
         self.dataset_manifest: DatasetManifest = dataset_manifest
-        self.datasets = self.dataset_manifest.list_dataset_keys()
+        self.datasets: List[str] = self.dataset_manifest.list_dataset_keys()
         self.selected_datasets = selected_datasets or []
         self.event_key = event_key
         self.right_button_key = '%s>' % self.event_key
         self.left_button_key = '%s<' % self.event_key
         self.selected_datasets_title_key = '%s_selected_datasets_title'
+
+    def get_selected_datasets(self):
+        return [self.dataset_manifest[ds_name] for ds_name in self.selected_datasets]
 
     def get_layout(self):
         size = (40, max(min(40, len(self.datasets)), 20))

@@ -26,7 +26,7 @@ class KwiverRunner:
                 return ['kwiver', 'runner']
 
     def __execute_command(self, cmd, stdout=None, stderr=None ):
-        if os.name == 'nt' and stdout == None:
+        if os.name == 'nt' and stdout is None:
             fnull = open( os.devnull, "w" )
             return subprocess.call( cmd, stdout=fnull, stderr=subprocess.STDOUT )
 

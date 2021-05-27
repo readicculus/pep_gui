@@ -43,6 +43,15 @@ class PipelineConfigLayout(LayoutSection):
         config_layout.append([sg.Button('Reset Defaults', key=self.reset_defaults_key)])
         return config_layout
 
+    def validate(self, values) -> bool:
+        for key, opt_name in self.input_keys_to_config_name.items():
+            opt = self.selected_pipeline.parameters_group.get_config_option(opt_name)
+            ui_value = values[key]
+            ok, res = opt.validator.validate(ui_value)
+            if not ok:
+                return False
+        return True
+
     def handle(self, window, event, values):
         if event == self.reset_defaults_key:
             self.selected_pipeline.parameters_group.reset_all()
@@ -106,6 +115,12 @@ class PipelineSelectionLayout(LayoutSection):
             layout = PipelineConfigLayout(p, self.pipeline_manifest)
             self.config_frames[layout.pipeline_frame_key()] = layout
 
+    def validate(self, values) -> bool:
+        if self.selected_pipeline is None:
+            return False
+        selected_pipeline_key = pipeline_key(self.selected_pipeline.name)
+        return self.config_frames[selected_pipeline_key].validate(values)
+
     def get_layout(self):
         pipelines = self.pipeline_manifest.list_pipeline_names()
         width = len(max(pipelines, key=len)) + 5
@@ -117,19 +132,26 @@ class PipelineSelectionLayout(LayoutSection):
         default_value = '<select a pipeline>'
         return [
             [sg.Text('Select and Configure a pipeline.', font=Fonts.description)],
-            [sg.InputCombo(values=[default_value] + pipelines, size=(width, min(10, len(pipelines) + 1)),
-                           default_value=default_value, key=self.combobox_key, font=Fonts.description),
+            [sg.Combo(values=[default_value] + pipelines, size=(width, min(10, len(pipelines) + 1)),
+                           default_value=default_value, key=self.combobox_key, font=Fonts.description,readonly=True),
              sg.Button('Select', key=self.select_pipeline_key)],
             frames
         ]
 
+    def get_selected_pipeline(self):
+        return self.selected_pipeline
 
     # event loop handler
     def handle(self, window, event, values):
         if event == self.select_pipeline_key:
             selected_pipeline_name = values[self.combobox_key]
             if selected_pipeline_name == '<select a pipeline>' or selected_pipeline_name == '':
+                if self.selected_pipeline is not None:
+                    window[self.combobox_key](value= self.selected_pipeline.name)
                 return
+            if selected_pipeline_name == self.selected_pipeline:
+                return
+
             self.selected_pipeline = self.pipeline_manifest[selected_pipeline_name]
 
             # config_layout = self.create_config()

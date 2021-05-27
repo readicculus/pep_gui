@@ -3,12 +3,8 @@ import os
 
 import PySimpleGUI as sg
 
-from view import get_settings
+from view.settings import get_settings, SettingsNames
 
-class SettingsNames:
-    setup_viame_filepath = 'setup_viame_filepath'
-    dataset_manifest_filepath = 'dataset_manifest_filepath'
-    window_location = 'window_location'
 
 def initial_setup():
     gui_settings = get_settings()

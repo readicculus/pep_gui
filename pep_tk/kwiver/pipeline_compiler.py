@@ -1,5 +1,7 @@
 import os
 import re
+from typing import List
+
 from config import PipelineConfig
 from datasets import VIAMEDataset
 
@@ -36,3 +38,14 @@ def compile_pipeline(pipeline: PipelineConfig, dataset: VIAMEDataset) -> str:
 
     pipeline_content = re.sub(r"relativepath\s*", '', pipeline_content)
     return pipeline_content
+
+def compile_pipeline_files(output_dir: str, pipeline: PipelineConfig, datasets: List[VIAMEDataset]):
+    pipeline_files = {}
+    # create pipelines
+    for idx, dataset in enumerate(datasets):
+        new_pipe_path = os.path.join(output_dir, f'{dataset.name}-{pipeline.name}.pipe')
+        compiled_pipe = compile_pipeline(pipeline, dataset)
+        with open(new_pipe_path, 'w') as f:
+            f.write(compiled_pipe)
+        pipeline_files[new_pipe_path] = {'dataset': dataset, 'pipeline': pipeline}
+    return pipeline_files
