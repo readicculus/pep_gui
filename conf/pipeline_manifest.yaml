@@ -6,23 +6,16 @@ PipelineManifest:
         default: 0.1
         type: float[0,1]
         env_variable: PIPE_ARG_TRIGGER_THRESHOLD
-#        settings:
-#          - 'optical_subregion_selector1:threshold'
-#          - 'optical_subregion_selector2:threshold'
         description: Threshold required for a thermal detection to trigger detection on the color image region.
       seal_max_subregion_count:
         default: 30
         type: int[0,]
         env_variable: PIPE_ARG_SEAL_MAX_SUBREGION_COUNT
-#        settings:
-#          - 'optical_subregion_selector1:max_subregion_count'
         description: The maximum number of subregions the color seal detector can check in any given color image.
       polar_bear_max_subregion_count:
         default: 2
         type: int[0,]
         env_variable: PIPE_ARG_PB_MAX_SUBREGION_COUNT
-#        settings:
-#          - 'optical_subregion_selector2:max_subregion_count'
         description: The maximum number of subregions the color polar bear detector can check in any given color image.
       detection_threshold_seal:
         default: 0.1

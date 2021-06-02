@@ -36,7 +36,6 @@ class PipelineConfigLayout(LayoutSection):
             config_layout.append(
                 [
                     sg.T(o.description, font=Fonts.description, pad=((0, 0), (0, 0)))
-
                  ]
             )
             config_layout.append([sg.Text('_' * 100, pad=((0, 0), (0, 0)))])

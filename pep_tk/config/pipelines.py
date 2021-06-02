@@ -6,6 +6,7 @@ class PipelineManifest:
     __root = 'PipelineManifest'
 
     def __init__(self, manifest_file: str = 'conf/pipeline_manifest.yaml'):
+        self.manifest_file = manifest_file
         with open(manifest_file, 'r') as stream:
             try: dataset_yaml = yaml.safe_load(stream)
             except yaml.YAMLError as exc: print(exc)
@@ -19,3 +20,4 @@ class PipelineManifest:
 
     def __getitem__(self, pipeline_name: str) -> PipelineConfig:
         return self.pipelines[pipeline_name]
+

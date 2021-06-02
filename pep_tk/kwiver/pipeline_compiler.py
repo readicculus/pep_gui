@@ -1,6 +1,6 @@
 import os
 import re
-from typing import List
+from typing import List, Dict
 
 from config import PipelineConfig
 from datasets import VIAMEDataset
@@ -10,22 +10,21 @@ from datasets import VIAMEDataset
 # and the -s flag creates new blocks sometimes instead of injecting setting in-place
 # so here we compile a pipeline by basically replacing all $ENV with the intended value
 # and also replacing relativepath attributes with their absolute path.
-def compile_pipeline(pipeline: PipelineConfig, dataset: VIAMEDataset) -> str:
+def compile_pipeline(pipeline: PipelineConfig, env: Dict) -> str:
     with open(pipeline.path, 'r') as f:
         pipeline_content = f.read()
 
     # Inject $ENV{} in pipeline with the intended value
     pipeline_required_env = list(set(re.findall(r"\$ENV{(.*)}", pipeline_content, re.M)))
-    env = {**pipeline.get_pipeline_environment(), **pipeline.get_pipeline_dataset_environment(dataset)}
-    for pipeline_required in pipeline_required_env:
-        assert (pipeline_required in env)  # TODO: handle
+    # for pipeline_required in pipeline_required_env:
+    #     assert (pipeline_required in env)  # TODO: handle
 
     for k, v in env.items():
         search_str = '$ENV{%s}' % k
         pipeline_content = pipeline_content.replace(search_str, str(v))
 
-    # Custom pep_tk macro injection
-    pipeline_content = pipeline_content.replace('[DATASET]', dataset.name)  # [DATASET] macro
+    # # Custom pep_tk macro injection
+    # pipeline_content = pipeline_content.replace('[DATASET]', dataset.name)  # [DATASET] macro
 
     # replace relativepath attributes with their absolute path
     relative_paths = list(set(re.findall(r"relativepath.*=\s*(.*)$", pipeline_content, re.M)))
@@ -39,13 +38,3 @@ def compile_pipeline(pipeline: PipelineConfig, dataset: VIAMEDataset) -> str:
     pipeline_content = re.sub(r"relativepath\s*", '', pipeline_content)
     return pipeline_content
 
-def compile_pipeline_files(output_dir: str, pipeline: PipelineConfig, datasets: List[VIAMEDataset]):
-    pipeline_files = {}
-    # create pipelines
-    for idx, dataset in enumerate(datasets):
-        new_pipe_path = os.path.join(output_dir, f'{dataset.name}-{pipeline.name}.pipe')
-        compiled_pipe = compile_pipeline(pipeline, dataset)
-        with open(new_pipe_path, 'w') as f:
-            f.write(compiled_pipe)
-        pipeline_files[new_pipe_path] = {'dataset': dataset, 'pipeline': pipeline}
-    return pipeline_files

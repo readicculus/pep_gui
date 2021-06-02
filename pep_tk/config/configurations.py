@@ -1,5 +1,7 @@
 from typing import Dict, Tuple, List, Optional
 
+import yaml
+
 from datasets import VIAMEDataset
 from config.types import parse_type
 from config.exceptions import *
@@ -16,8 +18,8 @@ class ConfigOption:
         self.env_variable = option_dict['env_variable']
         self.description = option_dict.get('description')
         self.validator = parse_type(self.type)
-        self.__value: Optional[VALUE] = None
-        self._locked = False
+        self.__value: Optional[VALUE] = option_dict.get('_value')
+        self._locked = option_dict.get('_locked', False)
 
         # ensure default is valid
         valid, _ = self.validator.validate(self.default)
@@ -53,6 +55,16 @@ class ConfigOption:
     def get_env(self) -> Tuple[ENV_VARIABLE, VALUE]:
         """ returns a tuple with the first item being the environemnt variable name and the second beign the value """
         return self.env_variable, self.value()
+
+    def to_dict(self) -> Dict:
+        return {'name': self.name,
+                '_value': self.value(),
+                '_locked': self._locked,
+                'default': self.default,
+                'type': self.type,
+                'env_variable': self.env_variable,
+                'description': self.description}
+
 
 
 class ConfigOptionGroup:
@@ -110,13 +122,7 @@ class ConfigOptionGroup:
 
     # serialization (load/save) capabilities
     def to_dict(self):
-        return {opt.name: opt.value() for opt in self.options}
-
-    def from_dict(self, d: Dict, lock=False):
-        for name, val in d.items():
-            self.set_config_option(name, val)
-            opt = self.get_config_option(name)
-            opt._locked = lock
+        return {opt.name: opt.to_dict() for opt in self.options}
 
     # object methods
     def __len__(self):
@@ -175,6 +181,9 @@ class DatasetPipelineEnvAdaptersGroup:
             res[attributes['env_variable']] = dataset[attr]
         return res
 
+    def to_dict(self):
+        return self.__config
+
 
 class PipelineConfig:
     def __init__(self, pipeline_name, config_dict: Dict):
@@ -194,18 +203,42 @@ class PipelineConfig:
         self.output_group = PipelineOutputOptionGroup(config_dict)
         self.dataset_ports = DatasetPipelineEnvAdaptersGroup(config_dict)
 
-    def get_pipeline_environment(self) -> Dict[ENV_VARIABLE, VALUE]:
-        return {**self.output_group.get_env_ports(), **self.parameters_group.get_env_ports()}
+    def get_output_env_ports(self, output_directory = ''):
+        output_ports = self.output_group.get_env_ports()
+        # append output directory to all output files
+        output_ports_in_out_dir = {k: os.path.join(output_directory, v) for k,v in output_ports.items()}
+        return output_ports_in_out_dir
+
+    def get_parameter_env_ports(self):
+        return self.parameters_group.get_env_ports()
 
     def get_pipeline_dataset_environment(self, dataset: VIAMEDataset, missing_ok=False) -> Dict[ENV_VARIABLE, VALUE]:
         return self.dataset_ports.get_env_ports(dataset, missing_ok)
 
-    def to_dict(self) -> Dict:
-        return {
-            'parameters_group': self.parameters_group.to_dict(),
-            'output_group': self.output_group.to_dict()
-        }
 
-    def from_dict(self, d: Dict, lock=False):
-        self.parameters_group.from_dict(d['parameters_group'], lock=lock)
-        self.output_group.from_dict(d['output_group'], lock=lock)
+    def to_dict(self) -> Dict:
+        d = {
+                'name': self.name,
+                'parameters_config': self.parameters_group.to_dict(),
+                'output_config': self.output_group.to_dict(),
+                'dataset_pipeline_adapters': self.dataset_ports.to_dict(),
+                'path': self.path
+            }
+        return d
+
+    # def from_dict(self, d: Dict, lock=False):
+    #     self.parameters_group.from_dict(d['parameters_group'], lock=lock)
+    #     self.output_group.from_dict(d['output_group'], lock=lock)
+
+    # def to_yaml(self, yaml_filepath):
+    #     d = {
+    #             self.name:
+    #                 {
+    #                     'parameters_group': self.parameters_group.to_dict(),
+    #                     'output_group': self.output_group.to_dict()
+    #                 }
+    #         }
+    #     return yaml.safe_dump(d)
+    # @classmethod
+    # def from_yaml(self, yaml_str):
+    #     pass

@@ -35,7 +35,7 @@ class TestTaskState(DummyTaskTest):
         ''' Helper function to initialize a dummy task '''
         from datasets import DatasetManifest
         from config import PipelineManifest
-        from core.task import TaskContextController
+        from archive.task import TaskContextController
 
         pm = PipelineManifest('dummy_conf/pipeline_manifest.yaml')
         dm = DatasetManifest('dummy_conf/datasets.yaml')

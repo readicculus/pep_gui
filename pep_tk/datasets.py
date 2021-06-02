@@ -58,6 +58,9 @@ class VIAMEDataset:
     def __contains__(self, item):
         return item in self.__data__
 
+    @property
+    def filename_friendly_name(self):
+        return self.name.replace(DatasetManifest.key_sep, '_')
 
     @property
     def color_image_list(self) -> DatasetProperty:
@@ -79,14 +82,20 @@ class VIAMEDataset:
     def color_images(self) ->  Optional[ImageList]:
         return None if self.color_image_list is None else ImageList(self.color_image_list)
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         return {self.name:  self.__attributes__ }
 
+    @classmethod
+    def from_dict(cls, d: Dict):
+        keys = list(d.keys())
+        assert(len(keys) == 1)
+        key = keys[0]
+        return cls(key, d[key])
 
 class DatasetManifest():
-    __root = 'Datasets'
-    __key_sep = ':'
-    __dataset_attributes = ['thermal_image_list', 'color_image_list', 'transformation_file']
+    _root = 'Datasets'
+    _dataset_attributes = ['thermal_image_list', 'color_image_list', 'transformation_file']
+    key_sep = ':'
 
     def __init__(self, manifest_filepath: str = 'conf/datasets.yaml'):
         self.manifest_filepath = manifest_filepath
@@ -94,22 +103,23 @@ class DatasetManifest():
             try: dataset_yaml = yaml.safe_load(stream)
             except yaml.YAMLError as exc: print(exc)
 
-        self.datasets_data = dataset_yaml[self.__root]
+        self.datasets_data = dataset_yaml[self._root]
         self.dataset_keys = self.list_dataset_keys()
 
     def list_dataset_keys(self) -> List[str]:
         def parse_recursive(data):
             dataset_keys = []
             for k, v in data.items():
-                if any([x in self.__dataset_attributes for x in list(v.keys())]):
+                if any([x in self._dataset_attributes for x in list(v.keys())]):
                     dataset_keys.append(k)
                 else:
                     res = parse_recursive(v)
                     for a in res:
-                        dataset_keys.append('%s%s%s' % (k, self.__key_sep, a))
+                        dataset_keys.append('%s%s%s' % (k, self.key_sep, a))
             return dataset_keys
 
         return parse_recursive(self.datasets_data)
+
     def list_dataset_keys_exp(self, exp):
         keys_list_wildcards = []
         regkey = '^'+glob2re(exp)+'$'
@@ -125,10 +135,10 @@ class DatasetManifest():
 
     def get_dataset(self, path: str) -> Optional[VIAMEDataset]:
         cur = self.datasets_data
-        for k in path.split(self.__key_sep):
+        for k in path.split(self.key_sep):
             if k not in cur: return None
             cur = cur[k]
-
+        # TODO: p = path.split(self._key_sep)
         return VIAMEDataset(path, cur)
 
     def get_datasets(self, key) -> List[VIAMEDataset]:
