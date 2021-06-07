@@ -92,6 +92,13 @@ class VIAMEDataset:
         key = keys[0]
         return cls(key, d[key])
 
+class VIAMEDetectorOutput:
+    # TODO ?
+    def __init__(self, name, viame_csv_fp, image_list_fp):
+        self.name = name
+        self.viame_csv_fp = viame_csv_fp
+        self.image_list_fp = image_list_fp
+
 class DatasetManifest():
     _root = 'Datasets'
     _dataset_attributes = ['thermal_image_list', 'color_image_list', 'transformation_file']
@@ -173,39 +180,39 @@ class DatasetManifest():
 
 
 
-
-def align_multimodal_image_lists(list1: ImageList, list2: ImageList, keep_unmatched, max_dist=100):
-    def file_key(fn):
-        fn = os.path.basename(fn)
-        return '_'.join(fn.split('_')[:-1])
-
-    diff = 0
-    aligned = []
-    for i1_idx, i1 in enumerate(list1):
-        i1_key = file_key(i1)
-        found = False
-        for i2_idx, i2 in enumerate(list2[i1_idx:]):
-            i2_idx = i2_idx + i1_idx
-            if i2_idx > i1_idx + max_dist:
-                continue
-            i2_key = file_key(i2)
-            if i1_key == i2_key:
-                if i2_idx - i1_idx > diff:
-                    diff = i2_idx - i1_idx
-                    for a in list2[i2_idx - diff:i2_idx]:
-                        aligned.append((None, a))
-                aligned.append((i1, i2))
-                found = True
-                break
-
-        if not found:
-            aligned.append((i1, None))
-
-    if not keep_unmatched:
-        res = []
-        for a,b in aligned:
-            if a is None or b is None:
-                continue
-            res.append((a,b))
-        return res
-    return aligned
+#
+# def align_multimodal_image_lists(list1: ImageList, list2: ImageList, keep_unmatched, max_dist=100):
+#     def file_key(fn):
+#         fn = os.path.basename(fn)
+#         return '_'.join(fn.split('_')[:-1])
+#
+#     diff = 0
+#     aligned = []
+#     for i1_idx, i1 in enumerate(list1):
+#         i1_key = file_key(i1)
+#         found = False
+#         for i2_idx, i2 in enumerate(list2[i1_idx:]):
+#             i2_idx = i2_idx + i1_idx
+#             if i2_idx > i1_idx + max_dist:
+#                 continue
+#             i2_key = file_key(i2)
+#             if i1_key == i2_key:
+#                 if i2_idx - i1_idx > diff:
+#                     diff = i2_idx - i1_idx
+#                     for a in list2[i2_idx - diff:i2_idx]:
+#                         aligned.append((None, a))
+#                 aligned.append((i1, i2))
+#                 found = True
+#                 break
+#
+#         if not found:
+#             aligned.append((i1, None))
+#
+#     if not keep_unmatched:
+#         res = []
+#         for a,b in aligned:
+#             if a is None or b is None:
+#                 continue
+#             res.append((a,b))
+#         return res
+#     return aligned

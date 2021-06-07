@@ -1,7 +1,31 @@
 import os
 import subprocess
+import tempfile
+from sys import stdout
+from typing import Dict
 
-from config.pipelines import PipelineManifest
+
+
+def get_pipeline_cmd(debug=False):
+    # return ['kwiver', 'pipe-to-dot', '--setup','-p']
+    if os.name == 'nt':
+        if debug:
+            return ['kwiver.exe', 'runner']
+        else:
+            return ['kwiver.exe', 'runner']
+    else:
+        if debug:
+            return ['gdb', '--args', 'kwiver', 'runner']
+        else:
+            return ['kwiver', 'runner']
+
+
+def execute_command(cmd: str, env: Dict, cwd, stdout=None, stderr=None):
+    if os.name == 'nt' and stdout is None:
+        fnull = open( os.devnull, "w" )
+        return subprocess.call(cmd, cwd=cwd,  stdout=fnull, stderr=subprocess.STDOUT, env=env)
+
+    return subprocess.Popen(cmd, cwd=cwd, stdout=stdout, stderr=stderr, env= env,  shell=True)
 
 
 class KwiverRunner:
@@ -9,43 +33,17 @@ class KwiverRunner:
         Runner for running non-embedded pipelines that have no input output ports.
         Uses subprocess to call kwiver_runner
     '''
-    def __init__(self):
-        pass
-
-    def __get_pipeline_cmd(self, debug=False):
-        # return ['kwiver', 'pipe-to-dot', '--setup','-p']
-        if os.name == 'nt':
-            if debug:
-                return ['kwiver.exe', 'runner']
-            else:
-                return ['kwiver.exe', 'runner']
-        else:
-            if debug:
-                return ['gdb', '--args', 'kwiver', 'runner']
-            else:
-                return ['kwiver', 'runner']
-
-    def __execute_command(self, cmd, stdout=None, stderr=None ):
-        if os.name == 'nt' and stdout is None:
-            fnull = open( os.devnull, "w" )
-            return subprocess.call( cmd, stdout=fnull, stderr=subprocess.STDOUT )
-
-        return subprocess.Popen( cmd, stdout=stdout, stderr=stderr )
+    def __init__(self, pipeline_fp, env, cwd):
+        self.pipeline_fp = pipeline_fp
+        self.env = env
+        self.cwd = cwd
 
 
-    def run(self, pipeline_fp):
-        cmd = self.__get_pipeline_cmd() + [pipeline_fp]
-        x = self.__execute_command(cmd)
-        return x
-
-class KwiverRunnerMonitor:
-    '''
-        Progress monitor that monitors a KwiverRunners progress by periodically checking the output image list
-        and updating progress bars in the cli accordingly.
-    '''
-    def __init__(self, pipeline: PipelineManifest):
-        self.pipeline = pipeline
+    def run(self, stdout, stderr):
+        cmd = get_pipeline_cmd() + [self.pipeline_fp]
+        cmd = ' '.join(cmd)
+        print(cmd)
+        return execute_command(cmd, self.env, self.cwd, stdout=stdout, stderr=stderr)
 
 
-    def update(self, count):
-        pass
+

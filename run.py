@@ -43,7 +43,7 @@ class CLIFlow:
 
     def part3(self, datasets):
 
-            from pep_tk.kwiver.embedded_runner import EmbeddedPipelineWorker
+            from archive.embedded_runner import EmbeddedPipelineWorker
 
             title = HTML('Running %s on <style bg="yellow" fg="black">%d datasets...</style>' %
                          (pipeline.name, len(datasets)))

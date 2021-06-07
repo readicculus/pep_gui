@@ -6,7 +6,7 @@ import PySimpleGUI as sg
 from view.settings import get_settings, SettingsNames
 
 
-def initial_setup():
+def initial_setup(skip_if_complete = True):
     gui_settings = get_settings()
     def check_complete():
         # TODO: better check for completion
@@ -25,7 +25,8 @@ def initial_setup():
     window = sg.Window('PEP-TK Initial Setup', layout)
 
     while True:
-        if check_complete(): break
+        if check_complete() and skip_if_complete:
+            break
 
         event, values = window.read()
         if event in (sg.WINDOW_CLOSED, 'Exit'):
@@ -39,7 +40,7 @@ def initial_setup():
             if os.path.isfile(selected_dataset_manifest_filepath):
                 gui_settings[SettingsNames.dataset_manifest_filepath] = selected_dataset_manifest_filepath
 
-        if check_complete(): break
+            if check_complete(): break
 
     window.close()
 

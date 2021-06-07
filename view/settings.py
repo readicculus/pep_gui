@@ -1,3 +1,5 @@
+import os
+
 import PySimpleGUI as sg
 
 from core.job import JobState
@@ -14,8 +16,12 @@ class SettingsNames:
 def get_settings():
     return sg.UserSettings(filename='peptk_gui_settings.json')
 
-def add_job_directory(settings: sg.UserSettings, job_state: JobState):
-    if SettingsNames.job_cache not in settings:
-        settings[SettingsNames.job_cache] = {}
 
-    settings[SettingsNames.job_cache] = {}
+def get_viame_bash_or_bat_file_path(settings: sg.UserSettings):
+    base_dir = settings[SettingsNames.setup_viame_filepath]
+    if os.name == 'nt':
+        fn = 'setup_viame.bat'
+    else:
+        fn = 'setup_viame.sh'
+
+    return os.path.join(base_dir, fn)
