@@ -1,70 +1,83 @@
 import abc
 import os
 import subprocess
-import tempfile
-from subprocess import Popen
+import time
 
 from pep_tk import shell_source
 from pep_tk.kwiver.subprocess_runner import KwiverRunner
-from core.job import JobState, JobMeta, TaskStatus
+from core.job import JobState, JobMeta, TaskStatus, TaskKey
 from settings import get_viame_bash_or_bat_file_path
 
 
 class SchedulerEventManager(metaclass=abc.ABCMeta):
-    def __init__(self, settings):
-        self.settings = settings
+    def __init__(self):
+        self.task_start_time = {}
+        self.task_end_time = {}
+        self.task_status = {}
 
-    @abc.abstractmethod
-    def task_started(self, task_key):
+    def start_task(self, task_key: TaskKey):
+        self.task_start_time[task_key] = time.time()
+        return self._start_task(task_key)
+
+    def end_task(self, task_key: TaskKey, status: TaskStatus):
+        self.task_end_time[task_key] = time.time()
+        self.task_status[task_key] = status
+        return self._end_task(task_key, status)
+
+    def update_task_progress(self, task_key: TaskKey, progress):
+        return self._update_task_progress(task_key, progress)
+
+    def update_task_stdout(self, task_key: TaskKey, log: str):
         return
 
     @abc.abstractmethod
-    def task_finished(self, task_key):
+    def _start_task(self, task_key: TaskKey):
         return
 
     @abc.abstractmethod
-    def task_update_progress(self, task_key, progress):
+    def _end_task(self, task_key: TaskKey, status: TaskStatus):
         return
 
     @abc.abstractmethod
-    def task_update_stdout(self, task_key, log: str):
+    def _update_task_progress(self, task_key: TaskKey, progress):
+        return
+
+    @abc.abstractmethod
+    def _update_task_stdout(self, task_key: TaskKey, log: str):
         return
 
 
-class Scheduler():
-    def __init__(self, job_state: JobState, job_meta: JobMeta, manager: SchedulerEventManager):
+class Scheduler:
+    def __init__(self, job_state: JobState, job_meta: JobMeta, manager: SchedulerEventManager, kwiver_setup_path: str):
         self.job_state = job_state
         self.job_meta = job_meta
         self.manager = manager
-
-        fp = get_viame_bash_or_bat_file_path(self.manager.settings)
-        self.kwiver_env = shell_source(fp)
+        self.kwiver_env = shell_source(kwiver_setup_path)
 
     def run(self):
         # if resuming mark already completed tasks as completed
-        for task_key in self.job_state.completed_tasks():
-            self.manager.task_finished(task_key)
+        for task_key in self.job_state.tasks(status=TaskStatus.SUCCESS):
+            self.manager.end_task(task_key, TaskStatus.SUCCESS)
 
-        # TODO, have to be careful not to re pipes that errored forever
         while not self.job_state.is_job_complete():
             current_task_key = self.job_state.current_task()
-            self.manager.task_started(current_task_key)
+
+            # mark task as started
+            self.manager.start_task(current_task_key)
 
             pipeline_fp, dataset, outputs = self.job_meta.get(current_task_key)
 
             pipeline_outputs = outputs.get_env_ports()
             env = {**pipeline_outputs, **self.kwiver_env}
 
-
-            x=1
-            error_log_fp = os.path.join(self.job_meta.root_dir, 'logs', f'stderr-{current_task_key.replace(":","_")}.log')
-            error_log = open(error_log_fp ,'w+b')
+            error_log_fp = os.path.join(self.job_meta.logs_dir,
+                                        f'stderr-{current_task_key.replace(":", "_")}.log')
+            error_log = open(error_log_fp, 'w+b')
             kwr = KwiverRunner(pipeline_fp,
                                cwd=self.job_meta.root_dir,
                                env=env)
 
             process = kwr.run(stdout=subprocess.PIPE, stderr=error_log)
-
 
             keep_stdout = True
             stdout = ""
@@ -75,7 +88,7 @@ class Scheduler():
             # call readline until it returns empty bytes
             for line in iter(process.stdout.readline, b''):
                 line_str = line.decode('utf-8')
-                self.manager.task_update_stdout(current_task_key, line_str)
+                self.manager.update_task_stdout(current_task_key, line_str)
                 if keep_stdout:
                     stdout += line_str
 
@@ -99,10 +112,10 @@ class Scheduler():
                     )
                 )
             else:
-                self.job_state.set_task_status(current_task_key, TaskStatus.SUCCESS)
-                self.manager.task_finished(current_task_key)
+                self.manager.end_task(current_task_key, TaskStatus.SUCCESS)
 
             error_log.close()
+
     def progress(self):
         return {}
         # kwr = KwiverRunner()

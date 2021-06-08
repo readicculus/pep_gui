@@ -28,6 +28,7 @@ datasets_meta_json_fp = lambda root_dir: os.path.join(meta_dir(root_dir), 'datas
 class JobMeta:
     def __init__(self, root_dir):
         self.root_dir = root_dir
+        self.logs_dir = logs_dir(root_dir)
         self.pipe_meta_fp = pipeline_meta_json_fp(root_dir)
         self.dataset_meta_fp = datasets_meta_json_fp(root_dir)
         self.compiled_pipelines_dir = pipelines_dir(root_dir)  # where the compiled pipelines go
@@ -152,8 +153,17 @@ class JobState:
     def is_job_complete(self) -> bool:
         return all([self.is_task_complete(task_key) for task_key in self.tasks()])
 
-    def tasks(self) -> List[TaskKey]:
-        return list(self._store.data['tasks'])  # list so that we don't accidentally mutate this
+    def tasks(self, status: TaskStatus =None) -> List[TaskKey]:
+        tasks = list(self._store.data['tasks'])
+        if status is None:
+            return tasks
+
+        ret = []
+        for task in tasks:
+            if self._get_status(task_key=task) == status:
+                ret.append(task)
+
+        return ret
 
     def completed_tasks(self) -> List[TaskKey]:
         completed = []
