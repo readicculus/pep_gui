@@ -1,10 +1,9 @@
 import os
 import re
-from typing import List, Dict
+from typing import Dict
 
 from config import PipelineConfig
-from datasets import VIAMEDataset
-
+from datetime import datetime
 
 # Unfortunately the kwiver runner pipe-config will not inject environemnt variables
 # and the -s flag creates new blocks sometimes instead of injecting setting in-place
@@ -38,3 +37,13 @@ def compile_pipeline(pipeline: PipelineConfig, env: Dict) -> str:
     pipeline_content = re.sub(r"relativepath\s*", '', pipeline_content)
     return pipeline_content
 
+
+def compile_output_filenames(output_filenames: Dict[str, str], path='', t=None) -> Dict[str, str]:
+    out = {}
+    t = t if t else datetime.now()
+    timestr = t.strftime("%Y%m%d-%H%M%S")
+    for k,v in output_filenames.items():
+        new_v = v.replace('[TIMESTAMP]', timestr)
+        new_v = os.path.join(path, new_v)
+        out[k] = new_v
+    return out

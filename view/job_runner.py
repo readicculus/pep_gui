@@ -18,26 +18,52 @@ class GUIManager(SchedulerEventManager):
     def __init__(self, window: sg.Window, progress_bars):
         super().__init__()
         self._window = window
-        self._progress_bars : Dict[TaskKey, BetterProgressBar] = progress_bars
+        self._progress_bars: Dict[TaskKey, BetterProgressBar] = progress_bars
+
+    def task_event_key(self, task_key: TaskKey):
+        return self._progress_bars[task_key].task_progress_update_key
+
+    def _initialize_task(self, task_key: TaskKey, count: int, max_count: int, status: TaskStatus):
+        evt_data = ProgressGUIEventData(task_status=self.task_status[task_key],
+                                        progress_count=count,
+                                        max_count=max_count,
+                                        elapsed_time=self.elapsed_time(task_key))
+
+        gui_task_event_key = self.task_event_key(task_key)
+        self._window.write_event_value(gui_task_event_key, evt_data)
+        print('task_initialized')
 
     def _start_task(self, task_key: TaskKey):
         print('task_started')
 
     def _end_task(self, task_key: TaskKey, status: TaskStatus):
         # pb_key = progress_meter_gui_key(task_key)
-        gui_task_event_key = self._progress_bars[task_key].task_progress_update_key
-        evt_data = ProgressGUIEventData(task_status=status, progress_count=1, max_count=1, elapsed_time=1)
+        gui_task_event_key = self.task_event_key(task_key)
+        evt_data = ProgressGUIEventData(task_status=status,
+                                        progress_count=self.task_count[task_key],
+                                        max_count=self.task_max_count[task_key],
+                                        elapsed_time=self.elapsed_time(task_key))
         if status == TaskStatus.SUCCESS:
-            self._window.write_event_value(gui_task_event_key,evt_data)
+            self._window.write_event_value(gui_task_event_key, evt_data)
 
         print('task_finished')
 
-    def _update_task_progress(self, task_key: TaskKey, progress):
+    def _update_task_progress(self, task_key: TaskKey, current_count: int, max_count: int):
         # pb_key = progress_meter_gui_key(task_key)
+        evt_data = ProgressGUIEventData(task_status=self.task_status[task_key],
+                                        progress_count=self.task_count[task_key],
+                                        max_count=self.task_max_count[task_key],
+                                        elapsed_time=self.elapsed_time(task_key))
+
+        gui_task_event_key = self.task_event_key(task_key)
+        self._window.write_event_value(gui_task_event_key, evt_data)
         print('task_update_progress')
 
-    def _update_task_stdout(self, task_key: TaskKey, log: str):
-        print('task_update_stdout(%s): %s' % (task_key, log))
+    def _update_task_stdout(self, task_key: TaskKey, line: str):
+        print('task_update_stdout(%s): %s' % (task_key, line))
+
+    def _update_task_stderr(self, task_key: TaskKey, line: str):
+        pass
 
 
 def make_main_window(tasks: List[TaskKey], gui_settings: sg.UserSettings):

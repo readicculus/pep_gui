@@ -38,19 +38,19 @@ PipelineManifest:
 
     output_config:
       output_optical_detections:
-        default: '[CURRENT_TIME]_region-trigger_[DATASET]_EO.csv'
+        default: '[TIMESTAMP]_region-trigger_[DATASET]_EO.csv'
         type: output_detections_csv
         env_variable: PIPE_ARG_OPTICAL_OUTPUT_DETS
       output_optical_image_list:
-        default: '[CURRENT_TIME]_region-trigger_[DATASET]_EO_images.txt'
+        default: '[TIMESTAMP]_region-trigger_[DATASET]_EO_images.txt'
         type: output_image_list
         env_variable: PIPE_ARG_OPTICAL_OUTPUT_IMAGE_LIST
       output_thermal_detections:
-        default: '[CURRENT_TIME]_region-trigger[DATASET]_IR.csv'
+        default: '[TIMESTAMP]_region-trigger[DATASET]_IR.csv'
         type: output_detections_csv
         env_variable: PIPE_ARG_THERMAL_OUTPUT_DETS
       output_thermal_image_list:
-        default: '[CURRENT_TIME]_region-trigger_[DATASET]_IR_images.txt'
+        default: '[TIMESTAMP]_region-trigger_[DATASET]_IR_images.txt'
         type: output_image_list
         env_variable: PIPE_ARG_THERMAL_OUTPUT_IMAGE_LIST
 

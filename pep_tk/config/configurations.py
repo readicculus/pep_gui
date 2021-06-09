@@ -156,6 +156,13 @@ class PipelineOutputOptionGroup(ConfigOptionGroup):
                 opts.append(opt)
         return opts
 
+    def get_image_list_env_ports(self):
+        env_list = [opt.get_env() for opt in self.get_image_list_options()]
+        return {k: v for (k, v) in env_list}
+
+    def get_det_csv_env_ports(self):
+        env_list = [opt.get_env() for opt in self.get_det_csv_options()]
+        return {k: v for (k, v) in env_list}
 
 class PipelineParametersOptionGroup(ConfigOptionGroup):
     def __init__(self, config_dict: Dict):

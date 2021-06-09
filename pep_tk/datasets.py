@@ -76,7 +76,7 @@ class VIAMEDataset:
 
     @property
     def thermal_images(self) -> Optional[ImageList]:
-        return None if self.thermal_image_list is None else ImageList(self.thermal_image_list)
+        return [] if self.thermal_image_list is None else ImageList(self.thermal_image_list)
 
     @property
     def color_images(self) ->  Optional[ImageList]:
@@ -84,6 +84,16 @@ class VIAMEDataset:
 
     def to_dict(self) -> Dict:
         return {self.name:  self.__attributes__ }
+
+    @property
+    def thermal_image_count(self):
+        thermal_images = self.thermal_images
+        return 0 if thermal_images is None else len(thermal_images)
+
+    @property
+    def color_image_count(self):
+        color_images = self.color_images
+        return 0 if color_images is None else len(color_images)
 
     @classmethod
     def from_dict(cls, d: Dict):
