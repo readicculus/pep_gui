@@ -25,8 +25,8 @@ class GUIManager(SchedulerEventManager):
 
     def _end_task(self, task_key: TaskKey, status: TaskStatus):
         # pb_key = progress_meter_gui_key(task_key)
-        gui_task_event_key = self._progress_bars[task_key].update_event_key
-        evt_data = ProgressGUIEventData(task_status=status, progress_count=1, max_count=1, elapsed_time=1, type='s')
+        gui_task_event_key = self._progress_bars[task_key].task_progress_update_key
+        evt_data = ProgressGUIEventData(task_status=status, progress_count=1, max_count=1, elapsed_time=1)
         if status == TaskStatus.SUCCESS:
             self._window.write_event_value(gui_task_event_key,evt_data)
 
