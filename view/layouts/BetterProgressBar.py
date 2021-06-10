@@ -21,6 +21,9 @@ class ProgressGUIEventData:
             return 0
         return self.elapsed_time / self.progress_count
 
+    @property
+    def estimated_time_remaining(self) -> float:
+        return self.time_per_count * (self.max_count - self.progress_count)
 
 class BetterProgressBar(LayoutSection):
     """
@@ -44,12 +47,18 @@ class BetterProgressBar(LayoutSection):
         self._iteration_time_key = f'--bpb-iteration-time-{self.task_key}--'
 
     def get_layout(self):
+        def empty_string(s):
+            return ' ' * len(s)
+
         title = sg.T(self.task_key, size=(len(self.task_key), 1), key=self._text_title_key)
         pb = sg.ProgressBar(100, orientation='hs', size=(20, 4), key=self._pb_key)
-        time_elapsed_remaining = sg.T('00:00:00', key=self._elapsed_key)  # size of time 00:00:00
-        counter = sg.T('00000/00000', key=self._counter_key, size=(len('00000/00000'), 1))
-        avg_iteration_time = sg.T('x.xx seconds/iter', key=self._iteration_time_key, size=(len('x.xx seconds/iter'), 1))
-        return [title, pb, time_elapsed_remaining, counter, avg_iteration_time]
+        elapsed_str = empty_string('00:00:00 elapsed 00:00:00 remaining')
+        time_elapsed = sg.T(elapsed_str, key=self._elapsed_key)
+        counter_str = empty_string('00000/00000')
+        counter = sg.T(counter_str, key=self._counter_key)
+        iter_str = empty_string('x.xx seconds/iter')
+        avg_iteration_time = sg.T(iter_str, key=self._iteration_time_key, size=(len('x.xx seconds/iter'), 1))
+        return [title, pb, time_elapsed, counter, avg_iteration_time]
 
     def handle(self, window, event, values):
         if event != self.task_progress_update_key:
@@ -57,7 +66,7 @@ class BetterProgressBar(LayoutSection):
 
         progress: ProgressGUIEventData = values[event]
         self._update_avg_iteration_time(window, progress.time_per_count)
-        self._update_time_elapsed(window, progress.elapsed_time)
+        self._update_time_elapsed(window, progress.elapsed_time, progress.estimated_time_remaining)
         self._update_pb(window, progress.progress_count, progress.max_count)
         self._update_counter(window, progress.progress_count, progress.max_count)
         self._update_status(window, progress.task_status)
@@ -69,9 +78,11 @@ class BetterProgressBar(LayoutSection):
         fmt = '%.2f seconds/iter' % avg_iteration_time
         window[self._iteration_time_key](value=fmt)
 
-    def _update_time_elapsed(self, window: sg.Window, elapsed_time: float):
-        td = datetime.timedelta(seconds=elapsed_time)
-        window[self._elapsed_key](value=str(td))
+    def _update_time_elapsed(self, window: sg.Window, elapsed_time: float, remaining_time: float):
+        elapsed = str(datetime.timedelta(seconds=int(elapsed_time)))
+        remaining = str(datetime.timedelta(seconds=int(remaining_time)))
+        v = '%s elapsed %s remaining' % (elapsed, remaining)
+        window[self._elapsed_key](value=v)
 
     def _update_pb(self, window: sg.Window, count: int, max_count: int):
         window[self._pb_key].update_bar(count, max_count)
