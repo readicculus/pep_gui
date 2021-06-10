@@ -7,6 +7,7 @@ import PySimpleGUI as sg
 
 from core.job import load_job, TaskStatus, TaskKey
 from core.scheduler import Scheduler, SchedulerEventManager
+from fonts import Fonts
 from layouts import BetterProgressBar
 from layouts.BetterProgressBar import ProgressGUIEventData
 from settings import get_settings, SettingsNames, get_viame_bash_or_bat_file_path
@@ -49,7 +50,6 @@ class GUIManager(SchedulerEventManager):
         print('task_finished')
 
     def _update_task_progress(self, task_key: TaskKey, current_count: int, max_count: int):
-        # pb_key = progress_meter_gui_key(task_key)
         evt_data = ProgressGUIEventData(task_status=self.task_status[task_key],
                                         progress_count=self.task_count[task_key],
                                         max_count=self.task_max_count[task_key],
@@ -70,7 +70,7 @@ def make_main_window(tasks: List[TaskKey], gui_settings: sg.UserSettings):
     progress_bars = {task_key: BetterProgressBar(task_key) for task_key in tasks}
 
     meters_layout = [pb.get_layout() for pb in list(progress_bars.values())]
-    layout = [[sg.Text('A typical custom progress meter')],
+    layout = [[sg.Text('Jobs:', font=Fonts.title_large)],
               meters_layout,
               [sg.Cancel()]]
 
@@ -78,7 +78,7 @@ def make_main_window(tasks: List[TaskKey], gui_settings: sg.UserSettings):
     if SettingsNames.window_location in gui_settings.get_dict():
         location = gui_settings[SettingsNames.window_location]
 
-    window = sg.Window('GUI', layout, default_element_size=(12, 1), location=location, finalize=True)
+    window = sg.Window('PEP-TK: Job Runner', layout, default_element_size=(12, 1), location=location, finalize=True)
     return window, progress_bars
 
 

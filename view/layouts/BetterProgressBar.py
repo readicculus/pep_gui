@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 from core.job import TaskStatus
 from layouts.layout import LayoutSection
+from settings import resources_directory
 
 
 @dataclass
@@ -25,6 +26,25 @@ class ProgressGUIEventData:
     def estimated_time_remaining(self) -> float:
         return self.time_per_count * (self.max_count - self.progress_count)
 
+SYMBOL_UP =    '▲'
+SYMBOL_DOWN =  '▼'
+def collapse(layout, key):
+    """
+    Helper function that creates a Column that can be later made hidden, thus appearing "collapsed"
+    :param layout: The layout for the section
+    :param key: Key used to make this seciton visible / invisible
+    :return: A pinned column that can be placed directly into your layout
+    :rtype: sg.pin
+    """
+    return sg.pin(sg.Column(layout, key=key))
+
+# def load_icon(icon_fp):
+#     fp = resources_directory(icon_fp)
+#     return cv2.imread(fp)
+status_icons = {TaskStatus.SUCCESS: resources_directory('status_success.png'),
+                TaskStatus.ERROR: resources_directory('status_error.png'),
+                TaskStatus.RUNNING: resources_directory('status_running.png')}
+
 class BetterProgressBar(LayoutSection):
     """
         A better progress bar than the default PySimpleGUI Progress Bar
@@ -33,6 +53,7 @@ class BetterProgressBar(LayoutSection):
         - This then updates the BetterProgressBar with that task_progress_update_key
         - Contains information on elapsed time, a progress counter, avg time/iteration, and task name
      """
+
     def __init__(self, task_key):
         self.task_key = task_key
 
@@ -45,11 +66,13 @@ class BetterProgressBar(LayoutSection):
         self._elapsed_key = f'--bpb-elapsed-{self.task_key}--'
         self._counter_key = f'--bpb-counter-{self.task_key}--'
         self._iteration_time_key = f'--bpb-iteration-time-{self.task_key}--'
+        self._status_key = f'--bpb-status-{self.task_key}--'
 
     def get_layout(self):
         def empty_string(s):
             return ' ' * len(s)
 
+        status_icon = sg.Image(size=(24,24), key=self._status_key)
         title = sg.T(self.task_key, size=(len(self.task_key), 1), key=self._text_title_key)
         pb = sg.ProgressBar(100, orientation='hs', size=(20, 4), key=self._pb_key)
         elapsed_str = empty_string('00:00:00 elapsed 00:00:00 remaining')
@@ -58,7 +81,7 @@ class BetterProgressBar(LayoutSection):
         counter = sg.T(counter_str, key=self._counter_key)
         iter_str = empty_string('x.xx seconds/iter')
         avg_iteration_time = sg.T(iter_str, key=self._iteration_time_key, size=(len('x.xx seconds/iter'), 1))
-        return [title, pb, time_elapsed, counter, avg_iteration_time]
+        return [status_icon, title, pb, time_elapsed, counter, avg_iteration_time]
 
     def handle(self, window, event, values):
         if event != self.task_progress_update_key:
@@ -72,6 +95,7 @@ class BetterProgressBar(LayoutSection):
         self._update_status(window, progress.task_status)
 
     def _update_status(self, window: sg.Window, status: TaskStatus):
+        window[self._status_key].update(filename=status_icons.get(status, None))
         pass  # TODO
 
     def _update_avg_iteration_time(self, window: sg.Window, avg_iteration_time: float):

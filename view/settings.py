@@ -12,6 +12,9 @@ class SettingsNames:
     job_directory = 'job_directory'
     job_cache = 'job_list_cache'
 
+def resources_directory(file_path = ''):
+    abspath = os.path.abspath('../resources/img/')
+    return os.path.join(abspath, file_path)
 
 def get_settings():
     return sg.UserSettings(filename='peptk_gui_settings.json')

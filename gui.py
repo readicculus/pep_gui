@@ -1,15 +1,16 @@
 import os
 
+import PySimpleGUI as sg
+
 from config import PipelineManifest
-from core.job import create_job, JobInitException
-from job_runner import run_job
-from layouts import DatasetSelectionLayout, PipelineSelectionLayout
+from core.job import create_job
 from datasets import DatasetManifest
 from fonts import Fonts
 from initial_setup import initial_setup
+from job_runner import run_job
+from layouts import DatasetSelectionLayout, PipelineSelectionLayout
 from layouts.layout import LayoutSection
 from view.settings import get_settings, SettingsNames
-import PySimpleGUI as sg
 
 sg.theme('SystemDefaultForReal')
 initial_setup()
@@ -57,7 +58,7 @@ location = (0, 0)
 if SettingsNames.window_location in gui_settings.get_dict():
     location = gui_settings[SettingsNames.window_location]
 
-window = sg.Window('GUI', layout,
+window = sg.Window('PEP-TK: Job Configuration', layout,
                    default_element_size=(12, 1), location=location)
 
 

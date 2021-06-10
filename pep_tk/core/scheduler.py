@@ -189,8 +189,8 @@ class Scheduler:
             # flush logs
 
             # stop polling for progress
-            # progress_thread.do_run = False
             prog_stop_evt.set()
+
             # Wait for exit up to 30 seconds after kill
             code = process.wait(30)
             if code > 0:

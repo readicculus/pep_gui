@@ -22,7 +22,7 @@ def initial_setup(skip_if_complete = True):
                sg.FileBrowse()],
               [sg.B('Complete Setup'), sg.B('Exit', key='Exit')]]
 
-    window = sg.Window('PEP-TK Initial Setup', layout)
+    window = sg.Window('PEP-TK: Initial Setup', layout)
 
     while True:
         if check_complete() and skip_if_complete:
