@@ -10,10 +10,9 @@ from core.scheduler import Scheduler, SchedulerEventManager
 from fonts import Fonts
 from layouts import BetterProgressBar
 from layouts.BetterProgressBar import ProgressGUIEventData
-from settings import get_settings, SettingsNames, get_viame_bash_or_bat_file_path
+from settings import get_settings, SettingsNames, get_viame_bash_or_bat_file_path, WINDOW_ICON
 
 sg.theme('SystemDefaultForReal')
-
 
 class GUIManager(SchedulerEventManager):
     def __init__(self, window: sg.Window, progress_bars):
@@ -78,7 +77,7 @@ def make_main_window(tasks: List[TaskKey], gui_settings: sg.UserSettings):
     if SettingsNames.window_location in gui_settings.get_dict():
         location = gui_settings[SettingsNames.window_location]
 
-    window = sg.Window('PEP-TK: Job Runner', layout, default_element_size=(12, 1), location=location, finalize=True)
+    window = sg.Window('PEP-TK: Job Runner', layout, location=location, finalize=True)
     return window, progress_bars
 
 

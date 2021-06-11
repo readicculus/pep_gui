@@ -4,7 +4,7 @@ import PySimpleGUI as sg
 
 from datasets import DatasetManifest
 from fonts import Fonts
-from layouts.layout import LayoutSection
+from layouts.layout import LayoutSection, help_icon
 
 
 class DatasetSelectionLayout(LayoutSection):
@@ -22,24 +22,35 @@ class DatasetSelectionLayout(LayoutSection):
 
     def get_layout(self):
         size = (40, max(min(40, len(self.datasets)), 20))
-        layout = [[sg.T('Select a dataset or multiple datasets below.  '
-                        'Select multiple by clicking on multiple datasets then pressing the \'>\' button')],
-                  [sg.Column([[sg.Text('Datasets')],
-                              [sg.Listbox(key='dataset_options',
-                                          values=self.datasets,
-                                          size=size, select_mode='multiple', bind_return_key=True,
-                                          font=Fonts.description)]]),
-                   sg.Column([[sg.Text('\n')], [sg.Button('>', key=self.right_button_key)],
-                              [sg.Button('<', key=self.left_button_key)]]),
-                   sg.Column([[sg.Text('Selected Datasets %d' % len(self.selected_datasets),
-                                       key=self.selected_datasets_title_key, size = (len('selected datasets x') + 5, 1))],
-                              [sg.Listbox(key='selected_datasets',
-                                          values=self.selected_datasets,
-                                          size=size,
-                                          select_mode='multiple',
-                                          bind_return_key=True,
-                                          font=Fonts.description)]])],
-                  [sg.Text('Filter:'), sg.InputText(key='datasets_filter', enable_events=True, size=(30, 1))],
+        layout = [[sg.T('Select a dataset or multiple datasets below.\n'
+                        'Select multiple by clicking on multiple datasets then pressing the \'>\' button'),
+                        help_icon('Use ctrl+click to select multiple, shift-click to select many.')],
+                  [
+                      sg.Column([
+                          [sg.Text('Datasets')],
+                                 [sg.Listbox(key='dataset_options',
+                                             values=self.datasets,
+                                             size=size,
+                                             select_mode=sg.SELECT_MODE_EXTENDED,
+                                             bind_return_key=True,
+                                             font=Fonts.description)]
+                      ]),
+                      sg.Column([[sg.Text('\n')], [sg.Button('>', key=self.right_button_key)], [sg.Button('<', key=self.left_button_key)]]),
+                      sg.Column([
+                          [sg.Text('Selected Datasets %d' % len(self.selected_datasets),
+                                   key=self.selected_datasets_title_key,
+                                   size=(len('selected datasets x') + 5, 1))],
+                          [sg.Listbox(key='selected_datasets',
+                                      values=self.selected_datasets,
+                                      size=size,
+                                      select_mode=sg.SELECT_MODE_EXTENDED,
+                                      bind_return_key=True,
+                                      font=Fonts.description)]
+                      ])
+                  ],
+                  [sg.Text('Filter:'),
+                   sg.InputText(key='datasets_filter', enable_events=True, size=(30, 1)),
+                   sg.Button('clear filter', key='clear_filter')],
                   [sg.Text('', key='warning', text_color='red', size=(50, 1))]]
         return layout
 
@@ -52,6 +63,11 @@ class DatasetSelectionLayout(LayoutSection):
             else:
                 self.datasets = self.dataset_manifest.list_dataset_keys_exp(values['datasets_filter'] + '*')
             need_update = True
+        elif event == 'clear_filter':
+            window['datasets_filter'](value='')
+            window.write_event_value('datasets_filter', '')
+        elif event == 'select_all_left':
+            selected_datasets
         elif event == self.right_button_key:
             selection = values['dataset_options']
             for s in selection:

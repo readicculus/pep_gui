@@ -26,24 +26,11 @@ class ProgressGUIEventData:
     def estimated_time_remaining(self) -> float:
         return self.time_per_count * (self.max_count - self.progress_count)
 
-SYMBOL_UP =    '▲'
-SYMBOL_DOWN =  '▼'
-def collapse(layout, key):
-    """
-    Helper function that creates a Column that can be later made hidden, thus appearing "collapsed"
-    :param layout: The layout for the section
-    :param key: Key used to make this seciton visible / invisible
-    :return: A pinned column that can be placed directly into your layout
-    :rtype: sg.pin
-    """
-    return sg.pin(sg.Column(layout, key=key))
 
-# def load_icon(icon_fp):
-#     fp = resources_directory(icon_fp)
-#     return cv2.imread(fp)
 status_icons = {TaskStatus.SUCCESS: resources_directory('status_success.png'),
                 TaskStatus.ERROR: resources_directory('status_error.png'),
                 TaskStatus.RUNNING: resources_directory('status_running.png')}
+
 
 class BetterProgressBar(LayoutSection):
     """
@@ -72,7 +59,7 @@ class BetterProgressBar(LayoutSection):
         def empty_string(s):
             return ' ' * len(s)
 
-        status_icon = sg.Image(size=(24,24), key=self._status_key)
+        status_icon = sg.Image(size=(24, 24), key=self._status_key)
         title = sg.T(self.task_key, size=(len(self.task_key), 1), key=self._text_title_key)
         pb = sg.ProgressBar(100, orientation='hs', size=(20, 4), key=self._pb_key)
         elapsed_str = empty_string('00:00:00 elapsed 00:00:00 remaining')
