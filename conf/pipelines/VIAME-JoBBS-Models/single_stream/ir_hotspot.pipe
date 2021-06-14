@@ -4,8 +4,10 @@
 config _pipeline:_edge
   :capacity                                    5
 
-config _scheduler
-  :type                                        pythread_per_process
+config global
+   # output metadata information
+   :version_identifier                       VIAME-JoBBS-Models-v2021.02.23
+   :ir_hotspot_model_identifier              ir_yolo_tiny_1L64x80.cfg@$ENV{PIPE_ARG_DET_THRESH_HS}
 
 # =============================================================================
 process thermal_input
@@ -107,10 +109,10 @@ process detector_writer
 
   :writer:type                                 viame_csv
 
-  :writer:viame_csv:model_identifier           $CONFIG{global:ir_hotspot_model_identifier}@$CONFIG{global:detection_threshold_hotspot}
+  :writer:viame_csv:model_identifier           $CONFIG{global:ir_hotspot_model_identifier}
   :writer:viame_csv:version_identifier         $CONFIG{global:version_identifier}
 
 connect from thermal_detector_output.detected_object_set
         to   detector_writer.detected_object_set
-connect from input.file_name
+connect from thermal_input.file_name
         to   detector_writer.image_file_name

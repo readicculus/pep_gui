@@ -21,8 +21,6 @@ PipelineManifest:
         default: 0.1
         type: float[0,1]
         env_variable: PIPE_ARG_DET_THRESH_SEAL
-        settings:
-
         description: The minimum detection threshold that the color seal detector will output detections for.
       detection_threshold_polar_bear:
         default: 0.5
@@ -66,8 +64,8 @@ PipelineManifest:
         env_variable: PIPE_ARG_TRANSFORMATION_FILE
 
 
-  hotspot_ir_detector:
-    path: conf/pipelines/VIAME-JoBBS-Models/single_stream/ir_yolo.pipe
+  ir_hotspot_detector:
+    path: conf/pipelines/VIAME-JoBBS-Models/single_stream/ir_hotspot.pipe
     parameters_config:
       detection_threshold_hotspot:
         default: 0.1
@@ -89,3 +87,83 @@ PipelineManifest:
       thermal_image_list:
         dataset_attribute: thermal_image_list
         env_variable: PIPE_ARG_THERMAL_INPUT
+
+
+  eo_seal_detector:
+    path: conf/pipelines/VIAME-JoBBS-Models/single_stream/eo_seal_only.pipe
+    parameters_config:
+      detection_threshold_seal:
+        default: 0.1
+        type: float[0,1]
+        env_variable: PIPE_ARG_DET_THRESH_SEAL
+        description: The minimum detection threshold that the color seal detector will output detections for.
+
+    output_config:
+      output_optical_detections:
+        default: '[TIMESTAMP]_seal-detector_[DATASET]_EO.csv'
+        type: output_detections_csv
+        env_variable: PIPE_ARG_OPTICAL_OUTPUT_DETS
+      output_optical_image_list:
+        default: '[TIMESTAMP]_seal-detector_[DATASET]_EO_images.txt'
+        type: output_image_list
+        env_variable: PIPE_ARG_OPTICAL_OUTPUT_IMAGE_LIST
+
+    dataset_pipeline_adapters:
+      optical_image_list:
+        dataset_attribute: color_image_list
+        env_variable: PIPE_ARG_OPTICAL_INPUT
+
+
+  eo_polarbear_detector:
+    path: conf/pipelines/VIAME-JoBBS-Models/single_stream/eo_polarbear_only.pipe
+    parameters_config:
+      detection_threshold_polar_bear:
+        default: 0.5
+        type: float[0,1]
+        env_variable: PIPE_ARG_DET_THRESH_PB
+        description: The minimum detection threshold that the color polar bear detector will output detections for.
+
+    output_config:
+      output_optical_detections:
+        default: '[TIMESTAMP]_polarbear-detector_[DATASET]_EO.csv'
+        type: output_detections_csv
+        env_variable: PIPE_ARG_OPTICAL_OUTPUT_DETS
+      output_optical_image_list:
+        default: '[TIMESTAMP]_polarbear-detector_[DATASET]_EO_images.txt'
+        type: output_image_list
+        env_variable: PIPE_ARG_OPTICAL_OUTPUT_IMAGE_LIST
+
+    dataset_pipeline_adapters:
+      optical_image_list:
+        dataset_attribute: color_image_list
+        env_variable: PIPE_ARG_OPTICAL_INPUT
+
+
+  eo_seal_and_polarbear_detector:
+    path: conf/pipelines/VIAME-JoBBS-Models/single_stream/eo_seal_and_polarbear.pipe
+    parameters_config:
+      detection_threshold_seal:
+        default: 0.1
+        type: float[0,1]
+        env_variable: PIPE_ARG_DET_THRESH_SEAL
+        description: The minimum detection threshold that the color seal detector will output detections for.
+      detection_threshold_polar_bear:
+        default: 0.5
+        type: float[0,1]
+        env_variable: PIPE_ARG_DET_THRESH_PB
+        description: The minimum detection threshold that the color polar bear detector will output detections for.
+
+    output_config:
+      output_optical_detections:
+        default: '[TIMESTAMP]_seal-polarbear-detector_[DATASET]_EO.csv'
+        type: output_detections_csv
+        env_variable: PIPE_ARG_OPTICAL_OUTPUT_DETS
+      output_optical_image_list:
+        default: '[TIMESTAMP]_seal-polarbear-detector_[DATASET]_EO_images.txt'
+        type: output_image_list
+        env_variable: PIPE_ARG_OPTICAL_OUTPUT_IMAGE_LIST
+
+    dataset_pipeline_adapters:
+      optical_image_list:
+        dataset_attribute: color_image_list
+        env_variable: PIPE_ARG_OPTICAL_INPUT

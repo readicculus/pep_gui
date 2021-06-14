@@ -8,7 +8,7 @@ config _pipeline:_edge
 config global
    # output metadata information
    :version_identifier                       VIAME-JoBBS-Models-v2021.02.23
-   :eo_seal_model_identifier                 eo_seals_yolo_tiny_3l_512_1to1bg_nounk.cfg@$ENV{PIPE_ARG_DET_THRESH_PB}
+   :eo_seal_model_identifier                 eo_seals_yolo_tiny_3l_512_1to1bg_nounk.cfg@$ENV{PIPE_ARG_DET_THRESH_SEAL}
    :eo_polar_bear_model_identifier           eo_pb_yolo_tiny_3l.cfg@$ENV{PIPE_ARG_DET_THRESH_PB}
    :ir_hotspot_model_identifier              ir_yolo_tiny_1L64x80.cfg@$ENV{PIPE_ARG_DET_THRESH_HS}
 
