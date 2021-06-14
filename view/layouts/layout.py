@@ -49,7 +49,36 @@ def Collapsible(layout, key, title='', arrows=(sg.SYMBOL_DOWN, sg.SYMBOL_UP), co
                        sg.T(title, enable_events=True, key=key+'-TITLE-')],
                       [sg.pin(sg.Column(layout, key=key, visible=not collapsed, metadata=arrows))]], pad=(0,0))
 
+
+def Menubar(menu_def, text_color, background_color, pad=(0, 0)):
+    """
+    A User Defined element that simulates a Menu element by using ButtonMenu elements
+    :param menu_def: A standard PySimpleGUI menu definition
+    :type menu_def: List[List[Tuple[str, List[str]]]
+    :param text_color: color for the menubar's text
+    :type text_color:
+    :param background_color: color for the menubar's background
+    :type background_color:
+    :param pad: Amount of padding around each menu entry
+    :type pad:
+    :return: A column element that has a row of ButtonMenu buttons
+    :rtype: sg.Column
+    """
+    row = []
+    for menu in menu_def:
+        text = menu[0]
+        if sg.MENU_SHORTCUT_CHARACTER in text:
+            text = text.replace(sg.MENU_SHORTCUT_CHARACTER, '')
+        if text.startswith(sg.MENU_DISABLED_CHARACTER):
+            disabled = True
+            text = text[len(sg.MENU_DISABLED_CHARACTER):]
+        else:
+            disabled = False
+        row += [sg.ButtonMenu(text, menu, border_width=0, button_color=f'{text_color} on {background_color}',key=text, pad=pad, disabled=disabled)]
+
+    return sg.Column([row], background_color=background_color, pad=(0,0), expand_x=True)
+
 def help_icon(tooltip, key=None):
     if key is None:
-        key = hash(tooltip)
+        key = str(hash(tooltip))
     return sg.Image(resources_directory('help.png'), tooltip=tooltip, key=key, size=(16,16))

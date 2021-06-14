@@ -66,8 +66,6 @@ class DatasetSelectionLayout(LayoutSection):
         elif event == 'clear_filter':
             window['datasets_filter'](value='')
             window.write_event_value('datasets_filter', '')
-        elif event == 'select_all_left':
-            selected_datasets
         elif event == self.right_button_key:
             selection = values['dataset_options']
             for s in selection:

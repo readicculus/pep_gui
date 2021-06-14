@@ -26,4 +26,4 @@ def get_viame_bash_or_bat_file_path(settings: sg.UserSettings):
 
     return os.path.join(base_dir, fn)
 
-WINDOW_ICON = resources_directory('orig/seal.png')
+WINDOW_ICON = resources_directory('bear.png')

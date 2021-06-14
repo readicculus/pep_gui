@@ -9,8 +9,8 @@ from fonts import Fonts
 from initial_setup import initial_setup
 from job_runner import run_job
 from layouts import DatasetSelectionLayout, PipelineSelectionLayout
-from layouts.layout import LayoutSection
-from view.settings import get_settings, SettingsNames
+from layouts.layout import LayoutSection, Menubar
+from view.settings import get_settings, SettingsNames, WINDOW_ICON
 
 sg.theme('SystemDefaultForReal')
 initial_setup()
@@ -58,8 +58,17 @@ location = (0, 0)
 if SettingsNames.window_location in gui_settings.get_dict():
     location = gui_settings[SettingsNames.window_location]
 
+# menu_def = [['&File', ['&Open     Ctrl-O', '&Save       Ctrl-S', '&Properties', 'E&xit']],
+#             ['&Edit', [['Special', 'Normal', ['Normal1', 'Normal2']], 'Undo'], ],
+#             ['!Disabled', [['Special', 'Normal', ['Normal1', 'Normal2']], 'Undo'], ],
+#             ['&Toolbar', ['---', 'Command &1::Command_Key', 'Command &2', '---', 'Command &3', 'Command &4']],
+#             ['&Help', ['&About...']], ]
+
+# layout = [[[Menubar(menu_def, sg.theme_button_color()[1], sg.theme_button_color()[0], (5, 0))]]] + layout
+# layout = [[sg.Menu(menu_def, tearoff=False, key='-MENU BAR-')]] + layout
+
 window = sg.Window('PEP-TK: Job Configuration', layout,
-                   default_element_size=(12, 1), location=location)
+                   default_element_size=(12, 1), location=location, icon=WINDOW_ICON, titlebar_icon=WINDOW_ICON)
 
 
 # ======== Handler helper functions =========

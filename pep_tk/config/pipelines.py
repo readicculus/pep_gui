@@ -9,7 +9,8 @@ class PipelineManifest:
         self.manifest_file = manifest_file
         with open(manifest_file, 'r') as stream:
             try: dataset_yaml = yaml.safe_load(stream)
-            except yaml.YAMLError as exc: print(exc)
+            except yaml.YAMLError as exc:
+                print(exc)
 
         self.pipelines = {}
         for pipeline_name, pipeline_config in dataset_yaml[self.__root].items():
