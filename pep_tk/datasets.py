@@ -52,6 +52,9 @@ class VIAMEDataset:
             'thermal_images': lambda: self.thermal_images
         }
 
+    def get(self, item: str, default=None):
+        return self.__attributes__.get(item, default)
+
     def __getitem__(self, item: str) -> Union[str, ImageList]:
         return self.__data__[item]()
 

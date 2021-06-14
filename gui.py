@@ -3,6 +3,7 @@ import os
 import PySimpleGUI as sg
 
 from config import PipelineManifest
+from config.exceptions import MissingPortsException
 from core.job import create_job
 from datasets import DatasetManifest
 from fonts import Fonts
@@ -28,7 +29,12 @@ def create_frame(tl: LayoutSection):
     return sg.Frame(layout=tl.get_layout(), title=tl.layout_name, font=Fonts.title_medium, title_color='#0b64c5')
 
 def popup_ok(msg):
-    sg.popup_ok(msg, location=gui_settings[SettingsNames.window_location])
+    max_line_width = 200
+    current = sg.MESSAGE_BOX_LINE_WIDTH
+    for line in msg.split('\n'):
+        if len(line) > current:
+            current = len(line)
+    sg.popup_ok(msg, location=gui_settings[SettingsNames.window_location], line_width=min(max_line_width, current))
 
 
 # ======== Create the Layout =========
@@ -85,6 +91,7 @@ def validate_inputs(values) -> bool:
     selected_job_name = values['-job_name-IN-']
     job_dir = os.path.join(selected_job_directory, selected_job_name)
     datasets = dataset_tab.get_selected_datasets()
+    pipeline = pipeline_tab.get_selected_pipeline()
 
     if len(datasets) < 1:
         popup_ok('No datasets were selected.  Must select one or more datasets above.')
@@ -93,6 +100,20 @@ def validate_inputs(values) -> bool:
     # if pipeline_tab.selected_pipeline is None:
     if not pipeline_tab.validate(values):
         popup_ok('Either a pipeline isn\'t selected or error in configuration values.')
+        return False
+
+    # Check missing ports
+    missing_ports = {}
+    for dataset in datasets:
+        try:
+            pipeline.get_pipeline_dataset_environment(dataset)
+        except MissingPortsException as e:
+            missing_ports[e.dataset_name] = e.ports
+    if len(missing_ports) > 0:
+        msg = "Datasets aren't compatible with the selected pipeline: \n"
+        for dataset_name, ports in missing_ports.items():
+            msg += "%s: MISSING(%s)\n" % (dataset_name, ', '.join(ports))
+        popup_ok(msg)
         return False
 
     if not os.path.isdir(selected_job_directory):

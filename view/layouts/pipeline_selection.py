@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from config import PipelineManifest, ConfigOption, PipelineConfig
 from fonts import Fonts
@@ -100,7 +100,7 @@ class PipelineConfigLayout(LayoutSection):
 class PipelineSelectionLayout(LayoutSection):
     def __init__(self, pipeline_manifest: PipelineManifest, event_key='_pipeline_tab_'):
         self.pipeline_manifest = pipeline_manifest
-        self.selected_pipeline = None
+        self.selected_pipeline: Optional[PipelineConfig] = None
 
         # gui element identifier keys
         self.event_key = event_key

@@ -46,7 +46,7 @@ PipelineManifest:
         type: output_image_list
         env_variable: PIPE_ARG_OPTICAL_OUTPUT_IMAGE_LIST
       output_thermal_detections:
-        default: '[TIMESTAMP]_region-trigger[DATASET]_IR.csv'
+        default: '[TIMESTAMP]_region-trigger_[DATASET]_IR.csv'
         type: output_detections_csv
         env_variable: PIPE_ARG_THERMAL_OUTPUT_DETS
       output_thermal_image_list:
@@ -65,3 +65,27 @@ PipelineManifest:
         dataset_attribute: transformation_file
         env_variable: PIPE_ARG_TRANSFORMATION_FILE
 
+
+  hotspot_ir_detector:
+    path: conf/pipelines/VIAME-JoBBS-Models/single_stream/ir_yolo.pipe
+    parameters_config:
+      detection_threshold_hotspot:
+        default: 0.1
+        type: float[0,1]
+        env_variable: PIPE_ARG_DET_THRESH_HS
+        description: The minimum detection threshold that the thermal hotspot detector will output detections for.
+
+    output_config:
+      output_thermal_detections:
+        default: '[TIMESTAMP]_ir-detector_[DATASET]_IR.csv'
+        type: output_detections_csv
+        env_variable: PIPE_ARG_THERMAL_OUTPUT_DETS
+      output_thermal_image_list:
+        default: '[TIMESTAMP]_ir-detector_[DATASET]_IR_images.txt'
+        type: output_image_list
+        env_variable: PIPE_ARG_THERMAL_OUTPUT_IMAGE_LIST
+
+    dataset_pipeline_adapters:
+      thermal_image_list:
+        dataset_attribute: thermal_image_list
+        env_variable: PIPE_ARG_THERMAL_INPUT

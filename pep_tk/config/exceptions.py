@@ -1,8 +1,8 @@
-class MissingPortException(Exception):
-    def __init__(self, port, dataset_name):
-        self.port = port
+class MissingPortsException(Exception):
+    def __init__(self, ports, dataset_name):
+        self.ports = ports
         self.dataset_name = dataset_name
-        self.message = 'This pipeline requires %s, which was not defined in the dataset %s.' % (self.port, self.dataset_name)
+        self.message = 'This pipeline requires %s, which was not defined in the dataset %s.' % (str(self.ports), self.dataset_name)
 
         super().__init__(self.message)
 

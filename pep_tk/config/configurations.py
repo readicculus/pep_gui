@@ -177,15 +177,18 @@ class DatasetPipelineEnvAdaptersGroup:
 
     def get_env_ports(self, dataset: VIAMEDataset, missing_ok=False) -> Dict[ENV_VARIABLE, VALUE]:
         res = {}
+        missing_ports = []
         for name, attributes in self.__config.items():
             attr = attributes['dataset_attribute']
-            if not missing_ok and not attr in dataset:
-                raise MissingPortException(attr, dataset.name)
+            if dataset.get(attr) is None:
+                missing_ports.append(attr)
 
-            if not attr in dataset:
-                continue
+            if attr in dataset:
+                res[attributes['env_variable']] = dataset[attr]
 
-            res[attributes['env_variable']] = dataset[attr]
+        if not missing_ok and len(missing_ports) > 0:
+            raise MissingPortsException(missing_ports, dataset.name)
+
         return res
 
     def to_dict(self):
