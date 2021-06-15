@@ -7,10 +7,9 @@ from config.exceptions import MissingPortsException
 from core.job import create_job
 from datasets import DatasetManifest
 from fonts import Fonts
-from initial_setup import initial_setup
-from job_runner import run_job
-from layouts import DatasetSelectionLayout, PipelineSelectionLayout
-from layouts.layout import LayoutSection, Menubar
+from windows.initial_setup import initial_setup
+from windows.job_runner import run_job
+from layouts import DatasetSelectionLayout, PipelineSelectionLayout, LayoutSection
 from view.settings import get_settings, SettingsNames, WINDOW_ICON
 
 sg.theme('SystemDefaultForReal')
@@ -86,13 +85,13 @@ def cache_settings(values):
 
 
 def validate_inputs(values) -> bool:
-
     selected_job_directory = values['-job_dir-IN-']
     selected_job_name = values['-job_name-IN-']
     job_dir = os.path.join(selected_job_directory, selected_job_name)
     datasets = dataset_tab.get_selected_datasets()
     pipeline = pipeline_tab.get_selected_pipeline()
 
+    # Check if no datasets were selected
     if len(datasets) < 1:
         popup_ok('No datasets were selected.  Must select one or more datasets above.')
         return False
@@ -102,7 +101,7 @@ def validate_inputs(values) -> bool:
         popup_ok('Either a pipeline isn\'t selected or error in configuration values.')
         return False
 
-    # Check missing ports
+    # Check for missing ports(aka if datasets/pipeline are not compatible)
     missing_ports = {}
     for dataset in datasets:
         try:
@@ -116,14 +115,17 @@ def validate_inputs(values) -> bool:
         popup_ok(msg)
         return False
 
+    # Check if the job base directory doesn't exist
     if not os.path.isdir(selected_job_directory):
         popup_ok(f'Jobs base directory {selected_job_directory} does not exist.')
         return False
 
+    # Check if the selected name is an empty string
     if selected_job_name == '':
         popup_ok('No job name entered')
         return False
 
+    # Check if the job directory(within the base directory) already exists
     if os.path.isdir(job_dir):
         popup_ok(f'Job {selected_job_name} already exists, cannot override an existing job.\n{job_dir}')
         return False

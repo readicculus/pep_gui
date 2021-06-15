@@ -4,7 +4,7 @@ import PySimpleGUI as sg
 
 from datasets import DatasetManifest
 from fonts import Fonts
-from layouts.layout import LayoutSection, help_icon
+from layouts import LayoutSection, help_icon
 
 
 class DatasetSelectionLayout(LayoutSection):

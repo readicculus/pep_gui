@@ -2,7 +2,7 @@ from typing import Dict, Optional
 
 from config import PipelineManifest, ConfigOption, PipelineConfig
 from fonts import Fonts
-from layouts.layout import LayoutSection
+from layouts import LayoutSection
 import PySimpleGUI as sg
 
 

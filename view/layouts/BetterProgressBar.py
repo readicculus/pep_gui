@@ -4,8 +4,8 @@ import PySimpleGUI as sg
 from dataclasses import dataclass
 
 from core.job import TaskStatus
-from layouts.layout import LayoutSection
-from settings import resources_directory
+from layouts import LayoutSection
+from settings import image_resource_path
 
 
 @dataclass
@@ -27,9 +27,9 @@ class ProgressGUIEventData:
         return self.time_per_count * (self.max_count - self.progress_count)
 
 
-status_icons = {TaskStatus.SUCCESS: resources_directory('status_success.png'),
-                TaskStatus.ERROR: resources_directory('status_error.png'),
-                TaskStatus.RUNNING: resources_directory('status_running.png')}
+status_icons = {TaskStatus.SUCCESS: image_resource_path('status_success.png'),
+                TaskStatus.ERROR: image_resource_path('status_error.png'),
+                TaskStatus.RUNNING: image_resource_path('status_running.png')}
 
 
 class BetterProgressBar(LayoutSection):

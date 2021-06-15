@@ -9,9 +9,8 @@ class SettingsNames:
     job_directory = 'job_directory'
     job_cache = 'job_list_cache'
 
-def resources_directory(file_path = ''):
-    abspath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../resources/img/'))
-
+def image_resource_path(file_path =''):
+    abspath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../lib/img/'))
     return os.path.join(abspath, file_path)
 
 def get_settings():
@@ -26,4 +25,4 @@ def get_viame_bash_or_bat_file_path(settings: sg.UserSettings):
 
     return os.path.join(base_dir, fn)
 
-WINDOW_ICON = resources_directory('bear.png')
+WINDOW_ICON = image_resource_path('bear.png')

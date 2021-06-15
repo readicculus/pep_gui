@@ -205,11 +205,12 @@ class Scheduler:
                 self.manager.update_task_stderr(current_task_key, stderr_log)
                 self.manager.end_task(current_task_key, TaskStatus.ERROR)
 
-                raise RuntimeError(
-                    'Pipeline exited with nonzero status code {}: {}'.format(
-                        process.returncode, stderr_log
-                    )
-                )
+                # TODO show error in UI, and save in log somewhere
+                # raise RuntimeError(
+                #     'Pipeline exited with nonzero status code {}: {}'.format(
+                #         process.returncode, stderr_log
+                #     )
+                # )
             else:
                 # Update Task Ended with success
                 count = poll_image_list(image_list_monitor)

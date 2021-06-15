@@ -8,8 +8,7 @@ import PySimpleGUI as sg
 from core.job import load_job, TaskStatus, TaskKey
 from core.scheduler import Scheduler, SchedulerEventManager
 from fonts import Fonts
-from layouts import BetterProgressBar
-from layouts.BetterProgressBar import ProgressGUIEventData
+from layouts import BetterProgressBar, ProgressGUIEventData
 from settings import get_settings, SettingsNames, get_viame_bash_or_bat_file_path, WINDOW_ICON
 
 sg.theme('SystemDefaultForReal')
@@ -37,14 +36,12 @@ class GUIManager(SchedulerEventManager):
         print('task_started')
 
     def _end_task(self, task_key: TaskKey, status: TaskStatus):
-        # pb_key = progress_meter_gui_key(task_key)
         gui_task_event_key = self.task_event_key(task_key)
         evt_data = ProgressGUIEventData(task_status=status,
                                         progress_count=self.task_count[task_key],
                                         max_count=self.task_max_count[task_key],
                                         elapsed_time=self.elapsed_time(task_key))
-        if status == TaskStatus.SUCCESS:
-            self._window.write_event_value(gui_task_event_key, evt_data)
+        self._window.write_event_value(gui_task_event_key, evt_data)
 
         print('task_finished')
 
@@ -110,4 +107,4 @@ def run_job(job_path: str):
 
 if __name__ == '__main__':
     # TODO: open job selection GUI
-    run_job('/home/yuval/Desktop/jobs/test')
+    run_job('/home/yuval/Desktop/jobs/a')

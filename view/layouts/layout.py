@@ -1,7 +1,7 @@
 import abc
 import PySimpleGUI as sg
 
-from settings import resources_directory
+from settings import image_resource_path
 
 
 class LayoutSection(metaclass=abc.ABCMeta):
@@ -81,4 +81,4 @@ def Menubar(menu_def, text_color, background_color, pad=(0, 0)):
 def help_icon(tooltip, key=None):
     if key is None:
         key = str(hash(tooltip))
-    return sg.Image(resources_directory('help.png'), tooltip=tooltip, key=key, size=(16,16))
+    return sg.Image(image_resource_path('help.png'), tooltip=tooltip, key=key, size=(16, 16))

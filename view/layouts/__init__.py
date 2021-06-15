@@ -1,3 +1,5 @@
+from layouts.layout import LayoutSection, help_icon
 from layouts.dataset_selection import DatasetSelectionLayout
 from layouts.pipeline_selection import PipelineSelectionLayout
-from layouts.BetterProgressBar import BetterProgressBar
+from layouts.BetterProgressBar import BetterProgressBar, ProgressGUIEventData
+
