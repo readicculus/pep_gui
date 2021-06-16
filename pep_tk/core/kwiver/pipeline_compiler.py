@@ -2,7 +2,7 @@ import os
 import re
 from typing import Dict
 
-from src.pep_tk.config import PipelineConfig
+from pep_tk.core.configuration import PipelineConfig
 from datetime import datetime
 
 # Unfortunately the kwiver runner pipe-config will not inject environemnt variables

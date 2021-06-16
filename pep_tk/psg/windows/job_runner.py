@@ -7,9 +7,9 @@ import PySimpleGUI as sg
 
 from pep_tk.core.job import load_job, TaskStatus, TaskKey
 from pep_tk.core.scheduler import Scheduler, SchedulerEventManager
-from view.fonts import Fonts
-from view.layouts import BetterProgressBar, ProgressGUIEventData
-from view.settings import get_settings, SettingsNames, get_viame_bash_or_bat_file_path, WINDOW_ICON
+from pep_tk.psg.fonts import Fonts
+from pep_tk.psg.layouts import BetterProgressBar, ProgressGUIEventData
+from pep_tk.psg.settings import get_settings, SettingsNames, get_viame_bash_or_bat_file_path
 
 sg.theme('SystemDefaultForReal')
 

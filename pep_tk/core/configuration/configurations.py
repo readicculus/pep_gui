@@ -1,12 +1,10 @@
+import os
 from typing import Dict, Tuple, List, Optional
 
-from pep_tk.datasets import VIAMEDataset
-from pep_tk.config.types import parse_type
-from pep_tk.config.exceptions import *
-from pep_tk.config import ENV_VARIABLE, VALUE
-import os
-
-from src import PLUGIN_PATH
+from pep_tk.core.datasets import VIAMEDataset
+from pep_tk.core.configuration.types import parse_type
+from pep_tk.core.configuration.exceptions import *
+from pep_tk.core.configuration import ENV_VARIABLE, VALUE
 
 
 class ConfigOption:
@@ -203,6 +201,7 @@ class PipelineConfig:
         :param pipeline_name: name of the pipeline
         :param config_dict: dictionary of the given pipeline from the parsed pipeline manifest yaml file
         """
+        from pep_tk import PLUGIN_PATH
         self.name = pipeline_name
         self.path = os.path.join(PLUGIN_PATH, config_dict['path'])
         self.directory = os.path.dirname(self.path)
@@ -234,20 +233,3 @@ class PipelineConfig:
                 'path': self.path
             }
         return d
-
-    # def from_dict(self, d: Dict, lock=False):
-    #     self.parameters_group.from_dict(d['parameters_group'], lock=lock)
-    #     self.output_group.from_dict(d['output_group'], lock=lock)
-
-    # def to_yaml(self, yaml_filepath):
-    #     d = {
-    #             self.name:
-    #                 {
-    #                     'parameters_group': self.parameters_group.to_dict(),
-    #                     'output_group': self.output_group.to_dict()
-    #                 }
-    #         }
-    #     return yaml.safe_dump(d)
-    # @classmethod
-    # def from_yaml(self, yaml_str):
-    #     pass

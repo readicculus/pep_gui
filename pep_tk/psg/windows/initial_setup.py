@@ -3,7 +3,7 @@ import os
 
 import PySimpleGUI as sg
 
-from src.view.settings import get_settings, SettingsNames
+from pep_tk.psg.settings import get_settings, SettingsNames
 
 
 def initial_setup(skip_if_complete = True):

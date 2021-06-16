@@ -2,9 +2,9 @@ from typing import List
 
 import PySimpleGUI as sg
 
-from pep_tk.datasets import DatasetManifest
-from view.fonts import Fonts
-from view.layouts import LayoutSection, help_icon
+from pep_tk.core.datasets import DatasetManifest
+from pep_tk.psg.fonts import Fonts
+from pep_tk.psg.layouts import LayoutSection, help_icon
 
 
 class DatasetSelectionLayout(LayoutSection):

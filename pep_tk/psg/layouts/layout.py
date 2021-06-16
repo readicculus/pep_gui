@@ -1,7 +1,7 @@
 import abc
 import PySimpleGUI as sg
 
-from src.view.settings import image_resource_path
+from pep_tk.psg.settings import image_resource_path
 
 
 class LayoutSection(metaclass=abc.ABCMeta):

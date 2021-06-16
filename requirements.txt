@@ -1,0 +1,2 @@
+PyYAML==5.4.1
+dataclasses==0.8; python_version < '3.7'

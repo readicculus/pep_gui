@@ -4,7 +4,7 @@ from typing import Optional, List, Dict, Union, Callable
 import regex as re
 import yaml
 
-from pep_tk.util import glob2re
+from pep_tk.core.util import glob2re
 
 
 DatasetProperty = Optional[str]

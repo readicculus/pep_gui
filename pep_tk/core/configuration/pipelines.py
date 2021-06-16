@@ -1,10 +1,15 @@
+import os
+
 import yaml
-from pep_tk.config import PipelineConfig
+
+from pep_tk import PLUGIN_PATH
+from pep_tk.core.configuration import PipelineConfig
+default_manifest = os.path.join(PLUGIN_PATH, 'conf/pipeline_manifest.yaml')
 
 class PipelineManifest:
     __root = 'PipelineManifest'
 
-    def __init__(self, manifest_file: str = 'conf/pipeline_manifest.yaml'):
+    def __init__(self, manifest_file: str = default_manifest):
         self.manifest_file = manifest_file
         with open(manifest_file, 'r') as stream:
             try: dataset_yaml = yaml.safe_load(stream)

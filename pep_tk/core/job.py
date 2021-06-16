@@ -5,10 +5,10 @@ from typing import List, Tuple, Optional
 
 import jsonfile
 
-from pep_tk.config import PipelineConfig
-from pep_tk.config.configurations import PipelineOutputOptionGroup
-from pep_tk.datasets import VIAMEDataset
-from pep_tk.kwiver.pipeline_compiler import compile_pipeline
+from pep_tk.core.configuration import PipelineConfig
+from pep_tk.core.configuration.configurations import PipelineOutputOptionGroup
+from pep_tk.core.datasets import VIAMEDataset
+from pep_tk.core.kwiver.pipeline_compiler import compile_pipeline
 
 
 class JobInitException(Exception):

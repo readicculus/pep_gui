@@ -2,7 +2,7 @@ import os
 
 import PySimpleGUI as sg
 
-from src import PLUGIN_PATH
+from pep_tk import PLUGIN_PATH
 
 
 class SettingsNames:

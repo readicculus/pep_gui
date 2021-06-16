@@ -1,8 +1,8 @@
 from typing import Dict, Optional
 
-from pep_tk.config import PipelineManifest, ConfigOption, PipelineConfig
-from view.fonts import Fonts
-from view.layouts import LayoutSection
+from pep_tk.core.configuration import PipelineManifest, ConfigOption, PipelineConfig
+from pep_tk.psg.fonts import Fonts
+from pep_tk.psg.layouts import LayoutSection
 import PySimpleGUI as sg
 
 

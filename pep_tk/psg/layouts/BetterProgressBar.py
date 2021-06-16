@@ -4,8 +4,8 @@ import PySimpleGUI as sg
 from dataclasses import dataclass
 
 from pep_tk.core.job import TaskStatus
-from view.layouts import LayoutSection
-from view.settings import image_resource_path
+from pep_tk.psg.layouts import LayoutSection
+from pep_tk.psg.settings import image_resource_path
 
 
 @dataclass

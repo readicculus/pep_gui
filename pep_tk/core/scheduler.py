@@ -6,9 +6,9 @@ import time
 from datetime import datetime
 
 from pep_tk.core.job import JobState, JobMeta, TaskStatus, TaskKey
-from pep_tk.util import shell_source
-from pep_tk.kwiver.pipeline_compiler import compile_output_filenames
-from pep_tk.kwiver.subprocess_runner import KwiverRunner
+from pep_tk.core.util import shell_source
+from pep_tk.core.kwiver.pipeline_compiler import compile_output_filenames
+from pep_tk.core.kwiver.subprocess_runner import KwiverRunner
 
 
 class SchedulerEventManager(metaclass=abc.ABCMeta):
@@ -22,6 +22,7 @@ class SchedulerEventManager(metaclass=abc.ABCMeta):
         self.task_count = {}
         self.task_max_count = {}
         self.initialized_tasks = []
+        #TODO add ability for app to cancel task by sending event back to event manager?
 
     def initialize_task(self, task_key: TaskKey, count: int, max_count: int, status: TaskStatus):
         self.task_count[task_key] = count
@@ -104,13 +105,17 @@ def monitor_outputs(stop_event: threading.Event, task_key: TaskKey,
 
 
 class Scheduler:
-    progress_poll_freq = 5
-
-    def __init__(self, job_state: JobState, job_meta: JobMeta, manager: SchedulerEventManager, kwiver_setup_path: str):
+    def __init__(self,
+                 job_state: JobState,
+                 job_meta: JobMeta,
+                 manager: SchedulerEventManager,
+                 kwiver_setup_path: str,
+                 progress_poll_freq: int = 5):
         self.job_state = job_state
         self.job_meta = job_meta
         self.manager = manager
         self.kwiver_env = shell_source(kwiver_setup_path)
+        self.progress_poll_freq = progress_poll_freq
 
     def run(self):
         # if resuming mark already completed tasks as completed
@@ -206,11 +211,6 @@ class Scheduler:
                 self.manager.end_task(current_task_key, TaskStatus.ERROR)
 
                 # TODO show error in UI, and save in log somewhere
-                # raise RuntimeError(
-                #     'Pipeline exited with nonzero status code {}: {}'.format(
-                #         process.returncode, stderr_log
-                #     )
-                # )
             else:
                 # Update Task Ended with success
                 count = poll_image_list(image_list_monitor)
