@@ -114,7 +114,7 @@ class Scheduler:
         self.job_state = job_state
         self.job_meta = job_meta
         self.manager = manager
-        self.kwiver_env = shell_source(kwiver_setup_path)
+        self.kwiver_setup_path = kwiver_setup_path
         self.progress_poll_freq = progress_poll_freq
 
     def run(self):
@@ -143,7 +143,7 @@ class Scheduler:
             pipeline_output_image_list_env = compile_output_filenames(image_list_raw, path=self.job_meta.root_dir, t=t)
 
             pipeline_output_env = {**pipeline_output_csv_env, **pipeline_output_image_list_env}
-            env = {**pipeline_output_env, **self.kwiver_env}
+            env = pipeline_output_env
 
             # Setup error log
             error_log_fp = os.path.join(self.job_meta.logs_dir,
@@ -168,7 +168,8 @@ class Scheduler:
             # Create the kwiver runner and run it
             kwr = KwiverRunner(pipeline_fp,
                                cwd=self.job_meta.root_dir,
-                               env=env)
+                               env=env,
+                               kwiver_setup_path=self.kwiver_setup_path)
 
             process = kwr.run(stdout=subprocess.PIPE, stderr=error_log)
 

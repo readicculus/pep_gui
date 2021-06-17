@@ -4,26 +4,29 @@ from typing import Dict
 
 
 
-def get_pipeline_cmd(debug=False):
+def get_pipeline_cmd(debug=False, kwiver_setup_path = None):
     # return ['kwiver', 'pipe-to-dot', '--setup','-p']
     if os.name == 'nt':
-        if debug:
-            return ['kwiver.exe', 'runner']
+        if kwiver_setup_path:
+            return [kwiver_setup_path, '&&', 'kwiver.exe', 'runner']
         else:
             return ['kwiver.exe', 'runner']
     else:
         if debug:
-            return ['gdb', '--args', 'kwiver', 'runner']
+            args = ['gdb', '--args', 'kwiver', 'runner']
         else:
-            return ['kwiver', 'runner']
+            args = ['kwiver', 'runner']
 
+        if kwiver_setup_path:
+            args = ['source', kwiver_setup_path, '&&'] + args
+        return args
 
 def execute_command(cmd: str, env: Dict, cwd, stdout=None, stderr=None):
     if os.name == 'nt' and stdout is None:
         fnull = open( os.devnull, "w" )
         return subprocess.call(cmd, cwd=cwd,  stdout=fnull, stderr=subprocess.STDOUT, env=env)
 
-    return subprocess.Popen(cmd, cwd=cwd, stdout=stdout, stderr=stderr, env= env,  shell=True)
+    return subprocess.Popen(cmd, cwd=cwd, stdout=stdout, stderr=stderr, env= env,  shell=True, executable='/bin/bash')
 
 
 class KwiverRunner:
@@ -31,14 +34,15 @@ class KwiverRunner:
         Runner for running non-embedded pipelines that have no input output ports.
         Uses subprocess to call kwiver_runner
     '''
-    def __init__(self, pipeline_fp, env, cwd):
+    def __init__(self, pipeline_fp, env, cwd, kwiver_setup_path=None):
         self.pipeline_fp = pipeline_fp
         self.env = env
         self.cwd = cwd
+        self.kwiver_setup_path = kwiver_setup_path
 
 
     def run(self, stdout, stderr):
-        cmd = get_pipeline_cmd() + [self.pipeline_fp]
+        cmd = get_pipeline_cmd(kwiver_setup_path=self.kwiver_setup_path) + [self.pipeline_fp]
         cmd = ' '.join(cmd)
         print(cmd)
         return execute_command(cmd, self.env, self.cwd, stdout=stdout, stderr=stderr)
