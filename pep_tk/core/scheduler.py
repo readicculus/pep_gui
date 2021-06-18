@@ -6,7 +6,6 @@ import time
 from datetime import datetime
 
 from pep_tk.core.job import JobState, JobMeta, TaskStatus, TaskKey
-from pep_tk.core.util import shell_source
 from pep_tk.core.kwiver.pipeline_compiler import compile_output_filenames
 from pep_tk.core.kwiver.subprocess_runner import KwiverRunner
 
@@ -142,8 +141,7 @@ class Scheduler:
             pipeline_output_csv_env = compile_output_filenames(csv_ports_raw, path=self.job_meta.root_dir, t=t)
             pipeline_output_image_list_env = compile_output_filenames(image_list_raw, path=self.job_meta.root_dir, t=t)
 
-            pipeline_output_env = {**pipeline_output_csv_env, **pipeline_output_image_list_env}
-            env = pipeline_output_env
+            env = {**pipeline_output_csv_env, **pipeline_output_image_list_env}
 
             # Setup error log
             error_log_fp = os.path.join(self.job_meta.logs_dir,

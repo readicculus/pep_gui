@@ -66,7 +66,7 @@ def make_main_window(tasks: List[TaskKey], gui_settings: sg.UserSettings):
     progress_bars = {task_key: BetterProgressBar(task_key) for task_key in tasks}
 
     meters_layout = [pb.get_layout() for pb in list(progress_bars.values())]
-    layout = [[sg.Text('Jobs:', font=Fonts.title_large)],
+    layout = [[sg.Text('Task:', font=Fonts.title_large)],
               meters_layout,
               [sg.Cancel()]]
 
@@ -107,4 +107,4 @@ def run_job(job_path: str):
 
 if __name__ == '__main__':
     # TODO: open job selection GUI
-    run_job('/home/yuval/Desktop/jobs/a')
+    run_job('/home/yuval/Desktop/jobs/abc')

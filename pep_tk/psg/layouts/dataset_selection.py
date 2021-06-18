@@ -21,7 +21,7 @@ class DatasetSelectionLayout(LayoutSection):
         return [self.dataset_manifest[ds_name] for ds_name in self.selected_datasets]
 
     def get_layout(self):
-        size = (40, max(min(40, len(self.datasets)), 20))
+        size = (40, min(40, len(self.datasets)))
         layout = [[sg.T('Select a dataset or multiple datasets below.\n'
                         'Select multiple by clicking on multiple datasets then pressing the \'>\' button'),
                         help_icon('Use ctrl+click to select multiple, shift-click to select many.')],

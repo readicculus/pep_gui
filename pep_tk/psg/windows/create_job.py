@@ -1,3 +1,6 @@
+from typing import Dict, Any
+
+
 def launch_gui():
     import os
 
@@ -29,13 +32,21 @@ def launch_gui():
     def create_frame(tl: LayoutSection):
         return sg.Frame(layout=tl.get_layout(), title=tl.layout_name, font=Fonts.title_medium, title_color='#0b64c5')
 
-    def popup_ok(msg):
+    def popup_error(msg: str, window: sg.Window):
         max_line_width = 200
         current = sg.MESSAGE_BOX_LINE_WIDTH
         for line in msg.split('\n'):
             if len(line) > current:
                 current = len(line)
-        sg.popup_ok(msg, location=gui_settings[SettingsNames.window_location], line_width=min(max_line_width, current))
+
+        (win_x, win_y) = window.current_location()
+        (win_w, win_h) = window.size
+        dim_multiplier = 7
+        popup_w = dim_multiplier*min(max_line_width, current)
+        popup_h = 50 + dim_multiplier*len(msg.split('\n'))
+        cx = int(win_w / 2 - popup_w / 2)
+        cy = int(win_h / 2 - popup_h / 2)
+        sg.popup_ok(msg, title='Uh oh', line_width=popup_w, location=(win_x + cx, win_y + cy), keep_on_top=True)
 
 
     # ======== Create the Layout =========
@@ -86,7 +97,7 @@ def launch_gui():
             gui_settings[SettingsNames.job_directory] = selected_job_directory
 
 
-    def validate_inputs(values) -> bool:
+    def validate_inputs(window: sg.Window, values: Dict[Any, Any]) -> bool:
         selected_job_directory = values['-job_dir-IN-']
         selected_job_name = values['-job_name-IN-']
         job_dir = os.path.join(selected_job_directory, selected_job_name)
@@ -95,12 +106,12 @@ def launch_gui():
 
         # Check if no datasets were selected
         if len(datasets) < 1:
-            popup_ok('No datasets were selected.  Must select one or more datasets above.')
+            popup_error('No datasets were selected.  Must select one or more datasets above.', window)
             return False
 
         # if pipeline_tab.selected_pipeline is None:
         if not pipeline_tab.validate(values):
-            popup_ok('Either a pipeline isn\'t selected or error in configuration values.')
+            popup_error('Either a pipeline isn\'t selected or error in configuration values.', window)
             return False
 
         # Check for missing ports(aka if datasets/pipeline are not compatible)
@@ -114,22 +125,22 @@ def launch_gui():
             msg = "Datasets aren't compatible with the selected pipeline: \n"
             for dataset_name, ports in missing_ports.items():
                 msg += "%s: MISSING(%s)\n" % (dataset_name, ', '.join(ports))
-            popup_ok(msg)
+            popup_error(msg, window)
             return False
 
         # Check if the job base directory doesn't exist
         if not os.path.isdir(selected_job_directory):
-            popup_ok(f'Jobs base directory {selected_job_directory} does not exist.')
+            popup_error(f'Jobs base directory {selected_job_directory} does not exist.', window)
             return False
 
         # Check if the selected name is an empty string
         if selected_job_name == '':
-            popup_ok('No job name entered')
+            popup_error('No job name entered', window)
             return False
 
         # Check if the job directory(within the base directory) already exists
         if os.path.isdir(job_dir):
-            popup_ok(f'Job {selected_job_name} already exists, cannot override an existing job.\n{job_dir}')
+            popup_error(f'Job {selected_job_name} already exists, cannot override an existing job.\n{job_dir}', window)
             return False
 
 
@@ -150,7 +161,7 @@ def launch_gui():
             break
         if event == '-CREATE_JOB-':
             cache_settings(values)
-            if not validate_inputs(values):
+            if not validate_inputs(window, values):
                 continue
 
             selected_job_directory = values['-job_dir-IN-']
