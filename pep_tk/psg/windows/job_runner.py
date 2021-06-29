@@ -1,7 +1,6 @@
 # Given a job directory, load the job and start/resume running
 import threading
-from plistlib import Dict
-from typing import List
+from typing import List, Dict
 
 import PySimpleGUI as sg
 

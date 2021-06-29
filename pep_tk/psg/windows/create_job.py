@@ -173,7 +173,7 @@ def launch_gui():
                 job_dir = os.path.join(selected_job_directory, selected_job_name)
                 CREATED_JOB_PATH = create_job(pipeline=pipeline, datasets=datasets, directory=job_dir)
             except Exception as e:
-                popup_ok(f'There was an error creating the job: \n {str(e)}.\n I would recommend sending this error to Yuval.')
+                popup_error(f'There was an error creating the job: \n {str(e)}.\n I would recommend sending this error to Yuval.', window)
                 continue
 
             break # END: close window
