@@ -1,4 +1,5 @@
 import os
+from copy import copy
 from typing import Optional, List, Dict, Union, Callable
 
 import regex as re
@@ -41,25 +42,32 @@ class ImageList:
         return len(self.files)
 
 class VIAMEDataset:
-    def __init__(self, dataset_name, attributes):
+    def __init__(self, dataset_name, attributes, manifest_filepath):
         self.name = dataset_name
-        self.__attributes__ = attributes
-        self.__data__: Dict[str, Callable] = {
-            'thermal_image_list': lambda : self.thermal_image_list,
-            'color_image_list': lambda : self.color_image_list,
-            'transformation_file': lambda : self.transformation_file,
-            'color_images': lambda: self.color_images,
-            'thermal_images': lambda: self.thermal_images
-        }
+        self.manifest_filepath = manifest_filepath
+        self.manifest_filebase = os.path.dirname(manifest_filepath)
+
+        self._attributes = attributes
+
+    def attribute_path(self, filepath):
+        '''
+        Get an attributes path from a dataset manifest either as an absolute path or a relative path which is
+        relative to the dataset manifest file.
+        '''
+        if filepath is None:
+            return None
+        if os.path.isabs(filepath):
+            return filepath
+        return os.path.join(self.manifest_filebase, filepath)
 
     def get(self, item: str, default=None):
-        return self.__attributes__.get(item, default)
+        return self._attributes.get(item, default)
 
     def __getitem__(self, item: str) -> Union[str, ImageList]:
-        return self.__data__[item]()
+        return self.get(item)
 
     def __contains__(self, item):
-        return item in self.__data__
+        return item in self._attributes
 
     @property
     def filename_friendly_name(self):
@@ -67,15 +75,15 @@ class VIAMEDataset:
 
     @property
     def color_image_list(self) -> DatasetProperty:
-        return self.__attributes__.get('color_image_list')
+        return self.attribute_path(self.get('color_image_list'))
 
     @property
     def thermal_image_list(self) -> DatasetProperty:
-        return self.__attributes__.get('thermal_image_list')
+        return self.attribute_path(self.get('thermal_image_list'))
 
     @property
     def transformation_file(self) -> DatasetProperty:
-        return self.__attributes__.get('transformation_file')
+        return self.attribute_path(self.get('transformation_file'))
 
     @property
     def thermal_images(self) -> Optional[ImageList]:
@@ -86,7 +94,9 @@ class VIAMEDataset:
         return None if self.color_image_list is None else ImageList(self.color_image_list)
 
     def to_dict(self) -> Dict:
-        return {self.name:  self.__attributes__ }
+        att = self._attributes
+        att['manifest_filepath'] = self.manifest_filepath
+        return {self.name: att }
 
     @property
     def thermal_image_count(self):
@@ -103,7 +113,8 @@ class VIAMEDataset:
         keys = list(d.keys())
         assert(len(keys) == 1)
         key = keys[0]
-        return cls(key, d[key])
+        attributes = d[key]
+        return cls(key, attributes, attributes['manifest_filepath'])
 
 class VIAMEDetectorOutput:
     # TODO ?
@@ -159,7 +170,7 @@ class DatasetManifest():
             if k not in cur: return None
             cur = cur[k]
         # TODO: p = path.split(self._key_sep)
-        return VIAMEDataset(path, cur)
+        return VIAMEDataset(path, cur, self.manifest_filepath)
 
     def get_datasets(self, key) -> List[VIAMEDataset]:
         """Gets a dataset using a key
