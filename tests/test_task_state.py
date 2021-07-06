@@ -142,15 +142,15 @@ class TestTaskState(DummyTaskTest):
         loaded_task = self.init_task()
         self.assertTrue(loaded_task.state.is_locked())
 
-        self.assertEqual(loaded_task.selected_pipeline_config.name, self.test_pipeline_name)
+        self.assertEqual(loaded_task.selected_pipeline_config.task_key, self.test_pipeline_name)
         self.assertEqual(len(loaded_task.selected_datasets), 2)
-        self.assertListEqual([ds.name for ds in loaded_task.selected_datasets], ['test:a:a1', 'test:a:a2'])
+        self.assertListEqual([ds.task_key for ds in loaded_task.selected_datasets], ['test:a:a1', 'test:a:a2'])
 
         loaded_task.select_datasets('test:a:a1')
-        self.assertListEqual([ds.name for ds in loaded_task.selected_datasets], ['test:a:a1', 'test:a:a2'])
+        self.assertListEqual([ds.task_key for ds in loaded_task.selected_datasets], ['test:a:a1', 'test:a:a2'])
 
         loaded_task.select_pipeline('test_pipeline_2')
-        self.assertEqual(loaded_task.selected_pipeline_config.name, self.test_pipeline_name)
+        self.assertEqual(loaded_task.selected_pipeline_config.task_key, self.test_pipeline_name)
 
         # ensure we can't change a configuration because its locked
         loaded_task.selected_pipeline_config.parameters_group.set_config_option('param_int_0-1', 0)

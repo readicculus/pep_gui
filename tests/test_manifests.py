@@ -19,13 +19,13 @@ class TestManifests(unittest.TestCase):
         self.assertIsNone(nonexistant_dataset)
 
         # test wildcards
-        all_test = [ds.name for ds in dm.get_datasets('test:*')]
+        all_test = [ds.task_key for ds in dm.get_datasets('test:*')]
         self.assertListEqual(all_test, ['test:a:a1', 'test:a:a2', 'test:b:b1', 'test:b:b2'])
 
-        all_a = [ds.name for ds in dm.get_datasets('test:a:*')]
+        all_a = [ds.task_key for ds in dm.get_datasets('test:a:*')]
         self.assertListEqual(all_a, ['test:a:a1', 'test:a:a2'])
 
-        just_one = [ds.name for ds in dm.get_datasets('test:b:b2')]
+        just_one = [ds.task_key for ds in dm.get_datasets('test:b:b2')]
         self.assertListEqual(just_one, ['test:b:b2'])
 
 

@@ -123,6 +123,13 @@ class Scheduler:
             completed_count = max(dataset.thermal_image_count, dataset.color_image_count)
             self.manager.initialize_task(task_key, completed_count, completed_count, TaskStatus.SUCCESS)
 
+        for task_key in self.job_state.tasks():
+            status = self.job_state.get_status(task_key)
+            if status != TaskStatus.SUCCESS:
+                pipeline_fp, dataset, outputs = self.job_meta.get(task_key)
+                completed_count = max(dataset.thermal_image_count, dataset.color_image_count)
+                self.manager.initialize_task(task_key, 0, completed_count, TaskStatus.INITIALIZED)
+
         while not self.job_state.is_job_complete():
 
             current_task_key = self.job_state.current_task()

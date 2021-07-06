@@ -9,14 +9,16 @@ from pep_tk.core.scheduler import Scheduler, SchedulerEventManager
 from pep_tk.psg.fonts import Fonts
 from pep_tk.psg.layouts import BetterProgressBar, ProgressGUIEventData
 from pep_tk.psg.settings import get_settings, SettingsNames, get_viame_bash_or_bat_file_path
+from psg.layouts import TaskRunnerTabGroup
 
 sg.theme('SystemDefaultForReal')
 
 class GUIManager(SchedulerEventManager):
-    def __init__(self, window: sg.Window, progress_bars):
+    def __init__(self, window: sg.Window, progress_bars, tabs_group):
         super().__init__()
         self._window = window
         self._progress_bars: Dict[TaskKey, BetterProgressBar] = progress_bars
+        self._tabs_group = tabs_group
 
     def task_event_key(self, task_key: TaskKey):
         return self._progress_bars[task_key].task_progress_update_key
@@ -60,18 +62,18 @@ class GUIManager(SchedulerEventManager):
     def _update_task_stderr(self, task_key: TaskKey, line: str):
         pass
 
-def task_tab_key(task_key):
-    return f'--tab-{task_key}-'
+
 def make_main_window(tasks: List[TaskKey], gui_settings: sg.UserSettings):
     progress_bars = {task_key: BetterProgressBar(task_key) for task_key in tasks}
 
     tabs = []
     for pb in list(progress_bars.values()):
-        tab = pb.get_layout()
-        tabs.append(tab)
-    tabs_group = sg.TabGroup([tabs], key='--task-tabs--', tab_location='left', background_color='white')
+        tabs.append((pb.get_layout(), pb.task_key))
+    tabs_group = TaskRunnerTabGroup(tabs)
+    # tabs_group = sg.TabGroup(tabs, key='--task-tabs--', tab_location='left', background_color='snow',
+    #                          tab_background_color='snow', selected_background_color='azure', size=(800,10))
     layout = [[sg.Text('Task:', font=Fonts.title_large)],
-              [tabs_group]]
+              [tabs_group.get_layout()]]
 
     location = (0, 0)
     if SettingsNames.window_location in gui_settings.get_dict():
@@ -79,7 +81,7 @@ def make_main_window(tasks: List[TaskKey], gui_settings: sg.UserSettings):
 
     window = sg.Window('PEP-TK: Job Runner', layout, location=location, finalize=True)
 
-    return window, progress_bars
+    return window, progress_bars, tabs_group
 
 
 def run_job(job_path: str):
@@ -88,9 +90,9 @@ def run_job(job_path: str):
     gui_settings = get_settings()
     job_state, job_meta = load_job(job_path)
 
-    window, progress_bars = make_main_window(job_state.tasks(), gui_settings)
+    window, progress_bars, tabs_group = make_main_window(job_state.tasks(), gui_settings)
 
-    manager = GUIManager(window=window, progress_bars=progress_bars)
+    manager = GUIManager(window=window, progress_bars=progress_bars, tabs_group=tabs_group)
     sched = Scheduler(job_state=job_state,
                       job_meta=job_meta,
                       manager=manager,
@@ -107,6 +109,7 @@ def run_job(job_path: str):
 
         for task_key, pb in progress_bars.items():
             pb.handle(window, event, values)
+            tabs_group.handle(window, event, values)
 
 
 if __name__ == '__main__':

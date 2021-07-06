@@ -127,10 +127,10 @@ class JobState:
 
         # reset any previous errored tasks to initialized
         for task_key in self._store.data['task_status']:
-            if self._get_status(task_key) != TaskStatus.SUCCESS:
+            if self.get_status(task_key) != TaskStatus.SUCCESS:
                 self._store.data['task_status'][task_key] = TaskStatus.INITIALIZED.value
 
-    def _get_status(self, task_key: TaskKey):
+    def get_status(self, task_key: TaskKey):
         return TaskStatus(self._store.data['task_status'][task_key])
 
     @classmethod
@@ -146,7 +146,7 @@ class JobState:
         return None
 
     def is_task_complete(self, task_key: TaskKey) -> bool:
-        task_status = self._get_status(task_key)
+        task_status = self.get_status(task_key)
         is_complete = task_status in [TaskStatus.SUCCESS, TaskStatus.ERROR, TaskStatus.CANCELLED]
         return is_complete
 
@@ -163,7 +163,7 @@ class JobState:
 
         ret = []
         for task in tasks:
-            if self._get_status(task_key=task) == status:
+            if self.get_status(task_key=task) == status:
                 ret.append(task)
 
         return ret
