@@ -1,5 +1,7 @@
 from typing import Dict, Any
 
+from psg.settings import JobCache
+
 
 def launch_gui():
     import os
@@ -183,4 +185,6 @@ def launch_gui():
     window.close()
 
     if CREATED_JOB_PATH:  # END: start running job
+        jc = JobCache(gui_settings)
+        jc.append_job(CREATED_JOB_PATH)
         run_job(CREATED_JOB_PATH)

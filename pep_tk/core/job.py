@@ -85,12 +85,15 @@ class JobMeta:
 
 
 TaskKey = str
+
+
 class TaskStatus(Enum):
     INITIALIZED = -1
     ERROR = 0
     SUCCESS = 1
     RUNNING = 2
     CANCELLED = 3
+
 
 class JobState:
     def __init__(self, root_dir, pipeline_keys=None, load_existing=False):
@@ -153,7 +156,7 @@ class JobState:
     def is_job_complete(self) -> bool:
         return all([self.is_task_complete(task_key) for task_key in self.tasks()])
 
-    def tasks(self, status: TaskStatus =None) -> List[TaskKey]:
+    def tasks(self, status: TaskStatus = None) -> List[TaskKey]:
         tasks = list(self._store.data['tasks'])
         if status is None:
             return tasks
