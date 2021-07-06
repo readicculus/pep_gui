@@ -6,7 +6,6 @@ from psg.settings import JobCache
 def launch_gui():
     import os
 
-
     from pep_tk.core.configuration import PipelineManifest
     from pep_tk.core.configuration.exceptions import MissingPortsException
     from pep_tk.core.job import create_job
@@ -29,7 +28,6 @@ def launch_gui():
     dataset_tab = DatasetSelectionLayout(dm)
     pipeline_tab = PipelineSelectionLayout(pm)
 
-
     # ======== Layout helpers =========
     def create_frame(tl: LayoutSection):
         return sg.Frame(layout=tl.get_layout(), title=tl.layout_name, font=Fonts.title_medium, title_color='#0b64c5')
@@ -44,12 +42,11 @@ def launch_gui():
         (win_x, win_y) = window.current_location()
         (win_w, win_h) = window.size
         dim_multiplier = 7
-        popup_w = dim_multiplier*min(max_line_width, current)
-        popup_h = 50 + dim_multiplier*len(msg.split('\n'))
+        popup_w = dim_multiplier * min(max_line_width, current)
+        popup_h = 50 + dim_multiplier * len(msg.split('\n'))
         cx = int(win_w / 2 - popup_w / 2)
         cy = int(win_h / 2 - popup_h / 2)
         sg.popup_ok(msg, title='Uh oh', line_width=popup_w, location=(win_x + cx, win_y + cy), keep_on_top=True)
-
 
     # ======== Create the Layout =========
     layout = [
@@ -90,14 +87,12 @@ def launch_gui():
     window = sg.Window('PEP-TK: Job Configuration', layout,
                        default_element_size=(12, 1), location=location)
 
-
     # ======== Handler helper functions =========
     def cache_settings(values):
         # set the job homedir in the app settings
         selected_job_directory = values['-job_dir-IN-']
         if os.path.isdir(selected_job_directory):
             gui_settings[SettingsNames.job_directory] = selected_job_directory
-
 
     def validate_inputs(window: sg.Window, values: Dict[Any, Any]) -> bool:
         selected_job_directory = values['-job_dir-IN-']
@@ -145,8 +140,6 @@ def launch_gui():
             popup_error(f'Job {selected_job_name} already exists, cannot override an existing job.\n{job_dir}', window)
             return False
 
-
-
         return True
 
     # ======== Window / Event loop =========
@@ -175,10 +168,12 @@ def launch_gui():
                 job_dir = os.path.join(selected_job_directory, selected_job_name)
                 CREATED_JOB_PATH = create_job(pipeline=pipeline, datasets=datasets, directory=job_dir)
             except Exception as e:
-                popup_error(f'There was an error creating the job: \n {str(e)}.\n I would recommend sending this error to Yuval.', window)
+                popup_error(
+                    f'There was an error creating the job: \n {str(e)}.\n I would recommend sending this error to Yuval.',
+                    window)
                 continue
 
-            break # END: close window
+            break  # END: close window
 
         dataset_tab.handle(window, event, values)
         pipeline_tab.handle(window, event, values)

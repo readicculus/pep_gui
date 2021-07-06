@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from pep_tk.core.job import TaskStatus
 from pep_tk.psg.layouts import LayoutSection
-from pep_tk.psg.settings import image_resource_path
+from pep_tk.psg.settings import image_resource_path, icon_filepath
 
 
 @dataclass
@@ -27,9 +27,11 @@ class ProgressGUIEventData:
         return self.time_per_count * (self.max_count - self.progress_count)
 
 
-status_icons = {TaskStatus.SUCCESS: image_resource_path('status_success.png'),
-                TaskStatus.ERROR: image_resource_path('status_error.png'),
-                TaskStatus.RUNNING: image_resource_path('status_running.png')}
+status_icons = {TaskStatus.SUCCESS: icon_filepath('success.png'),
+                TaskStatus.ERROR: icon_filepath('error.png'),
+                TaskStatus.RUNNING: icon_filepath('running.png'),
+                TaskStatus.INITIALIZED: icon_filepath('pending.png'),
+                TaskStatus.CANCELLED: icon_filepath('cancelled.png')}
 
 
 class BetterProgressBar(LayoutSection):
@@ -54,6 +56,8 @@ class BetterProgressBar(LayoutSection):
         self._counter_key = f'--bpb-counter-{self.task_key}--'
         self._iteration_time_key = f'--bpb-iteration-time-{self.task_key}--'
         self._status_key = f'--bpb-status-{self.task_key}--'
+        self._task_tab_key = f'--tab-{self.task_key}--'
+        self.images = {}
 
     def get_layout(self):
         def empty_string(s):
@@ -68,7 +72,9 @@ class BetterProgressBar(LayoutSection):
         counter = sg.T(counter_str, key=self._counter_key)
         iter_str = empty_string('x.xx seconds/iter')
         avg_iteration_time = sg.T(iter_str, key=self._iteration_time_key, size=(len('x.xx seconds/iter'), 1))
-        return [status_icon, title, pb, time_elapsed, counter, avg_iteration_time]
+        layout = [status_icon, title, pb, time_elapsed, counter, avg_iteration_time]
+        return sg.Tab(self.task_key, [layout], key=self._task_tab_key)
+
 
     def handle(self, window, event, values):
         if event != self.task_progress_update_key:
@@ -82,7 +88,16 @@ class BetterProgressBar(LayoutSection):
         self._update_status(window, progress.task_status)
 
     def _update_status(self, window: sg.Window, status: TaskStatus):
-        window[self._status_key].update(filename=status_icons.get(status, None))
+        icon_fp = status_icons.get(status, None)
+        window[self._status_key].update(filename=icon_fp)
+        if icon_fp in self.images:
+            image = self.images[icon_fp]
+        else:
+            image = None if not icon_fp else sg.tk.PhotoImage(file=icon_fp)
+        if image is not None:
+            self.images[icon_fp] = image
+            window['--task-tabs--'].Widget.tab(window[self._task_tab_key].TabID, text=self.task_key, image=image, compound='left')
+            window[self._task_tab_key].Widget.update()
         pass  # TODO
 
     def _update_avg_iteration_time(self, window: sg.Window, avg_iteration_time: float):

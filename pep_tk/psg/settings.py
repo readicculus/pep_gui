@@ -16,6 +16,11 @@ def image_resource_path(file_path =''):
     # abspath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../lib/img/'))
     return os.path.join(PLUGIN_PATH, 'lib', 'img', file_path)
 
+# filename of icon and '1x' or '2x' for size
+def icon_filepath(icon_fn, size='1x'):
+    assert(size == '1x' or size == '2x')
+    return os.path.join(PLUGIN_PATH, 'lib', 'img', 'icons', size, icon_fn)
+
 def get_settings():
     return sg.UserSettings(filename='peptk_gui_settings.json')
 

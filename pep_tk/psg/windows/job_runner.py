@@ -60,20 +60,25 @@ class GUIManager(SchedulerEventManager):
     def _update_task_stderr(self, task_key: TaskKey, line: str):
         pass
 
-
+def task_tab_key(task_key):
+    return f'--tab-{task_key}-'
 def make_main_window(tasks: List[TaskKey], gui_settings: sg.UserSettings):
     progress_bars = {task_key: BetterProgressBar(task_key) for task_key in tasks}
 
-    meters_layout = [pb.get_layout() for pb in list(progress_bars.values())]
+    tabs = []
+    for pb in list(progress_bars.values()):
+        tab = pb.get_layout()
+        tabs.append(tab)
+    tabs_group = sg.TabGroup([tabs], key='--task-tabs--', tab_location='left', background_color='white')
     layout = [[sg.Text('Task:', font=Fonts.title_large)],
-              meters_layout,
-              [sg.Cancel()]]
+              [tabs_group]]
 
     location = (0, 0)
     if SettingsNames.window_location in gui_settings.get_dict():
         location = gui_settings[SettingsNames.window_location]
 
     window = sg.Window('PEP-TK: Job Runner', layout, location=location, finalize=True)
+
     return window, progress_bars
 
 
