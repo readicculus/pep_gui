@@ -7,8 +7,10 @@ from pep_tk.core.job import TaskStatus
 from pep_tk.psg.layouts import LayoutSection
 from pep_tk.psg.settings import image_resource_path, icon_filepath
 
+
 def task_status_update_key(task_key):
     return f'--task-update-{task_key}--'
+
 
 @dataclass
 class ProgressGUIEventData:
@@ -36,7 +38,7 @@ status_icons = {TaskStatus.SUCCESS: icon_filepath('success.png'),
                 TaskStatus.CANCELLED: icon_filepath('cancelled.png')}
 
 
-class BetterProgressBar(LayoutSection):
+class TaskTab(LayoutSection):
     """
         A better progress bar than the default PySimpleGUI Progress Bar
         - Worker thread triggers a window even, passing a ProgressGUIEventData object to the GUI with
@@ -52,12 +54,18 @@ class BetterProgressBar(LayoutSection):
         self.task_progress_update_key = task_status_update_key(self.task_key)
 
         # GUI element keys
-        self._text_title_key = f'--bpb-text-title-{self.task_key}--'
-        self._pb_key = f'--bpb-progress-bar-{self.task_key}--'
-        self._elapsed_key = f'--bpb-elapsed-{self.task_key}--'
-        self._counter_key = f'--bpb-counter-{self.task_key}--'
-        self._iteration_time_key = f'--bpb-iteration-time-{self.task_key}--'
-        self._status_key = f'--bpb-status-{self.task_key}--'
+        self._text_title_key = f'--tt-text-title-{self.task_key}--'
+        self._pb_key = f'--tt-progress-bar-{self.task_key}--'
+        self._elapsed_key = f'--tt-elapsed-{self.task_key}--'
+        self._counter_key = f'--tt-counter-{self.task_key}--'
+        self._iteration_time_key = f'--tt-iteration-time-{self.task_key}--'
+        self._status_key = f'--tt-status-{self.task_key}--'
+
+        # GUI Button events
+        self._cancel_event_key = f'--cancel-{self.task_key}--'
+
+        self.is_cancelled = False
+
         self.images = {}
 
     def get_layout(self):
@@ -73,12 +81,18 @@ class BetterProgressBar(LayoutSection):
         counter = sg.T(counter_str, key=self._counter_key)
         iter_str = empty_string('x.xx seconds/iter')
         avg_iteration_time = sg.T(iter_str, key=self._iteration_time_key, size=(len('x.xx seconds/iter'), 1))
-        layout = [[status_icon, title, pb, time_elapsed, counter, avg_iteration_time]]
+        cancel_button = sg.Button('Cancel', key=self._cancel_event_key, disabled=True)
+        layout = [[status_icon, title, pb, time_elapsed, counter, avg_iteration_time],
+                  [cancel_button]]
         return layout
-        # return sg.Tab(self.task_key, [layout], key=self._task_tab_key, background_color='snow')
-
 
     def handle(self, window, event, values):
+        # cancel button clicked
+        if event == self._cancel_event_key:
+            self.is_cancelled = True
+            return
+
+        # if a progress event for any of the tasks comes through
         if event != self.task_progress_update_key:
             return
 
@@ -92,15 +106,11 @@ class BetterProgressBar(LayoutSection):
     def _update_status(self, window: sg.Window, status: TaskStatus):
         icon_fp = status_icons.get(status, None)
         window[self._status_key].update(filename=icon_fp)
-        # if icon_fp in self.images:
-        #     image = self.images[icon_fp]
-        # else:
-        #     image = None if not icon_fp else sg.tk.PhotoImage(file=icon_fp)
-        # if image is not None:
-        #     self.images[icon_fp] = image
-        #     window['--task-tabs--'].Widget.tab(window[self._task_tab_key].TabID, text=self.task_key, image=image, compound='left')
-        #     window[self._task_tab_key].Widget.update()
-        pass  # TODO
+
+        if status == TaskStatus.RUNNING:
+            window[self._cancel_event_key](disabled=False)
+        else:
+            window[self._cancel_event_key](disabled=True)
 
     def _update_avg_iteration_time(self, window: sg.Window, avg_iteration_time: float):
         fmt = '%.2f seconds/iter' % avg_iteration_time
@@ -120,9 +130,6 @@ class BetterProgressBar(LayoutSection):
 
     def layout_name(self) -> str:
         return self.task_progress_update_key
-
-
-
 
 
 class TaskRunnerTab():
@@ -145,9 +152,11 @@ class TaskRunnerTab():
 
     # def update(self):
 
+
 class TaskRunnerTabGroup(LayoutSection):
     button_color_off = 'snow'
     button_color_on = 'azure'
+
     def __init__(self, items):
         tabs = []
         visible = True
@@ -168,12 +177,12 @@ class TaskRunnerTabGroup(LayoutSection):
                 max_name = len(t.task_key)
 
         row_height = 25
-        calculated_height = len(self.tabs.values())*row_height
-        min_height, max_height = 4*row_height, 20*row_height
+        calculated_height = len(self.tabs.values()) * row_height
+        min_height, max_height = 20 * row_height, 30 * row_height
         height = min(max(min_height, calculated_height), max_height)
 
-        calculated_width = max_name*9
-        min_width, max_width = 10*9, 100*9
+        calculated_width = max_name * 9
+        min_width, max_width = 10 * 9, 100 * 9
         width = min(max(min_width, calculated_width), max_width) + icon_dim
 
         # Create layout elements
@@ -184,24 +193,25 @@ class TaskRunnerTabGroup(LayoutSection):
             color = self.button_color_on if t.visible else self.button_color_off
             if t.visible: selected_name = t.task_key
 
-            tab_col = [sg.Column([[sg.Image(size=(icon_dim,icon_dim),
-                                  key=t.tab_status_key,
-                                  pad=((0,0), (0,0)),
-                                  background_color=self.button_color_off),
-                         sg.Button(t.task_key,
-                                   key=t.tab_button_key,
-                                   pad=((0,0), (0,0)),
-                                   button_color=color,
-                                   mouseover_colors=self.button_color_on,
-                                   border_width=0)]], background_color=color, size=(width, row_height), pad=((0,0), (0,0)))]
+            tab_col = [sg.Column([[sg.Image(size=(icon_dim, icon_dim),
+                                            key=t.tab_status_key,
+                                            pad=((0, 0), (0, 0)),
+                                            background_color=self.button_color_off),
+                                   sg.Button(t.task_key,
+                                             key=t.tab_button_key,
+                                             pad=((0, 0), (0, 0)),
+                                             button_color=color,
+                                             mouseover_colors=self.button_color_on,
+                                             border_width=0)]], background_color=color, size=(width, row_height),
+                                 pad=((0, 0), (0, 0)))]
             tabs.append(tab_col)
             contents.append(t.get_layout())
 
+        scrollable_tabs = sg.Column(tabs, scrollable=True, vertical_scroll_only=True, size=(width, height),
+                                    background_color=self.button_color_off)
 
-
-        scrollable_tabs = sg.Column(tabs, scrollable=True,vertical_scroll_only=True, size=(width, height), background_color=self.button_color_off)
-
-        layout = [[scrollable_tabs, sg.Frame(f'Task Progress: {selected_name}',[contents], vertical_alignment='top', key='-progress-frame-')]]
+        layout = [[scrollable_tabs, sg.Frame(f'Task Progress: {selected_name}', [contents], vertical_alignment='top',
+                                             key='-progress-frame-')]]
         return layout
 
     # def select_tab(self, window, task_key):
@@ -230,10 +240,9 @@ class TaskRunnerTabGroup(LayoutSection):
             tab = self.update_event_keys[event]
             tab.update_status(window, progress.task_status)
 
-
     # self.Widget.yview_moveto(percent_from_top)
     # https://github.com/PySimpleGUI/PySimpleGUI/issues/3320
-    #https://github.com/PySimpleGUI/PySimpleGUI/issues/1878
+    # https://github.com/PySimpleGUI/PySimpleGUI/issues/1878
 
     @property
     def layout_name(self):

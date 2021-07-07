@@ -1,9 +1,18 @@
 import abc
 import os
+import signal
 import subprocess
 import threading
 import time
+import fcntl
+from time import sleep
 from datetime import datetime
+from threading  import Thread
+
+try:
+    from Queue import Queue, Empty
+except ImportError:
+    from queue import Queue, Empty  # python 3.x
 
 from pep_tk.core.job import JobState, JobMeta, TaskStatus, TaskKey
 from pep_tk.core.kwiver.pipeline_compiler import compile_output_filenames
@@ -39,6 +48,9 @@ class SchedulerEventManager(metaclass=abc.ABCMeta):
         self.task_end_time[task_key] = time.time()
         self.task_status[task_key] = status
         return self._end_task(task_key, status)
+
+    def check_cancelled(self, task_key: TaskKey) -> bool:
+        return self._check_cancelled(task_key)
 
     def update_task_progress(self, task_key: TaskKey, current_count: int):
         self.task_count[task_key] = current_count
@@ -87,6 +99,9 @@ class SchedulerEventManager(metaclass=abc.ABCMeta):
     def _update_task_stderr(self, task_key: TaskKey, line: str):
         return
 
+    @abc.abstractmethod
+    def _check_cancelled(self, task_key: TaskKey):
+        return
 
 def poll_image_list(fp):
     if not os.path.exists(fp):
@@ -101,7 +116,6 @@ def monitor_outputs(stop_event: threading.Event, task_key: TaskKey,
     while not stop_event.wait(poll_freq):
         count = poll_image_list(output_file)
         manager.update_task_progress(task_key, count)
-
 
 class Scheduler:
     def __init__(self,
@@ -184,12 +198,45 @@ class Scheduler:
             if process.stdout is None:
                 raise RuntimeError("Stdout must not be none")
 
+            # Stdout Thread
+            # start another thread to read stdout for empty byte
+            def enqueue_output(out, queue):
+                # don't want it to stop on an emty byte(b'') because we need to detect
+                # if an empty byte has come through and we can't do it asynchronously
+                for line in iter(out.readline, b'foobar'):
+                    queue.put(line)
+                out.close()
+
+            q = Queue()
+            t = Thread(target=enqueue_output, args=(process.stdout, q))
+            t.daemon = True  # thread dies with the program
+            t.start()
+            cancelled = False
+            while True:
+                sleep(.2)
+                # read line without blocking
+                try:
+                    line = q.get(timeout=.2)  # or q.get(timeout=.1)
+                    if line == b'':
+                        break
+                    print(line)
+                except Empty:
+                    cancelled = self.manager.check_cancelled(current_task_key)
+                    print(cancelled)
+                    if cancelled:
+                        process.send_signal(signal.SIGTERM)
+                        process.send_signal(signal.SIGKILL)
+                        print(f'Cancelled {current_task_key}')
+                        cancelled = True
+                        break
+                    print('no output yet')
+
             # call readline until it returns empty bytes
-            for line in iter(process.stdout.readline, b''):
-                line_str = line.decode('utf-8')
-                self.manager.update_task_stdout(current_task_key, line_str)
-                if keep_stdout:
-                    stdout += line_str
+            # for line in iter(process.stdout.readline, b''):
+            #     line_str = line.decode('utf-8')
+            #     self.manager.update_task_stdout(current_task_key, line_str)
+            #     if keep_stdout:
+            #         stdout += line_str
 
                 # TODO cancel
                 # if check_canceled(task, context, force=False):
@@ -198,6 +245,13 @@ class Scheduler:
                 #     process.send_signal(signal.SIGKILL)
 
             # flush logs
+            # Cancelled
+            if cancelled:
+                count = poll_image_list(image_list_monitor)
+                self.manager.update_task_progress(current_task_key, count)
+                self.job_state.set_task_status(current_task_key, TaskStatus.CANCELLED)
+                self.manager.end_task(current_task_key, TaskStatus.CANCELLED)
+                return
 
             # stop polling for progress
             prog_stop_evt.set()

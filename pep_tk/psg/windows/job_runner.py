@@ -7,18 +7,17 @@ import PySimpleGUI as sg
 from pep_tk.core.job import load_job, TaskStatus, TaskKey
 from pep_tk.core.scheduler import Scheduler, SchedulerEventManager
 from pep_tk.psg.fonts import Fonts
-from pep_tk.psg.layouts import BetterProgressBar, ProgressGUIEventData
+from pep_tk.psg.layouts import TaskTab, ProgressGUIEventData
 from pep_tk.psg.settings import get_settings, SettingsNames, get_viame_bash_or_bat_file_path
 from psg.layouts import TaskRunnerTabGroup
 
 sg.theme('SystemDefaultForReal')
 
 class GUIManager(SchedulerEventManager):
-    def __init__(self, window: sg.Window, progress_bars, tabs_group):
+    def __init__(self, window: sg.Window, progress_bars):
         super().__init__()
         self._window = window
-        self._progress_bars: Dict[TaskKey, BetterProgressBar] = progress_bars
-        self._tabs_group = tabs_group
+        self._progress_bars: Dict[TaskKey, TaskTab] = progress_bars
 
     def task_event_key(self, task_key: TaskKey):
         return self._progress_bars[task_key].task_progress_update_key
@@ -32,6 +31,9 @@ class GUIManager(SchedulerEventManager):
         gui_task_event_key = self.task_event_key(task_key)
         self._window.write_event_value(gui_task_event_key, evt_data)
         print('task_initialized')
+
+    def _check_cancelled(self, task_key: TaskKey):
+        return self._progress_bars[task_key].is_cancelled
 
     def _start_task(self, task_key: TaskKey):
         print('task_started')
@@ -64,7 +66,7 @@ class GUIManager(SchedulerEventManager):
 
 
 def make_main_window(tasks: List[TaskKey], gui_settings: sg.UserSettings):
-    progress_bars = {task_key: BetterProgressBar(task_key) for task_key in tasks}
+    progress_bars = {task_key: TaskTab(task_key) for task_key in tasks}
 
     tabs = []
     for pb in list(progress_bars.values()):
@@ -92,7 +94,7 @@ def run_job(job_path: str):
 
     window, progress_bars, tabs_group = make_main_window(job_state.tasks(), gui_settings)
 
-    manager = GUIManager(window=window, progress_bars=progress_bars, tabs_group=tabs_group)
+    manager = GUIManager(window=window, progress_bars=progress_bars)
     sched = Scheduler(job_state=job_state,
                       job_meta=job_meta,
                       manager=manager,
