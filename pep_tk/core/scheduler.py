@@ -4,10 +4,8 @@ import signal
 import subprocess
 import threading
 import time
-import fcntl
 from time import sleep
 from datetime import datetime
-from threading  import Thread
 
 try:
     from Queue import Queue, Empty
@@ -147,7 +145,7 @@ class Scheduler:
         while not self.job_state.is_job_complete():
 
             current_task_key = self.job_state.current_task()
-
+            print(current_task_key)
             pipeline_fp, dataset, outputs = self.job_meta.get(current_task_key)
 
             max_image_count = max(dataset.thermal_image_count, dataset.color_image_count)
@@ -200,15 +198,16 @@ class Scheduler:
 
             # Stdout Thread
             # start another thread to read stdout for empty byte
-            def enqueue_output(out, queue):
+            def enqueue_output(out, queue, evt: threading.Event):
                 # don't want it to stop on an emty byte(b'') because we need to detect
                 # if an empty byte has come through and we can't do it asynchronously
                 for line in iter(out.readline, b'foobar'):
+                    if evt.is_set():
+                        break
                     queue.put(line)
-                out.close()
 
             q = Queue()
-            t = Thread(target=enqueue_output, args=(process.stdout, q))
+            t = threading.Thread(target=enqueue_output, args=(process.stdout, q, prog_stop_evt))
             t.daemon = True  # thread dies with the program
             t.start()
             cancelled = False
@@ -245,19 +244,21 @@ class Scheduler:
                 #     process.send_signal(signal.SIGKILL)
 
             # flush logs
+            # stop polling for progress
+            prog_stop_evt.set()
+
+
+
             # Cancelled
             if cancelled:
                 count = poll_image_list(image_list_monitor)
                 self.manager.update_task_progress(current_task_key, count)
                 self.job_state.set_task_status(current_task_key, TaskStatus.CANCELLED)
                 self.manager.end_task(current_task_key, TaskStatus.CANCELLED)
-                return
-
-            # stop polling for progress
-            prog_stop_evt.set()
-
+                continue
             # Wait for exit up to 30 seconds after kill
             code = process.wait(30)
+
             if code > 0:
                 error_log.seek(0)
                 stderr_log = error_log.read().decode()
