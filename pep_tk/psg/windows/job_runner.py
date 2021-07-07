@@ -72,7 +72,7 @@ def make_main_window(tasks: List[TaskKey], gui_settings: sg.UserSettings):
     tabs_group = TaskRunnerTabGroup(tabs)
     # tabs_group = sg.TabGroup(tabs, key='--task-tabs--', tab_location='left', background_color='snow',
     #                          tab_background_color='snow', selected_background_color='azure', size=(800,10))
-    layout = [[sg.Text('Task:', font=Fonts.title_large)],
+    layout = [[sg.Text('Job Progress:', font=Fonts.title_large)],
               [tabs_group.get_layout()]]
 
     location = (0, 0)

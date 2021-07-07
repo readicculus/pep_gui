@@ -160,40 +160,48 @@ class TaskRunnerTabGroup(LayoutSection):
         self.update_event_keys = {t.tab_status_update_key: t for t in self.tabs.values()}
 
     def get_layout(self):
+        # Calculate sizings
         icon_dim = 24
-
-        tabs = []
-        contents = []
         max_name = 0
         for t in self.tabs.values():
-            color = self.button_color_on if t.visible else self.button_color_off
-            tab_col = [sg.Column([[sg.Image(size=(icon_dim,icon_dim),
-                                  key=t.tab_status_key,
-                                  pad=((0,0), (0,0)),
-                                  background_color=color),
-                         sg.Button(t.task_key,
-                                   key=t.tab_button_key,
-                                   pad=((0,0), (0,0)),
-                                   button_color=color,
-                                   mouseover_colors=self.button_color_on,
-                                   border_width=0)]], background_color=color)]
-            tabs.append(tab_col)
-            contents.append(t.get_layout())
             if len(t.task_key) > max_name:
                 max_name = len(t.task_key)
 
-        calculated_height = len(tabs)*30
-        min_height, max_height = 4*30, 20*30
+        row_height = 25
+        calculated_height = len(self.tabs.values())*row_height
+        min_height, max_height = 4*row_height, 20*row_height
         height = min(max(min_height, calculated_height), max_height)
 
         calculated_width = max_name*9
         min_width, max_width = 10*9, 100*9
         width = min(max(min_width, calculated_width), max_width) + icon_dim
 
+        # Create layout elements
+        tabs = []
+        contents = []
+        selected_name = None
+        for t in self.tabs.values():
+            color = self.button_color_on if t.visible else self.button_color_off
+            if t.visible: selected_name = t.task_key
+
+            tab_col = [sg.Column([[sg.Image(size=(icon_dim,icon_dim),
+                                  key=t.tab_status_key,
+                                  pad=((0,0), (0,0)),
+                                  background_color=self.button_color_off),
+                         sg.Button(t.task_key,
+                                   key=t.tab_button_key,
+                                   pad=((0,0), (0,0)),
+                                   button_color=color,
+                                   mouseover_colors=self.button_color_on,
+                                   border_width=0)]], background_color=color, size=(width, row_height), pad=((0,0), (0,0)))]
+            tabs.append(tab_col)
+            contents.append(t.get_layout())
+
+
 
         scrollable_tabs = sg.Column(tabs, scrollable=True,vertical_scroll_only=True, size=(width, height), background_color=self.button_color_off)
 
-        layout = [[scrollable_tabs, sg.Frame('Task View',[contents], vertical_alignment='top')]]
+        layout = [[scrollable_tabs, sg.Frame(f'Task Progress: {selected_name}',[contents], vertical_alignment='top', key='-progress-frame-')]]
         return layout
 
     # def select_tab(self, window, task_key):
@@ -214,6 +222,7 @@ class TaskRunnerTabGroup(LayoutSection):
                 if tab_button_k == event:
                     window.FindElement(tab_content_k).Update(visible=True)
                     window.FindElement(tab_button_k).Update(button_color=self.button_color_on)
+                    window.FindElement('-progress-frame-').Update(value=f'Task Progress: {tab.task_key}')
                     # window.FindElement(tab.tab_status_key).Update(background_color=self.button_color_on)
 
         elif event in self.update_event_keys:
