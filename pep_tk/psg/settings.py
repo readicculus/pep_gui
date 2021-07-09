@@ -11,18 +11,23 @@ class SettingsNames:
     window_location = 'window_location'
     job_directory = 'job_directory'
     recent_jobs_list = 'recent_jobs_list'
+    detection_output_location = 'detection_output_location'
 
-def image_resource_path(file_path =''):
+
+def image_resource_path(file_path=''):
     # abspath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../lib/img/'))
     return os.path.join(PLUGIN_PATH, 'lib', 'img', file_path)
 
+
 # filename of icon and '1x' or '2x' for size
 def icon_filepath(icon_fn, size='1x'):
-    assert(size == '1x' or size == '2x')
+    assert (size == '1x' or size == '2x')
     return os.path.join(PLUGIN_PATH, 'lib', 'img', 'icons', size, icon_fn)
+
 
 def get_settings():
     return sg.UserSettings(filename='peptk_gui_settings.json')
+
 
 def get_viame_bash_or_bat_file_path(settings: sg.UserSettings):
     base_dir = settings[SettingsNames.setup_viame_filepath]
@@ -32,6 +37,7 @@ def get_viame_bash_or_bat_file_path(settings: sg.UserSettings):
         fn = 'setup_viame.sh'
 
     return os.path.join(base_dir, fn)
+
 
 class JobCache:
     def __init__(self, settings: sg.UserSettings):
