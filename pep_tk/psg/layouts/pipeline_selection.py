@@ -23,13 +23,13 @@ class PipelineConfigLayout(LayoutSection):
         config_layout = []
         opts = self.selected_pipeline.parameters_group.options
         for o in opts:
-            k = self.pipeline_config_input_key(o.task_key)
+            k = self.pipeline_config_input_key(o.name)
             self.event_keys.append(k)
-            self.input_keys_to_config_name[k] = o.task_key
+            self.input_keys_to_config_name[k] = o.name
             row = [
-                sg.T(f'{o.task_key}:', font=Fonts.description_bold),
+                sg.T(f'{o.name}:', font=Fonts.description_bold),
                 sg.I(key=k, default_text=o.value(), enable_events=True),
-                sg.T(f'({o.validator.description()})', key=self.pipeline_config_warning_key(o.task_key), text_color='red',
+                sg.T(f'({o.validator.description()})', key=self.pipeline_config_warning_key(o.name), text_color='red',
                      visible=False)
             ]
             config_layout.append(row)

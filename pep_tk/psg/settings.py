@@ -50,7 +50,7 @@ class JobCache:
 
     def append_job(self, job_dir: str):
         self.jobs.append(job_dir)
-        if SettingsNames.recent_jobs_list not in self.settings:
+        if SettingsNames.recent_jobs_list not in self.settings.dict:
             self.settings[SettingsNames.recent_jobs_list] = []
         self.settings[SettingsNames.recent_jobs_list].append(job_dir)
 

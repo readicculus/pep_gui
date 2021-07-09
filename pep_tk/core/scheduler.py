@@ -28,7 +28,6 @@ class SchedulerEventManager(metaclass=abc.ABCMeta):
         self.task_count = {}
         self.task_max_count = {}
         self.initialized_tasks = []
-        #TODO add ability for app to cancel task by sending event back to event manager?
 
     def initialize_task(self, task_key: TaskKey, count: int, max_count: int, status: TaskStatus):
         self.task_count[task_key] = count
@@ -75,45 +74,53 @@ class SchedulerEventManager(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def _initialize_task(self, task_key: TaskKey, count: int, max_count: int, status: TaskStatus):
-        return
+        pass
 
     @abc.abstractmethod
     def _start_task(self, task_key: TaskKey):
-        return
+        pass
 
     @abc.abstractmethod
     def _end_task(self, task_key: TaskKey, status: TaskStatus):
-        return
+        pass
 
     @abc.abstractmethod
     def _update_task_progress(self, task_key: TaskKey, current_count: int, max_count: int):
-        return
+        pass
 
     @abc.abstractmethod
     def _update_task_stdout(self, task_key: TaskKey, line: str):
-        return
+        pass
 
     @abc.abstractmethod
     def _update_task_stderr(self, task_key: TaskKey, line: str):
-        return
+        pass
 
     @abc.abstractmethod
-    def _check_cancelled(self, task_key: TaskKey):
-        return
+    def _check_cancelled(self, task_key: TaskKey) -> bool:
+        pass
 
-def poll_image_list(fp):
+# Scheduler helpers
+def poll_image_list(fp: str):
     if not os.path.exists(fp):
         return 0
     with open(fp) as f:
         count = sum(1 for _ in f)
     return count
 
-
-def monitor_outputs(stop_event: threading.Event, task_key: TaskKey,
-                    manager: SchedulerEventManager, output_file: str, poll_freq: int):
+def monitor_outputs(stop_event: threading.Event, task_key: TaskKey, manager: SchedulerEventManager,
+                    output_file: str, poll_freq: int):
     while not stop_event.wait(poll_freq):
         count = poll_image_list(output_file)
         manager.update_task_progress(task_key, count)
+
+def enqueue_output(out, queue, evt: threading.Event):
+    # don't want it to stop on an emty byte(b'') because we need to detect
+    # if an empty byte has come through and we can't do it asynchronously
+    for line in iter(out.readline, b'foobar'):
+        if evt.is_set():
+            break
+        queue.put(line)
 
 class Scheduler:
     def __init__(self,
@@ -122,6 +129,15 @@ class Scheduler:
                  manager: SchedulerEventManager,
                  kwiver_setup_path: str,
                  progress_poll_freq: int = 5):
+        """
+        Initialize a Scheduler for proccessing task queue synchronously.
+
+        :param job_state: the job state
+        :param job_meta: the job metadata
+        :param manager: manager for dispatching events, updating progress, etc..
+        :param kwiver_setup_path: setup_viame.sh/bat path
+        :param progress_poll_freq: frequency to poll progress (reads output file and counts progress)
+        """
         self.job_state = job_state
         self.job_meta = job_meta
         self.manager = manager
@@ -197,65 +213,38 @@ class Scheduler:
                 raise RuntimeError("Stdout must not be none")
 
             # Stdout Thread
-            # start another thread to read stdout for empty byte
-            def enqueue_output(out, queue, evt: threading.Event):
-                # don't want it to stop on an emty byte(b'') because we need to detect
-                # if an empty byte has come through and we can't do it asynchronously
-                for line in iter(out.readline, b'foobar'):
-                    if evt.is_set():
-                        break
-                    queue.put(line)
-
             q = Queue()
             t = threading.Thread(target=enqueue_output, args=(process.stdout, q, prog_stop_evt))
             t.daemon = True  # thread dies with the program
             t.start()
             cancelled = False
-            while True:
+            while True: # read line without blocking
                 sleep(.2)
-                # read line without blocking
                 try:
-                    line = q.get(timeout=.2)  # or q.get(timeout=.1)
-                    if line == b'':
-                        break
-                    print(line)
+                    line = q.get_nowait()
+                    if line == b'': break # job is complete if empty byte received
                 except Empty:
+                    # check if user cancelled task, if cancelled kill kwiver process and stop output reading loop
                     cancelled = self.manager.check_cancelled(current_task_key)
-                    print(cancelled)
                     if cancelled:
-                        process.send_signal(signal.SIGTERM)
-                        process.send_signal(signal.SIGKILL)
-                        print(f'Cancelled {current_task_key}')
                         cancelled = True
                         break
-                    print('no output yet')
 
-            # call readline until it returns empty bytes
-            # for line in iter(process.stdout.readline, b''):
-            #     line_str = line.decode('utf-8')
-            #     self.manager.update_task_stdout(current_task_key, line_str)
-            #     if keep_stdout:
-            #         stdout += line_str
-
-                # TODO cancel
-                # if check_canceled(task, context, force=False):
-                #     # Can never be sure what signal a process will respond to.
-                #     process.send_signal(signal.SIGTERM)
-                #     process.send_signal(signal.SIGKILL)
-
-            # flush logs
-            # stop polling for progress
+            # stop polling for progress and stop polling for stdout
             prog_stop_evt.set()
 
-
-
-            # Cancelled
+            # if user cancells task
             if cancelled:
+                process.send_signal(signal.SIGTERM)
+                process.send_signal(signal.SIGKILL)
+                print(f'Cancelled {current_task_key}')
+
                 count = poll_image_list(image_list_monitor)
                 self.manager.update_task_progress(current_task_key, count)
                 self.job_state.set_task_status(current_task_key, TaskStatus.CANCELLED)
                 self.manager.end_task(current_task_key, TaskStatus.CANCELLED)
                 continue
+
             # Wait for exit up to 30 seconds after kill
             code = process.wait(30)
 
