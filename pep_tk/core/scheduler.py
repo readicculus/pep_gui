@@ -7,7 +7,7 @@ import threading
 import time
 from time import sleep
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 try:
     from Queue import Queue, Empty
@@ -32,12 +32,16 @@ class SchedulerEventManager(metaclass=abc.ABCMeta):
         self.initialized_tasks = []
         self.task_output_files = {}
 
-    def initialize_task(self, task_key: TaskKey, count: int, max_count: int, status: TaskStatus):
+    def initialize_task(self, task_key: TaskKey, count: int, max_count: int, status: TaskStatus,
+                        task_outputs : Optional[List[str]] = None):
         self.task_count[task_key] = count
         self.task_max_count[task_key] = max_count
         self.task_status[task_key] = status
         self.initialized_tasks.append(task_key)
         self._initialize_task(task_key, count, max_count, status)
+
+        if task_outputs:
+            self.update_task_output_files(task_key, task_outputs)
 
     def start_task(self, task_key: TaskKey):
         self.task_status[task_key] = TaskStatus.RUNNING
@@ -173,7 +177,8 @@ class Scheduler:
         for task_key in self.job_state.tasks(status=TaskStatus.SUCCESS):
             pipeline_fp, dataset, outputs = self.job_meta.get(task_key)
             max_image_count = max(dataset.thermal_image_count, dataset.color_image_count)
-            self.manager.initialize_task(task_key, max_image_count, max_image_count, TaskStatus.SUCCESS)
+            task_outputs = self.job_state.get_task_outputs(task_key)
+            self.manager.initialize_task(task_key, max_image_count, max_image_count, TaskStatus.SUCCESS, task_outputs)
 
         for task_key in self.job_state.tasks():
             status = self.job_state.get_status(task_key)
@@ -293,15 +298,18 @@ class Scheduler:
                     shutil.move(current_loc, new_loc)
                 # TODO show error in UI, and save in log somewhere
             else:  # SUCCESS
-                # Update Task final count, has to be done before moving file
+                # Update Task final count in GUI, has to be done before moving file
                 count = poll_image_list(image_list_monitor)
                 self.manager.update_task_progress(current_task_key, count)
 
                 # Move outputs to completed folder
                 outputs_new_loc = move_output_files(outputs_to_move, self.job_meta.completed_outputs_dir)
 
-                # Update Task Ended with success
+                # Update Task State with success and output files
+                self.job_state.set_task_outputs(current_task_key, outputs_new_loc)
                 self.job_state.set_task_status(current_task_key, TaskStatus.SUCCESS)
+
+                # Update GUI with success
                 self.manager.end_task(current_task_key, TaskStatus.SUCCESS)
                 self.manager.update_task_output_files(current_task_key, outputs_new_loc)
 

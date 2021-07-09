@@ -50,19 +50,20 @@ class JobMeta:
             compiled_fp = os.path.join(self.compiled_pipelines_dir,
                                        f'{dataset.filename_friendly_name}-{pipeline.name}.pipe')
 
-            # compile ouput ports first so we can cache output information
+            # compile output ports first so we can cache output information
             output_config = pipeline.output_group.to_dict()
             for config_name, v in output_config.items():
                 output_pattern = v['default'].replace('[DATASET]', dataset.filename_friendly_name)
                 # output_value = os.path.join(self.root_dir, output_pattern)
                 output_config[config_name]['_value'] = output_pattern
                 output_config[config_name]['_locked'] = True
-            new_output_config = PipelineOutputOptionGroup({'output_config': output_config})
 
+            # new_output_config = PipelineOutputOptionGroup({'output_config': output_config})
             ## compile everything including the new outputs
             # env = {**pipeline.get_parameter_env_ports(),
             #        **pipeline.get_pipeline_dataset_environment(dataset),
             #        **new_output_config.get_env_ports()}
+
             # compile everything EXCEPT the new outputs
             env = {**pipeline.get_parameter_env_ports(),
                    **pipeline.get_pipeline_dataset_environment(dataset)}
@@ -128,6 +129,7 @@ class JobState:
             self._store.data['tasks'] = sorted(pipeline_keys)
             self._store.data['task_status'] = {task_key: TaskStatus.INITIALIZED.value for task_key in pipeline_keys}
             self._store.data['total_tasks'] = len(pipeline_keys)
+            self._store.data['task_outputs'] = {task_key: [] for task_key in pipeline_keys}
             self._store.data['initialized'] = True
 
         # reset any previous errored tasks to initialized
@@ -157,6 +159,15 @@ class JobState:
 
     def set_task_status(self, task_key: TaskKey, status: TaskStatus):
         self._store.data['task_status'][task_key] = status.value
+
+    def set_task_outputs(self, task_key: TaskKey, outputs: List[str]):
+        self._store.data['task_outputs'][task_key] = outputs
+
+    def get_task_outputs(self, task_key: TaskKey) -> Optional[List[str]]:
+        if len(self._store.data['task_outputs'][task_key]) == 0:
+            return None
+        else:
+            return list(self._store.data['task_outputs'][task_key])
 
     def is_job_complete(self) -> bool:
         return all([self.is_task_complete(task_key) for task_key in self.tasks()])

@@ -127,4 +127,4 @@ def run_job(job_path: str):
 
 if __name__ == '__main__':
     # TODO: open job selection GUI
-    run_job('/home/yuval/Desktop/jobs/bb')
+    run_job('/home/yuval/Desktop/jobs/asd')

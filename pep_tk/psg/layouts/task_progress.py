@@ -137,7 +137,7 @@ class TaskTab(LayoutSection):
     def _update_output_files(self, window: sg.Window, output_files: Optional[List[str]]):
         if not output_files or len(output_files) == 0:
             return
-        new_elems = []
+        new_elems = [[sg.T('Output Files:')]]
         for fp in output_files:
             new_elems.append([sg.T(fp)])
         # list_txt = ['%s\n' % fp for fp in output_files]
