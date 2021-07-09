@@ -7,6 +7,7 @@ import threading
 import time
 from time import sleep
 from datetime import datetime
+from typing import List
 
 try:
     from Queue import Queue, Empty
@@ -29,6 +30,7 @@ class SchedulerEventManager(metaclass=abc.ABCMeta):
         self.task_count = {}
         self.task_max_count = {}
         self.initialized_tasks = []
+        self.task_output_files = {}
 
     def initialize_task(self, task_key: TaskKey, count: int, max_count: int, status: TaskStatus):
         self.task_count[task_key] = count
@@ -66,6 +68,10 @@ class SchedulerEventManager(metaclass=abc.ABCMeta):
         self.stderr[task_key] += line
         self._update_task_stdout(task_key, line)
 
+    def update_task_output_files(self, task_key: TaskKey, output_files: List[str]):
+        self.task_output_files[task_key] = output_files
+        return self._update_task_output_files(task_key, output_files)
+
     def elapsed_time(self, task_key: TaskKey) -> float:
         if task_key not in self.task_start_time:
             return 0.
@@ -101,6 +107,10 @@ class SchedulerEventManager(metaclass=abc.ABCMeta):
     def _check_cancelled(self, task_key: TaskKey) -> bool:
         pass
 
+    @abc.abstractmethod
+    def _update_task_output_files(self, task_key: TaskKey, output_files : List[str]):
+        pass
+
 
 # Scheduler helpers
 def poll_image_list(fp: str):
@@ -128,9 +138,12 @@ def enqueue_output(out, queue, evt: threading.Event):
 
 
 def move_output_files(output_fps, destination_dir):
+    new_files = []
     for current_loc in output_fps:
         new_loc = os.path.join(destination_dir, os.path.basename(current_loc))
         shutil.move(current_loc, new_loc)
+        new_files.append(new_loc)
+    return new_files
 
 
 class Scheduler:
@@ -285,10 +298,11 @@ class Scheduler:
                 self.manager.update_task_progress(current_task_key, count)
 
                 # Move outputs to completed folder
-                move_output_files(outputs_to_move, self.job_meta.completed_outputs_dir)
+                outputs_new_loc = move_output_files(outputs_to_move, self.job_meta.completed_outputs_dir)
 
                 # Update Task Ended with success
                 self.job_state.set_task_status(current_task_key, TaskStatus.SUCCESS)
                 self.manager.end_task(current_task_key, TaskStatus.SUCCESS)
+                self.manager.update_task_output_files(current_task_key, outputs_new_loc)
 
             error_log.close()

@@ -1,4 +1,5 @@
 import datetime
+from typing import List, Optional
 
 import PySimpleGUI as sg
 from dataclasses import dataclass
@@ -19,6 +20,7 @@ class ProgressGUIEventData:
     max_count: int  # number of items being processed in task
     elapsed_time: float  # time elapsed so far
     task_status: TaskStatus  # current status of the task
+    output_files: List[str] = None  # output files from the task (image lists, detections)
 
     @property
     def time_per_count(self) -> float:  # average time taken to process each item
@@ -60,6 +62,7 @@ class TaskTab(LayoutSection):
         self._counter_key = f'--tt-counter-{self.task_key}--'
         self._iteration_time_key = f'--tt-iteration-time-{self.task_key}--'
         self._status_key = f'--tt-status-{self.task_key}--'
+        self._output_files_key = f'--tt-output-files-{self.task_key}--'
 
         # GUI Button events
         self._cancel_event_key = f'--cancel-{self.task_key}--'
@@ -81,8 +84,10 @@ class TaskTab(LayoutSection):
         counter = sg.T(counter_str, key=self._counter_key)
         iter_str = empty_string('x.xx seconds/iter')
         avg_iteration_time = sg.T(iter_str, key=self._iteration_time_key, size=(len('x.xx seconds/iter'), 1))
+        output_files = sg.Column([[]], key = self._output_files_key)
         cancel_button = sg.Button('Cancel', key=self._cancel_event_key, disabled=True)
         layout = [[status_icon, title, pb, time_elapsed, counter, avg_iteration_time],
+                  [output_files],
                   [cancel_button]]
         return layout
 
@@ -102,6 +107,7 @@ class TaskTab(LayoutSection):
         self._update_pb(window, progress.progress_count, progress.max_count)
         self._update_counter(window, progress.progress_count, progress.max_count)
         self._update_status(window, progress.task_status)
+        self._update_output_files(window, progress.output_files)
 
     def _update_status(self, window: sg.Window, status: TaskStatus):
         icon_fp = status_icons.get(status, None)
@@ -127,6 +133,17 @@ class TaskTab(LayoutSection):
 
     def _update_counter(self, window: sg.Window, count: int, max_count: int):
         window[self._counter_key](value='%d/%d' % (count, max_count))
+
+    def _update_output_files(self, window: sg.Window, output_files: Optional[List[str]]):
+        if not output_files or len(output_files) == 0:
+            return
+        new_elems = []
+        for fp in output_files:
+            new_elems.append([sg.T(fp)])
+        # list_txt = ['%s\n' % fp for fp in output_files]
+        # window[self._output_files_key](value=list_txt)
+        window.extend_layout(window[self._output_files_key], new_elems)
+        pass
 
     def layout_name(self) -> str:
         return self.task_progress_update_key
