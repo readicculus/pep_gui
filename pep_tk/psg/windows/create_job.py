@@ -69,20 +69,12 @@ def launch_gui():
             sg.Input('', key='-job_name-IN-', size=(20, 1))
         ]
     ]
+
     layout += [[sg.Button('Create Job', key='-CREATE_JOB-')]]
 
     location = (0, 0)
     if SettingsNames.window_location in gui_settings.get_dict():
         location = gui_settings[SettingsNames.window_location]
-
-    # menu_def = [['&File', ['&Open     Ctrl-O', '&Save       Ctrl-S', '&Properties', 'E&xit']],
-    #             ['&Edit', [['Special', 'Normal', ['Normal1', 'Normal2']], 'Undo'], ],
-    #             ['!Disabled', [['Special', 'Normal', ['Normal1', 'Normal2']], 'Undo'], ],
-    #             ['&Toolbar', ['---', 'Command &1::Command_Key', 'Command &2', '---', 'Command &3', 'Command &4']],
-    #             ['&Help', ['&About...']], ]
-
-    # layout = [[[Menubar(menu_def, sg.theme_button_color()[1], sg.theme_button_color()[0], (5, 0))]]] + layout
-    # layout = [[sg.Menu(menu_def, tearoff=False, key='-MENU BAR-')]] + layout
 
     window = sg.Window('PEP-TK: Job Configuration', layout,
                        default_element_size=(12, 1), location=location)
@@ -95,14 +87,14 @@ def launch_gui():
             gui_settings[SettingsNames.job_directory] = selected_job_directory
 
     def validate_inputs(window: sg.Window, values: Dict[Any, Any]) -> bool:
-        selected_job_directory = values['-job_dir-IN-']
-        selected_job_name = values['-job_name-IN-']
-        job_dir = os.path.join(selected_job_directory, selected_job_name)
-        datasets = dataset_tab.get_selected_datasets()
-        pipeline = pipeline_tab.get_selected_pipeline()
+        input_job_directory = values['-job_dir-IN-']
+        input_job_name = values['-job_name-IN-']
+        combined_job_dir = os.path.join(input_job_directory, input_job_name)
+        input_datasets = dataset_tab.get_selected_datasets()
+        input_pipeline = pipeline_tab.get_selected_pipeline()
 
         # Check if no datasets were selected
-        if len(datasets) < 1:
+        if len(input_datasets) < 1:
             popup_error('No datasets were selected.  Must select one or more datasets above.', window)
             return False
 
@@ -113,9 +105,9 @@ def launch_gui():
 
         # Check for missing ports(aka if datasets/pipeline are not compatible)
         missing_ports = {}
-        for dataset in datasets:
+        for dataset in input_datasets:
             try:
-                pipeline.get_pipeline_dataset_environment(dataset)
+                input_pipeline.get_pipeline_dataset_environment(dataset)
             except MissingPortsException as e:
                 missing_ports[e.dataset_name] = e.ports
         if len(missing_ports) > 0:
@@ -126,18 +118,18 @@ def launch_gui():
             return False
 
         # Check if the job base directory doesn't exist
-        if not os.path.isdir(selected_job_directory):
-            popup_error(f'Jobs base directory {selected_job_directory} does not exist.', window)
+        if not os.path.isdir(input_job_directory):
+            popup_error(f'Jobs base directory {input_job_directory} does not exist.', window)
             return False
 
         # Check if the selected name is an empty string
-        if selected_job_name == '':
+        if input_job_name == '':
             popup_error('No job name entered', window)
             return False
 
         # Check if the job directory(within the base directory) already exists
-        if os.path.isdir(job_dir):
-            popup_error(f'Job {selected_job_name} already exists, cannot override an existing job.\n{job_dir}', window)
+        if os.path.isdir(combined_job_dir):
+            popup_error(f'Job {input_job_name} already exists, cannot override an existing job.\n{combined_job_dir}', window)
             return False
 
         return True

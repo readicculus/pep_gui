@@ -64,6 +64,17 @@ class GUIManager(SchedulerEventManager):
     def _update_task_stderr(self, task_key: TaskKey, line: str):
         pass
 
+    def _update_task_output_files(self, task_key: TaskKey, output_files : List[str]):
+        gui_task_event_key = self.task_event_key(task_key)
+        evt_data = ProgressGUIEventData(task_status=self.task_status[task_key],
+                                        progress_count=self.task_count[task_key],
+                                        max_count=self.task_max_count[task_key],
+                                        elapsed_time=self.elapsed_time(task_key),
+                                        output_files=output_files)
+        self._window.write_event_value(gui_task_event_key, evt_data)
+
+        print('_update_task_output_files')
+
 
 def make_main_window(tasks: List[TaskKey], gui_settings: sg.UserSettings):
     progress_bars = {task_key: TaskTab(task_key) for task_key in tasks}
@@ -116,4 +127,4 @@ def run_job(job_path: str):
 
 if __name__ == '__main__':
     # TODO: open job selection GUI
-    run_job('/home/yuval/Desktop/jobs/abc')
+    run_job('/home/yuval/Desktop/jobs/asd')

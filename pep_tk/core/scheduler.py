@@ -1,11 +1,13 @@
 import abc
 import os
+import shutil
 import signal
 import subprocess
 import threading
 import time
 from time import sleep
 from datetime import datetime
+from typing import List, Optional
 
 try:
     from Queue import Queue, Empty
@@ -28,13 +30,18 @@ class SchedulerEventManager(metaclass=abc.ABCMeta):
         self.task_count = {}
         self.task_max_count = {}
         self.initialized_tasks = []
+        self.task_output_files = {}
 
-    def initialize_task(self, task_key: TaskKey, count: int, max_count: int, status: TaskStatus):
+    def initialize_task(self, task_key: TaskKey, count: int, max_count: int, status: TaskStatus,
+                        task_outputs : Optional[List[str]] = None):
         self.task_count[task_key] = count
         self.task_max_count[task_key] = max_count
         self.task_status[task_key] = status
         self.initialized_tasks.append(task_key)
         self._initialize_task(task_key, count, max_count, status)
+
+        if task_outputs:
+            self.update_task_output_files(task_key, task_outputs)
 
     def start_task(self, task_key: TaskKey):
         self.task_status[task_key] = TaskStatus.RUNNING
@@ -64,6 +71,10 @@ class SchedulerEventManager(metaclass=abc.ABCMeta):
             self.stderr[task_key] = ""
         self.stderr[task_key] += line
         self._update_task_stdout(task_key, line)
+
+    def update_task_output_files(self, task_key: TaskKey, output_files: List[str]):
+        self.task_output_files[task_key] = output_files
+        return self._update_task_output_files(task_key, output_files)
 
     def elapsed_time(self, task_key: TaskKey) -> float:
         if task_key not in self.task_start_time:
@@ -100,6 +111,11 @@ class SchedulerEventManager(metaclass=abc.ABCMeta):
     def _check_cancelled(self, task_key: TaskKey) -> bool:
         pass
 
+    @abc.abstractmethod
+    def _update_task_output_files(self, task_key: TaskKey, output_files : List[str]):
+        pass
+
+
 # Scheduler helpers
 def poll_image_list(fp: str):
     if not os.path.exists(fp):
@@ -108,11 +124,13 @@ def poll_image_list(fp: str):
         count = sum(1 for _ in f)
     return count
 
+
 def monitor_outputs(stop_event: threading.Event, task_key: TaskKey, manager: SchedulerEventManager,
                     output_file: str, poll_freq: int):
     while not stop_event.wait(poll_freq):
         count = poll_image_list(output_file)
         manager.update_task_progress(task_key, count)
+
 
 def enqueue_output(out, queue, evt: threading.Event):
     # don't want it to stop on an emty byte(b'') because we need to detect
@@ -121,6 +139,16 @@ def enqueue_output(out, queue, evt: threading.Event):
         if evt.is_set():
             break
         queue.put(line)
+
+
+def move_output_files(output_fps, destination_dir):
+    new_files = []
+    for current_loc in output_fps:
+        new_loc = os.path.join(destination_dir, os.path.basename(current_loc))
+        shutil.move(current_loc, new_loc)
+        new_files.append(new_loc)
+    return new_files
+
 
 class Scheduler:
     def __init__(self,
@@ -148,18 +176,18 @@ class Scheduler:
         # if resuming mark already completed tasks as completed
         for task_key in self.job_state.tasks(status=TaskStatus.SUCCESS):
             pipeline_fp, dataset, outputs = self.job_meta.get(task_key)
-            completed_count = max(dataset.thermal_image_count, dataset.color_image_count)
-            self.manager.initialize_task(task_key, completed_count, completed_count, TaskStatus.SUCCESS)
+            max_image_count = max(dataset.thermal_image_count, dataset.color_image_count)
+            task_outputs = self.job_state.get_task_outputs(task_key)
+            self.manager.initialize_task(task_key, max_image_count, max_image_count, TaskStatus.SUCCESS, task_outputs)
 
         for task_key in self.job_state.tasks():
             status = self.job_state.get_status(task_key)
             if status != TaskStatus.SUCCESS:
                 pipeline_fp, dataset, outputs = self.job_meta.get(task_key)
-                completed_count = max(dataset.thermal_image_count, dataset.color_image_count)
-                self.manager.initialize_task(task_key, 0, completed_count, TaskStatus.INITIALIZED)
+                max_image_count = max(dataset.thermal_image_count, dataset.color_image_count)
+                self.manager.initialize_task(task_key, 0, max_image_count, TaskStatus.INITIALIZED)
 
         while not self.job_state.is_job_complete():
-
             current_task_key = self.job_state.current_task()
             print(current_task_key)
             pipeline_fp, dataset, outputs = self.job_meta.get(current_task_key)
@@ -184,8 +212,6 @@ class Scheduler:
             error_log = open(error_log_fp, 'w+b')
 
             # Update Task Started
-            self.manager.initialize_task(current_task_key, 0, max_image_count, TaskStatus.INITIALIZED)
-
             self.manager.start_task(current_task_key)
             self.job_state.set_task_status(current_task_key, TaskStatus.RUNNING)
 
@@ -218,11 +244,11 @@ class Scheduler:
             t.daemon = True  # thread dies with the program
             t.start()
             cancelled = False
-            while True: # read line without blocking
+            while True:  # read line without blocking
                 sleep(.2)
                 try:
                     line = q.get_nowait()
-                    if line == b'': break # job is complete if empty byte received
+                    if line == b'': break  # job is complete if empty byte received
                 except Empty:
                     # check if user cancelled task, if cancelled kill kwiver process and stop output reading loop
                     cancelled = self.manager.check_cancelled(current_task_key)
@@ -232,6 +258,8 @@ class Scheduler:
 
             # stop polling for progress and stop polling for stdout
             prog_stop_evt.set()
+
+            outputs_to_move = list(pipeline_output_csv_env.values()) + list(pipeline_output_image_list_env.values())
 
             # if user cancells task
             if cancelled:
@@ -243,12 +271,15 @@ class Scheduler:
                 self.manager.update_task_progress(current_task_key, count)
                 self.job_state.set_task_status(current_task_key, TaskStatus.CANCELLED)
                 self.manager.end_task(current_task_key, TaskStatus.CANCELLED)
+
+                # Move outputs to error folder
+                move_output_files(outputs_to_move, self.job_meta.error_outputs_dir)
                 continue
 
             # Wait for exit up to 30 seconds after kill
             code = process.wait(30)
 
-            if code > 0:
+            if code > 0:  # ERROR
                 error_log.seek(0)
                 stderr_log = error_log.read().decode()
                 error_log.close()
@@ -260,12 +291,26 @@ class Scheduler:
                 self.manager.update_task_stderr(current_task_key, stderr_log)
                 self.manager.end_task(current_task_key, TaskStatus.ERROR)
 
+                # Move output files to error dir
+                outputs_to_move = list(pipeline_output_csv_env.values()) + list(pipeline_output_image_list_env.values())
+                for current_loc in outputs_to_move:
+                    new_loc = os.path.join(self.job_meta.error_outputs_dir, os.path.basename(current_loc))
+                    shutil.move(current_loc, new_loc)
                 # TODO show error in UI, and save in log somewhere
-            else:
-                # Update Task Ended with success
+            else:  # SUCCESS
+                # Update Task final count in GUI, has to be done before moving file
                 count = poll_image_list(image_list_monitor)
                 self.manager.update_task_progress(current_task_key, count)
+
+                # Move outputs to completed folder
+                outputs_new_loc = move_output_files(outputs_to_move, self.job_meta.completed_outputs_dir)
+
+                # Update Task State with success and output files
+                self.job_state.set_task_outputs(current_task_key, outputs_new_loc)
                 self.job_state.set_task_status(current_task_key, TaskStatus.SUCCESS)
+
+                # Update GUI with success
                 self.manager.end_task(current_task_key, TaskStatus.SUCCESS)
+                self.manager.update_task_output_files(current_task_key, outputs_new_loc)
 
             error_log.close()
