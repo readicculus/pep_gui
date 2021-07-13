@@ -24,9 +24,11 @@ def icon_filepath(icon_fn, size='1x'):
     assert (size == '1x' or size == '2x')
     return os.path.join(PLUGIN_PATH, 'lib', 'img', 'icons', size, icon_fn)
 
+def settings_filepath():
+    return os.path.join(PLUGIN_PATH, 'peptk_gui_settings.json')
 
 def get_settings():
-    return sg.UserSettings(filename='peptk_gui_settings.json')
+    return sg.UserSettings(filename=settings_filepath())
 
 
 def get_viame_bash_or_bat_file_path(settings: sg.UserSettings):
