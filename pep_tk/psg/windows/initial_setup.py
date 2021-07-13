@@ -1,12 +1,13 @@
 # https://github.com/PySimpleGUI/PySimpleGUI/issues/3058
 import os
+from typing import Optional
 
 import PySimpleGUI as sg
 
 from pep_tk.psg.settings import get_settings, SettingsNames
 
 
-def initial_setup(skip_if_complete = True):
+def initial_setup(skip_if_complete = True) -> Optional[sg.Window]:
     gui_settings = get_settings()
     def check_complete():
         # TODO: better check for completion
@@ -22,6 +23,8 @@ def initial_setup(skip_if_complete = True):
                sg.FileBrowse()],
               [sg.B('Complete Setup'), sg.B('Exit', key='Exit')]]
 
+    if check_complete() and skip_if_complete:
+        return None
     window = sg.Window('PEP-TK: Initial Setup', layout)
 
     while True:
@@ -43,5 +46,5 @@ def initial_setup(skip_if_complete = True):
 
             if check_complete(): break
 
-    window.close()
+    return window
 

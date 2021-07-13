@@ -1,7 +1,5 @@
 from typing import Dict, Any
 
-from psg.settings import JobCache
-
 
 def launch_gui():
     import os
@@ -19,7 +17,7 @@ def launch_gui():
     import PySimpleGUI as sg
 
     sg.theme('SystemDefaultForReal')
-    initial_setup()
+    setup_window = initial_setup()
     gui_settings = get_settings()
 
     pm = PipelineManifest()
@@ -78,6 +76,8 @@ def launch_gui():
 
     window = sg.Window('PEP-TK: Job Configuration', layout,
                        default_element_size=(12, 1), location=location)
+    window.finalize()
+    if setup_window: setup_window.close()
 
     # ======== Handler helper functions =========
     def cache_settings(values):
@@ -129,7 +129,8 @@ def launch_gui():
 
         # Check if the job directory(within the base directory) already exists
         if os.path.isdir(combined_job_dir):
-            popup_error(f'Job {input_job_name} already exists, cannot override an existing job.\n{combined_job_dir}', window)
+            popup_error(f'Job {input_job_name} already exists, cannot override an existing job.\n{combined_job_dir}',
+                        window)
             return False
 
         return True

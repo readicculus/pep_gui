@@ -21,7 +21,8 @@ class DatasetSelectionLayout(LayoutSection):
         return [self.dataset_manifest[ds_name] for ds_name in self.selected_datasets]
 
     def get_layout(self):
-        size = (40, max(10 ,min(40, len(self.datasets))))
+        dataset_column_size = (40, max(10 , min(25, len(self.datasets)))) # show at minimum 10 rows and at most 25 rows.
+        print(dataset_column_size)
         layout = [[sg.T('Select a dataset or multiple datasets below.\n'
                         'Select multiple by clicking on multiple datasets then pressing the \'>\' button'),
                         help_icon('Use ctrl+click to select multiple, shift-click to select many.')],
@@ -30,7 +31,7 @@ class DatasetSelectionLayout(LayoutSection):
                           [sg.Text('Datasets')],
                                  [sg.Listbox(key='dataset_options',
                                              values=self.datasets,
-                                             size=size,
+                                             size=dataset_column_size,
                                              select_mode=sg.SELECT_MODE_EXTENDED,
                                              bind_return_key=True,
                                              font=Fonts.description)]
@@ -42,7 +43,7 @@ class DatasetSelectionLayout(LayoutSection):
                                    size=(len('selected datasets x') + 5, 1))],
                           [sg.Listbox(key='selected_datasets',
                                       values=self.selected_datasets,
-                                      size=size,
+                                      size=dataset_column_size,
                                       select_mode=sg.SELECT_MODE_EXTENDED,
                                       bind_return_key=True,
                                       font=Fonts.description)]
