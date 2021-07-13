@@ -27,12 +27,12 @@ def initial_setup(skip_if_complete = True, modal=False) -> Optional[sg.Window]:
 
     if check_complete() and skip_if_complete:
         return None
-
+    location = gui_settings[SettingsNames.window_location] or (0,0)
     window = sg.Window('PEP-TK: Properties',
                        layout,
                        keep_on_top=True,
                        finalize=True,
-                       location=gui_settings[SettingsNames.window_location],
+                       location=location,
                        modal=modal)
 
     while True:

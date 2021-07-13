@@ -9,7 +9,7 @@ from pep_tk.core.scheduler import Scheduler, SchedulerEventManager
 from pep_tk.psg.fonts import Fonts
 from pep_tk.psg.layouts import TaskTab, ProgressGUIEventData
 from pep_tk.psg.settings import get_settings, SettingsNames, get_viame_bash_or_bat_file_path
-from psg.layouts import TaskRunnerTabGroup
+from pep_tk.psg.layouts import TaskRunnerTabGroup
 
 sg.theme('SystemDefaultForReal')
 
