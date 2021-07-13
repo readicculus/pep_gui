@@ -13,6 +13,7 @@ from psg.layouts import TaskRunnerTabGroup
 
 sg.theme('SystemDefaultForReal')
 
+
 class GUIManager(SchedulerEventManager):
     def __init__(self, window: sg.Window, progress_bars):
         super().__init__()
@@ -64,7 +65,7 @@ class GUIManager(SchedulerEventManager):
     def _update_task_stderr(self, task_key: TaskKey, line: str):
         pass
 
-    def _update_task_output_files(self, task_key: TaskKey, output_files : List[str]):
+    def _update_task_output_files(self, task_key: TaskKey, output_files: List[str]):
         gui_task_event_key = self.task_event_key(task_key)
         evt_data = ProgressGUIEventData(task_status=self.task_status[task_key],
                                         progress_count=self.task_count[task_key],
@@ -83,23 +84,16 @@ def make_main_window(tasks: List[TaskKey], gui_settings: sg.UserSettings):
     for pb in list(progress_bars.values()):
         tabs.append((pb.get_layout(), pb.task_key))
     tabs_group = TaskRunnerTabGroup(tabs)
-    # tabs_group = sg.TabGroup(tabs, key='--task-tabs--', tab_location='left', background_color='snow',
-    #                          tab_background_color='snow', selected_background_color='azure', size=(800,10))
     layout = [[sg.Text('Job Progress:', font=Fonts.title_large)],
               [tabs_group.get_layout()]]
 
-    location = (0, 0)
-    if SettingsNames.window_location in gui_settings.get_dict():
-        location = gui_settings[SettingsNames.window_location]
-
+    location = gui_settings.get(SettingsNames.window_location, (0, 0))
     window = sg.Window('PEP-TK: Job Runner', layout, location=location, finalize=True)
 
     return window, progress_bars, tabs_group
 
 
 def run_job(job_path: str):
-    # initial_setup(skip_if_complete=False)
-
     gui_settings = get_settings()
     job_state, job_meta = load_job(job_path)
 
@@ -115,16 +109,10 @@ def run_job(job_path: str):
 
     while True:
         event, values = window.read()
-        # sg.popup_non_blocking(event,  values)
         print(event, values)
-        if event == sg.WIN_CLOSED:  # always,  always give a way out!
+        if event == sg.WIN_CLOSED:
             break
 
         for task_key, pb in progress_bars.items():
             pb.handle(window, event, values)
             tabs_group.handle(window, event, values)
-
-
-if __name__ == '__main__':
-    # TODO: open job selection GUI
-    run_job('/home/yuval/Desktop/jobs/asd')

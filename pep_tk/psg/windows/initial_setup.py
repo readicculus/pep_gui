@@ -15,23 +15,25 @@ def initial_setup(skip_if_complete = True, modal=False) -> Optional[sg.Window]:
         return gui_settings.get(SettingsNames.setup_viame_filepath, None) is not None and gui_settings.get(
                 SettingsNames.dataset_manifest_filepath, None) is not None
 
+    manifest_folder = gui_settings.get(SettingsNames.dataset_manifest_filepath, None)
+    if manifest_folder: manifest_folder = os.path.dirname(manifest_folder)
     layout = [[sg.Text('Enter the viame directory:')],
               [sg.Input(gui_settings.get(SettingsNames.setup_viame_filepath, ''), key='-setup_viame_filepath-IN-'),
-               sg.FolderBrowse()],
+               sg.FolderBrowse(initial_folder=gui_settings.get(SettingsNames.setup_viame_filepath))],
               [sg.Text('Enter the dataset manfiest filepath:')],
               [sg.Input(gui_settings.get(SettingsNames.dataset_manifest_filepath, ''), key='-dataset_manifest_filepath-IN-'),
-               sg.FileBrowse()],
+               sg.FileBrowse(initial_folder=manifest_folder)],
               [sg.B('Complete Setup'), sg.B('Exit', key='Exit')]]
 
     if check_complete() and skip_if_complete:
         return None
 
-    if SettingsNames.window_location in gui_settings.get_dict():
-        location = gui_settings[SettingsNames.window_location]
-    if location:
-        window = sg.Window('PEP-TK: Initial Setup', layout, keep_on_top=True, finalize=True, location=location, modal=modal)
-    else:
-        window = sg.Window('PEP-TK: Initial Setup', layout, keep_on_top=True, finalize=True, modal=modal)
+    window = sg.Window('PEP-TK: Properties',
+                       layout,
+                       keep_on_top=True,
+                       finalize=True,
+                       location=gui_settings[SettingsNames.window_location],
+                       modal=modal)
 
     while True:
         if check_complete() and skip_if_complete:

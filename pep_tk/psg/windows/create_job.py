@@ -1,8 +1,5 @@
 from typing import Dict, Any
 
-from core.job import job_exists
-
-
 def launch_gui():
     import os
 
@@ -15,6 +12,7 @@ def launch_gui():
     from pep_tk.psg.windows.job_runner import run_job
     from pep_tk.psg.layouts import DatasetSelectionLayout, PipelineSelectionLayout, LayoutSection
     from pep_tk.psg.settings import get_settings, SettingsNames
+    from pep_tk.core.job import job_exists
 
     import PySimpleGUI as sg
 
@@ -145,6 +143,7 @@ def launch_gui():
     # ======== Window / Event loop =========
     CREATED_JOB_PATH = None
     RESUME_JOB_PATH = None
+    RELOAD_GUI = False # used for when user changes dataset_manifest
     while True:
         event, values = window.read()
         if '::' in event:
@@ -168,8 +167,13 @@ def launch_gui():
                     else:
                         popup_error(f'Job {job_folder} is not a valid job directory.', window)
             elif menu_event == '-properties-menu-btn-':
+                dataset_manifest_before = gui_settings[SettingsNames.dataset_manifest_filepath]
                 setup_window = initial_setup(skip_if_complete=False, modal=True)
                 setup_window.close()
+                changed_manifest = dataset_manifest_before == gui_settings[SettingsNames.dataset_manifest_filepath]
+                if changed_manifest:
+                    RELOAD_GUI = True
+                    break
             elif menu_event == '-exit-menu-btn-':
                 break  # exit loop
             continue
@@ -203,7 +207,8 @@ def launch_gui():
         dataset_tab.handle(window, event, values)
         pipeline_tab.handle(window, event, values)
     window.close()
-
+    if RELOAD_GUI:
+        launch_gui()
     if CREATED_JOB_PATH:  # END: start running job
         # jc = JobCache(gui_settings)
         # jc.append_job(CREATED_JOB_PATH)
