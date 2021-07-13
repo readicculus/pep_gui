@@ -60,7 +60,7 @@ def launch_gui():
                [create_frame(pipeline_tab)]]
 
     # Jobs base directory and job name inputs
-    desktop_dir = os.path.expanduser("~/Desktop/")  # default
+    desktop_dir = os.path.join(os.path.expanduser("~"), 'Desktop')  # default
     gui_settings[SettingsNames.job_directory] = desktop_dir
     layout += [
         [
