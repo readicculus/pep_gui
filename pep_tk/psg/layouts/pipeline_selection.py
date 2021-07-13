@@ -105,7 +105,6 @@ class PipelineSelectionLayout(LayoutSection):
         # gui element identifier keys
         self.event_key = event_key
         self.combobox_key = '%s_combobox' % self.event_key
-        self.select_pipeline_key = '%s_select_button' % self.event_key
         self.reset_defaults_key = '%s_reset_defaults_button' % self.event_key
 
         # create pipeline config layouts
@@ -127,13 +126,26 @@ class PipelineSelectionLayout(LayoutSection):
         for frame_key, pipeline_layout in self.config_frames.items():
             l = pipeline_layout.get_layout()
             n = pipeline_layout.pipeline_name
-            frames.append(sg.Frame(n, l, key=frame_key, visible=False, font=Fonts.title_small))
+            config_count = len(pipeline_layout.input_keys_to_config_name)
+            if config_count <= 3:
+                frames.append(sg.Column(
+                    [[sg.Frame(n, l, font=Fonts.title_small)]],
+                    expand_x=True, key=frame_key,
+                    visible=False))
+            else:
+                # put in a scrollable column if  more than 3 configs
+                col = [[sg.Column(l, expand_x=True, scrollable=True, vertical_scroll_only=True)]]
+                frames.append(sg.Frame(n, col, key=frame_key, visible=False, font=Fonts.title_small))
         default_value = '<select a pipeline>'
         return [
             [sg.Text('Select and Configure a pipeline.', font=Fonts.description)],
-            [sg.Combo(values=[default_value] + pipelines, size=(width, min(10, len(pipelines) + 1)),
-                           default_value=default_value, key=self.combobox_key, font=Fonts.description,readonly=True),
-             sg.Button('Select', key=self.select_pipeline_key)],
+            [sg.Combo(values=[default_value] + pipelines,
+                      size=(width, min(10, len(pipelines) + 1)),
+                      default_value=default_value,
+                      key=self.combobox_key,
+                      font=Fonts.description,readonly=True,
+                      enable_events=True)
+             ],
             frames
         ]
 
@@ -142,7 +154,7 @@ class PipelineSelectionLayout(LayoutSection):
 
     # event loop handler
     def handle(self, window, event, values):
-        if event == self.select_pipeline_key:
+        if self.combobox_key:
             selected_pipeline_name = values[self.combobox_key]
             if selected_pipeline_name == '<select a pipeline>' or selected_pipeline_name == '':
                 if self.selected_pipeline is not None:
@@ -153,16 +165,11 @@ class PipelineSelectionLayout(LayoutSection):
 
             self.selected_pipeline = self.pipeline_manifest[selected_pipeline_name]
 
-            # config_layout = self.create_config()
-
             frame_key = pipeline_key(selected_pipeline_name)
             window[frame_key](visible=True)
             for p in self.pipeline_manifest.list_pipeline_names():
                 if p != selected_pipeline_name:
                     window[pipeline_key(p)](visible=False)
-            # window.extend_layout(window['-COL1-'], config_layout)
-            print('selected %s' % selected_pipeline_name)
-            # self.create_config()
         else:
             for pipe_layout in self.config_frames.values():
                 if event in pipe_layout.event_keys:
