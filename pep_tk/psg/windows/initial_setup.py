@@ -7,7 +7,7 @@ import PySimpleGUI as sg
 from pep_tk.psg.settings import get_settings, SettingsNames
 
 
-def initial_setup(skip_if_complete = True) -> Optional[sg.Window]:
+def initial_setup(skip_if_complete = True, modal=False) -> Optional[sg.Window]:
     gui_settings = get_settings()
     def check_complete():
         # TODO: better check for completion
@@ -25,7 +25,13 @@ def initial_setup(skip_if_complete = True) -> Optional[sg.Window]:
 
     if check_complete() and skip_if_complete:
         return None
-    window = sg.Window('PEP-TK: Initial Setup', layout)
+
+    if SettingsNames.window_location in gui_settings.get_dict():
+        location = gui_settings[SettingsNames.window_location]
+    if location:
+        window = sg.Window('PEP-TK: Initial Setup', layout, keep_on_top=True, finalize=True, location=location, modal=modal)
+    else:
+        window = sg.Window('PEP-TK: Initial Setup', layout, keep_on_top=True, finalize=True, modal=modal)
 
     while True:
         if check_complete() and skip_if_complete:

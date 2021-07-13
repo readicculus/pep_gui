@@ -197,6 +197,12 @@ def load_job(directory: str) -> Tuple[JobState, JobMeta]:
     job_meta = JobMeta(directory)
     return job_state, job_meta
 
+def job_exists(job_path: str):
+    try:
+        job_state, job_meta = load_job(job_path)
+    except:
+        return False
+    return True
 
 def create_job(directory, pipeline: PipelineConfig, datasets: List[VIAMEDataset]) -> str:
     if os.path.isdir(directory) or os.path.isfile(directory):

@@ -42,10 +42,10 @@ def get_viame_bash_or_bat_file_path(settings: sg.UserSettings):
 
 
 class JobCache:
-    def __init__(self, settings: sg.UserSettings):
-        self.settings = settings
+    def __init__(self):
         self.jobs = set()
         # get recent jobs from settings and only add if the job folder still exists
+        settings = get_settings()
         for job in settings.get(SettingsNames.recent_jobs_list, []):
             if os.path.isdir(job):
                 self.jobs.add(job)
@@ -58,15 +58,17 @@ class JobCache:
 
     def append_job(self, job_dir: str):
         self.jobs.append(job_dir)
-        if SettingsNames.recent_jobs_list not in self.settings.dict:
-            self.settings[SettingsNames.recent_jobs_list] = []
-        self.settings[SettingsNames.recent_jobs_list].append(job_dir)
+        settings = get_settings()
+        if SettingsNames.recent_jobs_list not in settings.dict:
+            settings[SettingsNames.recent_jobs_list] = []
+        settings[SettingsNames.recent_jobs_list].append(job_dir)
 
     def remove_job(self, job_dir: str):
         pass
 
     def clear_all(self):
-        self.settings[SettingsNames.recent_jobs_list] = []
+        settings = get_settings()
+        settings[SettingsNames.recent_jobs_list] = []
         self.jobs = []
 
 

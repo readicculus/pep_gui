@@ -1,5 +1,7 @@
 from typing import Dict, Any
 
+from core.job import job_exists
+
 
 def launch_gui():
     import os
@@ -47,7 +49,12 @@ def launch_gui():
         sg.popup_ok(msg, title='Uh oh', line_width=popup_w, location=(win_x + cx, win_y + cy), keep_on_top=True)
 
     # ======== Create the Layout =========
+    menu_def = [['&File', ['&Resume Job     Ctrl-R::-resume-menu-btn-', '&Properties::-properties-menu-btn-',
+                           'E&xit::-exit-menu-btn-']],
+                ['&Help', '&About...::-about-menu-btn-'], ]
+
     layout = [
+        [sg.Menu(menu_def, tearoff=False, pad=(200, 1))],
         [sg.Text('Polar Ecosystems Program Batch Runner', size=(38, 1), justification='center', font=Fonts.title_large,
                  relief=sg.RELIEF_RIDGE, k='-TEXT HEADING-', enable_events=True, text_color='#063970')]]
 
@@ -56,6 +63,7 @@ def launch_gui():
 
     # Jobs base directory and job name inputs
     desktop_dir = os.path.expanduser("~/Desktop/")  # default
+    gui_settings[SettingsNames.job_directory] = desktop_dir
     layout += [
         [
             sg.Text('Jobs Base Directory', font=Fonts.description),
@@ -75,8 +83,7 @@ def launch_gui():
         location = gui_settings[SettingsNames.window_location]
 
     window = sg.Window('PEP-TK: Job Configuration', layout,
-                       default_element_size=(12, 1), location=location)
-    window.finalize()
+                       default_element_size=(12, 1), location=location, finalize=True)
     if setup_window: setup_window.close()
 
     # ======== Handler helper functions =========
@@ -137,10 +144,35 @@ def launch_gui():
 
     # ======== Window / Event loop =========
     CREATED_JOB_PATH = None
+    RESUME_JOB_PATH = None
     while True:
         event, values = window.read()
-        # sg.popup_non_blocking(event, values)
-        print(event, values)
+        if '::' in event:
+            # handle menu button pressed
+            menu_event = event.split('::')[1]  # event
+            print(menu_event)
+            if menu_event == '-resume-menu-btn-':
+                initial_folder = gui_settings[SettingsNames.job_directory]
+                location = window.current_location()
+                job_folder = sg.popup_get_folder('Select the job directory',
+                                                 no_window=True,
+                                                 keep_on_top=True,
+                                                 initial_folder=initial_folder,
+                                                 modal=True,
+                                                 location=location)
+                if job_folder:
+                    exists = job_exists(job_folder)
+                    if exists:
+                        RESUME_JOB_PATH = job_folder
+                        break
+                    else:
+                        popup_error(f'Job {job_folder} is not a valid job directory.', window)
+            elif menu_event == '-properties-menu-btn-':
+                setup_window = initial_setup(skip_if_complete=False, modal=True)
+                setup_window.close()
+            elif menu_event == '-exit-menu-btn-':
+                break  # exit loop
+            continue
         try:
             gui_settings[SettingsNames.window_location] = window.CurrentLocation()
         except:
@@ -176,3 +208,5 @@ def launch_gui():
         # jc = JobCache(gui_settings)
         # jc.append_job(CREATED_JOB_PATH)
         run_job(CREATED_JOB_PATH)
+    elif RESUME_JOB_PATH:
+        run_job(RESUME_JOB_PATH)
