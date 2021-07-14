@@ -4,7 +4,7 @@ import yaml
 
 from pep_tk import PLUGIN_PATH
 from pep_tk.core.configuration import PipelineConfig
-default_manifest = os.path.join(PLUGIN_PATH, 'conf/pipeline_manifest.yaml')
+default_manifest = os.path.normpath(os.path.join(PLUGIN_PATH, 'conf/pipeline_manifest.yaml'))
 
 class PipelineManifest:
     __root = 'PipelineManifest'

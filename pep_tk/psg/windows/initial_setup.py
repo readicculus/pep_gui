@@ -43,12 +43,17 @@ def initial_setup(skip_if_complete = True, modal=False) -> Optional[sg.Window]:
         if event in (sg.WINDOW_CLOSED, 'Exit'):
             break
         elif event == 'Complete Setup':
-            selected_viame_filepath = values['-setup_viame_filepath-IN-']
-            if os.path.isfile(os.path.join(selected_viame_filepath, 'setup_viame.sh')) or \
-                os.path.isfile(os.path.join(selected_viame_filepath, 'setup_viame.bat')):
+            selected_viame_filepath = os.path.normpath(values['-setup_viame_filepath-IN-'])
+            if os.name == 'nt': # windows
+                viame_setup_fp = os.path.normpath(os.path.join(selected_viame_filepath, 'setup_viame.bat'))
+
+            else: # linux
+                viame_setup_fp = os.path.normpath(os.path.join(selected_viame_filepath, 'setup_viame.sh'))
+
+            if os.path.isfile(viame_setup_fp):
                 gui_settings[SettingsNames.setup_viame_filepath] = selected_viame_filepath
 
-            selected_dataset_manifest_filepath = values['-dataset_manifest_filepath-IN-']
+            selected_dataset_manifest_filepath = os.path.normpath(values['-dataset_manifest_filepath-IN-'])
             if os.path.isfile(selected_dataset_manifest_filepath):
                 gui_settings[SettingsNames.dataset_manifest_filepath] = selected_dataset_manifest_filepath
 

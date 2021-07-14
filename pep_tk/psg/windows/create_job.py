@@ -60,13 +60,15 @@ def launch_gui():
                [create_frame(pipeline_tab)]]
 
     # Jobs base directory and job name inputs
-    desktop_dir = os.path.join(os.path.expanduser("~"), 'Desktop')  # default
-    gui_settings[SettingsNames.job_directory] = desktop_dir
+    jobs_dir = gui_settings.get(SettingsNames.job_directory)
+    if not jobs_dir:
+        jobs_dir = os.path.normpath(os.path.join(os.path.expanduser("~"), 'Desktop'))  # default
+        gui_settings[SettingsNames.job_directory] = jobs_dir
     layout += [
         [
             sg.Text('Jobs Base Directory', font=Fonts.description),
-            sg.Input(gui_settings.get(SettingsNames.job_directory, desktop_dir), key='-job_dir-IN-', size=(50, 1)),
-            sg.FolderBrowse(initial_folder=desktop_dir)
+            sg.Input(gui_settings.get(SettingsNames.job_directory, jobs_dir), key='-job_dir-IN-', size=(50, 1)),
+            sg.FolderBrowse(initial_folder=jobs_dir)
         ],
         [
             sg.Text('Job Name', font=Fonts.description),
