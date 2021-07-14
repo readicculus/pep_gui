@@ -23,10 +23,10 @@ def get_pipeline_cmd(debug=False, kwiver_setup_path = None):
 
 def execute_command(cmd: str, env: Dict, cwd, stdout=None, stderr=None):
     if os.name == 'nt' and stdout is None:
-        fnull = open( os.devnull, "w" )
-        return subprocess.call(cmd, cwd=cwd,  stdout=fnull, stderr=subprocess.STDOUT, env=env)
-
-    return subprocess.Popen(cmd, cwd=cwd, stdout=stdout, stderr=stderr, env= env,  shell=True, executable='/bin/bash')
+        env = {**env, **os.environ}
+        return subprocess.Popen(cmd, cwd=cwd,  stdout=stdout, stderr=subprocess.STDOUT, env=env)
+    else:
+        return subprocess.Popen(cmd, cwd=cwd, stdout=stdout, stderr=stderr, env= env,  shell=True, executable='/bin/bash')
 
 
 class KwiverRunner:

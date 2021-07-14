@@ -45,5 +45,5 @@ def compile_output_filenames(output_filenames: Dict[str, str], path='', t=None) 
     for k,v in output_filenames.items():
         new_v = v.replace('[TIMESTAMP]', timestr)
         new_v = os.path.join(path, new_v)
-        out[k] = new_v
+        out[k] = os.path.normpath(new_v)
     return out

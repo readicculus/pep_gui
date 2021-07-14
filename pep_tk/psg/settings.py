@@ -38,7 +38,7 @@ def get_viame_bash_or_bat_file_path(settings: sg.UserSettings):
     else:
         fn = 'setup_viame.sh'
 
-    return os.path.join(base_dir, fn)
+    return os.path.normpath(os.path.join(base_dir, fn))
 
 
 class JobCache:
