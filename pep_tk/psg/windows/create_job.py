@@ -139,7 +139,7 @@ def launch_gui():
                 dataset_manifest_before = system_settings[SystemSettingsNames.dataset_manifest_filepath]
                 setup_window = initial_setup(skip_if_complete=False, modal=True)
                 setup_window.close()
-                changed_manifest = dataset_manifest_before == system_settings[
+                changed_manifest = dataset_manifest_before != system_settings[
                     SystemSettingsNames.dataset_manifest_filepath]
                 if changed_manifest:
                     RELOAD_GUI = True
