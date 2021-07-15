@@ -1,5 +1,8 @@
 from typing import Dict, Any
 
+from psg.settings import get_user_settings, UserSettingsNames
+
+
 def launch_gui():
     import os
 
@@ -11,17 +14,18 @@ def launch_gui():
     from pep_tk.psg.windows.initial_setup import initial_setup
     from pep_tk.psg.windows.job_runner import run_job
     from pep_tk.psg.layouts import DatasetSelectionLayout, PipelineSelectionLayout, LayoutSection
-    from pep_tk.psg.settings import get_settings, SettingsNames
+    from pep_tk.psg.settings import get_system_settings, SystemSettingsNames
     from pep_tk.core.job import job_exists
 
     import PySimpleGUI as sg
 
     sg.theme('SystemDefaultForReal')
     setup_window = initial_setup()
-    gui_settings = get_settings()
+    gui_settings = get_system_settings()
+    user_settings = get_user_settings()
 
     pm = PipelineManifest()
-    dm = DatasetManifest(manifest_filepath=gui_settings[SettingsNames.dataset_manifest_filepath])
+    dm = DatasetManifest(manifest_filepath=gui_settings[SystemSettingsNames.dataset_manifest_filepath])
 
     dataset_tab = DatasetSelectionLayout(dm)
     pipeline_tab = PipelineSelectionLayout(pm)
@@ -60,14 +64,14 @@ def launch_gui():
                [create_frame(pipeline_tab)]]
 
     # Jobs base directory and job name inputs
-    jobs_dir = gui_settings.get(SettingsNames.job_directory)
+    jobs_dir = user_settings.get(UserSettingsNames.job_directory)
     if not jobs_dir:
         jobs_dir = os.path.normpath(os.path.join(os.path.expanduser("~"), 'Desktop'))  # default
-        gui_settings[SettingsNames.job_directory] = jobs_dir
+        user_settings[UserSettingsNames.job_directory] = jobs_dir
     layout += [
         [
             sg.Text('Jobs Base Directory', font=Fonts.description),
-            sg.Input(gui_settings.get(SettingsNames.job_directory, jobs_dir), key='-job_dir-IN-', size=(50, 1)),
+            sg.Input(user_settings.get(UserSettingsNames.job_directory, jobs_dir), key='-job_dir-IN-', size=(50, 1)),
             sg.FolderBrowse(initial_folder=jobs_dir)
         ],
         [
@@ -79,8 +83,8 @@ def launch_gui():
     layout += [[sg.Button('Create Job', key='-CREATE_JOB-')]]
 
     location = (0, 0)
-    if SettingsNames.window_location in gui_settings.get_dict():
-        location = gui_settings[SettingsNames.window_location]
+    if SystemSettingsNames.window_location in gui_settings.get_dict():
+        location = gui_settings[SystemSettingsNames.window_location]
 
     window = sg.Window('PEP-TK: Job Configuration', layout,
                        default_element_size=(12, 1), location=location, finalize=True)
@@ -91,7 +95,7 @@ def launch_gui():
         # set the job homedir in the app settings
         selected_job_directory = values['-job_dir-IN-']
         if os.path.isdir(selected_job_directory):
-            gui_settings[SettingsNames.job_directory] = selected_job_directory
+            user_settings[UserSettingsNames.job_directory] = selected_job_directory
 
     def validate_inputs(window: sg.Window, values: Dict[Any, Any]) -> bool:
         input_job_directory = values['-job_dir-IN-']
@@ -153,7 +157,7 @@ def launch_gui():
             menu_event = event.split('::')[1]  # event
             print(menu_event)
             if menu_event == '-resume-menu-btn-':
-                initial_folder = gui_settings[SettingsNames.job_directory]
+                initial_folder = user_settings[UserSettingsNames.job_directory]
                 location = window.current_location()
                 job_folder = sg.popup_get_folder('Select the job directory',
                                                  no_window=True,
@@ -169,10 +173,10 @@ def launch_gui():
                     else:
                         popup_error(f'Job {job_folder} is not a valid job directory.', window)
             elif menu_event == '-properties-menu-btn-':
-                dataset_manifest_before = gui_settings[SettingsNames.dataset_manifest_filepath]
+                dataset_manifest_before = gui_settings[SystemSettingsNames.dataset_manifest_filepath]
                 setup_window = initial_setup(skip_if_complete=False, modal=True)
                 setup_window.close()
-                changed_manifest = dataset_manifest_before == gui_settings[SettingsNames.dataset_manifest_filepath]
+                changed_manifest = dataset_manifest_before == gui_settings[SystemSettingsNames.dataset_manifest_filepath]
                 if changed_manifest:
                     RELOAD_GUI = True
                     break
@@ -180,7 +184,7 @@ def launch_gui():
                 break  # exit loop
             continue
         try:
-            gui_settings[SettingsNames.window_location] = window.CurrentLocation()
+            gui_settings[SystemSettingsNames.window_location] = window.CurrentLocation()
         except:
             pass
         if event == sg.WIN_CLOSED:  # always,  always give a way out!

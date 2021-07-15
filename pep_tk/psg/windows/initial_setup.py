@@ -4,30 +4,30 @@ from typing import Optional
 
 import PySimpleGUI as sg
 
-from pep_tk.psg.settings import get_settings, SettingsNames
+from pep_tk.psg.settings import get_system_settings, SystemSettingsNames
 
 
 def initial_setup(skip_if_complete = True, modal=False) -> Optional[sg.Window]:
-    gui_settings = get_settings()
+    gui_settings = get_system_settings()
     def check_complete():
         # TODO: better check for completion
         # TODO: validate datasets correct and setup viame correct
-        return gui_settings.get(SettingsNames.setup_viame_filepath, None) is not None and gui_settings.get(
-                SettingsNames.dataset_manifest_filepath, None) is not None
+        return gui_settings.get(SystemSettingsNames.setup_viame_filepath, None) is not None and gui_settings.get(
+                SystemSettingsNames.dataset_manifest_filepath, None) is not None
 
-    manifest_folder = gui_settings.get(SettingsNames.dataset_manifest_filepath, None)
+    manifest_folder = gui_settings.get(SystemSettingsNames.dataset_manifest_filepath, None)
     if manifest_folder: manifest_folder = os.path.dirname(manifest_folder)
     layout = [[sg.Text('Enter the viame directory:')],
-              [sg.Input(gui_settings.get(SettingsNames.setup_viame_filepath, ''), key='-setup_viame_filepath-IN-'),
-               sg.FolderBrowse(initial_folder=gui_settings.get(SettingsNames.setup_viame_filepath))],
+              [sg.Input(gui_settings.get(SystemSettingsNames.setup_viame_filepath, ''), key='-setup_viame_filepath-IN-'),
+               sg.FolderBrowse(initial_folder=gui_settings.get(SystemSettingsNames.setup_viame_filepath))],
               [sg.Text('Enter the dataset manfiest filepath:')],
-              [sg.Input(gui_settings.get(SettingsNames.dataset_manifest_filepath, ''), key='-dataset_manifest_filepath-IN-'),
+              [sg.Input(gui_settings.get(SystemSettingsNames.dataset_manifest_filepath, ''), key='-dataset_manifest_filepath-IN-'),
                sg.FileBrowse(initial_folder=manifest_folder)],
               [sg.B('Complete Setup'), sg.B('Exit', key='Exit')]]
 
     if check_complete() and skip_if_complete:
         return None
-    location = gui_settings[SettingsNames.window_location] or (0,0)
+    location = gui_settings[SystemSettingsNames.window_location] or (0, 0)
     window = sg.Window('PEP-TK: Properties',
                        layout,
                        keep_on_top=True,
@@ -51,11 +51,11 @@ def initial_setup(skip_if_complete = True, modal=False) -> Optional[sg.Window]:
                 viame_setup_fp = os.path.normpath(os.path.join(selected_viame_filepath, 'setup_viame.sh'))
 
             if os.path.isfile(viame_setup_fp):
-                gui_settings[SettingsNames.setup_viame_filepath] = selected_viame_filepath
+                gui_settings[SystemSettingsNames.setup_viame_filepath] = selected_viame_filepath
 
             selected_dataset_manifest_filepath = os.path.normpath(values['-dataset_manifest_filepath-IN-'])
             if os.path.isfile(selected_dataset_manifest_filepath):
-                gui_settings[SettingsNames.dataset_manifest_filepath] = selected_dataset_manifest_filepath
+                gui_settings[SystemSettingsNames.dataset_manifest_filepath] = selected_dataset_manifest_filepath
 
             if check_complete(): break
 
