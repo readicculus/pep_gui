@@ -267,7 +267,7 @@ class Scheduler:
 
             # if user cancells task
             if cancelled:
-                process.terminate()
+                process.kill()
                 print(f'Cancelled {current_task_key}')
 
                 count = poll_image_list(image_list_monitor)
@@ -280,7 +280,7 @@ class Scheduler:
                 continue
 
             # Wait for exit up to 30 seconds after kill
-            code = process.wait(30)
+            code = process.wait(5)
 
             if code > 0:  # ERROR
                 error_log.seek(0)
