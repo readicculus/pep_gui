@@ -144,6 +144,9 @@ def enqueue_output(out, queue, evt: threading.Event):
 def move_output_files(output_fps, destination_dir):
     new_files = []
     for current_loc in output_fps:
+        if not os.path.isfile(current_loc):
+            # handle case where output file doesn't exist (errored before pipeline started)
+            continue
         new_loc = os.path.join(destination_dir, os.path.basename(current_loc))
         shutil.move(current_loc, new_loc)
         new_files.append(new_loc)
@@ -245,16 +248,17 @@ class Scheduler:
             t.start()
             cancelled = False
             while True:  # read line without blocking
-                sleep(.2)
+                sleep(0.1)
                 try:
-                    line = q.get_nowait()
+                    line = q.get(timeout=0.2)
                     if line == b'': break  # job is complete if empty byte received
                 except Empty:
-                    # check if user cancelled task, if cancelled kill kwiver process and stop output reading loop
-                    cancelled = self.manager.check_cancelled(current_task_key)
-                    if cancelled:
-                        cancelled = True
-                        break
+                    pass
+                # check if user cancelled task, if cancelled kill kwiver process and stop output reading loop
+                cancelled = self.manager.check_cancelled(current_task_key)
+                if cancelled:
+                    cancelled = True
+                    break
 
             # stop polling for progress and stop polling for stdout
             prog_stop_evt.set()
@@ -263,8 +267,7 @@ class Scheduler:
 
             # if user cancells task
             if cancelled:
-                process.send_signal(signal.SIGTERM)
-                process.send_signal(signal.SIGKILL)
+                process.terminate()
                 print(f'Cancelled {current_task_key}')
 
                 count = poll_image_list(image_list_monitor)
@@ -293,12 +296,7 @@ class Scheduler:
 
                 # Move output files to error dir
                 outputs_to_move = list(pipeline_output_csv_env.values()) + list(pipeline_output_image_list_env.values())
-                for current_loc in outputs_to_move:
-                    if not os.path.isfile(current_loc):
-                        # handle case where output file doesn't exist (errored before pipeline started)
-                        continue
-                    new_loc = os.path.join(self.job_meta.error_outputs_dir, os.path.basename(current_loc))
-                    shutil.move(current_loc, new_loc)
+                move_output_files(outputs_to_move, self.job_meta.error_outputs_dir)
                 # TODO show error in UI, and save in log somewhere
             else:  # SUCCESS
                 # Update Task final count in GUI, has to be done before moving file
