@@ -275,8 +275,15 @@ class Scheduler:
                 self.job_state.set_task_status(current_task_key, TaskStatus.CANCELLED)
                 self.manager.end_task(current_task_key, TaskStatus.CANCELLED)
 
-                # Move outputs to error folder
-                move_output_files(outputs_to_move, self.job_meta.error_outputs_dir)
+                # Move outputs to error folder, attempt until process releases lock on files
+                moved = False
+                while not moved:
+                    try:
+                        move_output_files(outputs_to_move, self.job_meta.error_outputs_dir)
+                        moved = True
+                    except PermissionError:
+                        sleep(1)
+
                 continue
 
             # Wait for exit up to 30 seconds after kill
