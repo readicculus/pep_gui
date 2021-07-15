@@ -22,7 +22,7 @@ def get_pipeline_cmd(debug=False, kwiver_setup_path = None):
         return args
 
 def execute_command(cmd: str, env: Dict, cwd, stdout=None, stderr=None):
-    if os.name == 'nt' and stdout is None:
+    if os.name == 'nt':
         env = {**env, **os.environ}
         return subprocess.Popen(cmd, cwd=cwd,  stdout=stdout, stderr=subprocess.STDOUT, env=env)
     else:

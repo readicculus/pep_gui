@@ -294,6 +294,9 @@ class Scheduler:
                 # Move output files to error dir
                 outputs_to_move = list(pipeline_output_csv_env.values()) + list(pipeline_output_image_list_env.values())
                 for current_loc in outputs_to_move:
+                    if not os.path.isfile(current_loc):
+                        # handle case where output file doesn't exist (errored before pipeline started)
+                        continue
                     new_loc = os.path.join(self.job_meta.error_outputs_dir, os.path.basename(current_loc))
                     shutil.move(current_loc, new_loc)
                 # TODO show error in UI, and save in log somewhere
