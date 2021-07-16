@@ -3,13 +3,11 @@ import PySimpleGUI as sg
 from pep_tk import PLUGIN_PATH
 
 class SystemSettingsNames:
-    setup_viame_filepath = 'setup_viame_filepath'
+    viame_directory = 'setup_viame_filepath'
     dataset_manifest_filepath = 'dataset_manifest_filepath'
     window_location = 'window_location'
     recent_jobs_list = 'recent_jobs_list'
     detection_output_location = 'detection_output_location'
-
-class UserSettingsNames:
     job_directory = 'job_directory'
 
 def image_resource_path(file_path=''):
@@ -29,14 +27,13 @@ def get_system_settings():
 def get_user_settings():
     return sg.UserSettings(filename='peptk_gui_settings.json')
 
-def get_viame_bash_or_bat_file_path(settings: sg.UserSettings):
-    base_dir = settings[SystemSettingsNames.setup_viame_filepath]
+def get_viame_bash_or_bat_file_path(viame_dir):
     if os.name == 'nt':
         fn = 'setup_viame.bat'
     else:
         fn = 'setup_viame.sh'
 
-    return os.path.normpath(os.path.join(base_dir, fn))
+    return os.path.normpath(os.path.join(viame_dir, fn))
 
 class JobCache:
     def __init__(self):
