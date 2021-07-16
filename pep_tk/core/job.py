@@ -21,6 +21,7 @@ pipelines_dir = lambda root_dir: os.path.join(root_dir, 'pipelines')
 logs_dir = lambda root_dir: os.path.join(root_dir, 'logs')
 completed_outputs_dir = lambda root_dir: os.path.join(root_dir, 'outputs_success')
 error_outputs_dir = lambda root_dir: os.path.join(root_dir, 'outputs_error')
+pending_outputs_dir = lambda root_dir: os.path.join(root_dir, 'outputs_pending')
 
 job_state_json_fp = lambda root_dir: os.path.join(meta_dir(root_dir), 'job_state.json')
 pipeline_meta_json_fp = lambda root_dir: os.path.join(meta_dir(root_dir), 'pipelines_meta.json')
@@ -34,6 +35,8 @@ class JobMeta:
         self.logs_dir = logs_dir(root_dir)
         self.completed_outputs_dir = completed_outputs_dir(root_dir)
         self.error_outputs_dir = error_outputs_dir(root_dir)
+        self.pending_outputs_dir = pending_outputs_dir(root_dir)
+
         self.pipe_meta_fp = pipeline_meta_json_fp(root_dir)
         self.dataset_meta_fp = datasets_meta_json_fp(root_dir)
         self.compiled_pipelines_dir = pipelines_dir(root_dir)  # where the compiled pipelines go
@@ -54,15 +57,8 @@ class JobMeta:
             output_config = pipeline.output_group.to_dict()
             for config_name, v in output_config.items():
                 output_pattern = v['default'].replace('[DATASET]', dataset.filename_friendly_name)
-                # output_value = os.path.join(self.root_dir, output_pattern)
                 output_config[config_name]['_value'] = output_pattern
                 output_config[config_name]['_locked'] = True
-
-            # new_output_config = PipelineOutputOptionGroup({'output_config': output_config})
-            ## compile everything including the new outputs
-            # env = {**pipeline.get_parameter_env_ports(),
-            #        **pipeline.get_pipeline_dataset_environment(dataset),
-            #        **new_output_config.get_env_ports()}
 
             # compile everything EXCEPT the new outputs
             env = {**pipeline.get_parameter_env_ports(),
@@ -212,13 +208,13 @@ def create_job(directory, pipeline: PipelineConfig, datasets: List[VIAMEDataset]
     meta_directory = meta_dir(directory)
     logs_directory = logs_dir(directory)
     error_outputs_directory = error_outputs_dir(directory)
-    completed_outputs_directory = completed_outputs_dir(directory)
     os.makedirs(directory, exist_ok=False)
     os.makedirs(pipeline_directory, exist_ok=False)
     os.makedirs(meta_directory, exist_ok=False)
     os.makedirs(logs_directory, exist_ok=False)
     os.makedirs(error_outputs_directory, exist_ok=False)
-    os.makedirs(completed_outputs_directory, exist_ok=False)
+    os.makedirs(completed_outputs_dir(directory), exist_ok=False)
+    os.makedirs(pending_outputs_dir(directory), exist_ok=False)
     try:
         # initialize state and meta
         # TODO make interface for initializing job state and meta the same
