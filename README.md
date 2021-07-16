@@ -7,8 +7,6 @@
     + [- Resuming a job -](#--resuming-a-job--)
     + [- Job progress -](#--job-progress--)
     + [- Job outputs -](#--job-outputs--)
-      - [Pipeline outputs (processed image lists/detections)](#pipeline-outputs--processed-image-lists-detections-)
-      - [Logs](#logs)
   * [Dataset Manifest](#dataset-manifest)
     + [- Dataset attributes -](#--dataset-attributes--)
     + [- Example 1 (Basics) -](#--example-1--basics---)
