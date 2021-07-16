@@ -10,8 +10,9 @@ After that, to modify these properties, go to `File > Properties`.
 Here you can set:
 - Which SEAL-TK directory to use.
 - Which dataset manfieset file to use.
+- The base directory for jobs (new jobs will be created in `/path/to/job_base_dir/`)
 
-![img.png](lib/img/screenshots/properties_window.png)
+![img.png](lib/img/screenshots/preoperties_window.png)
 ### Creating a Job
 ![img.png](lib/img/screenshots/create_job.png)
 When you first launch the program you will be brought to a page to create a job.  To create a job:
