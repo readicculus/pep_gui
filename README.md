@@ -18,7 +18,7 @@
 #### Terminology
  - **Task** - a task is a unit of work in the GUI and is comprised of running a single dataset through a pipeline.
  - **Job** - a job is one or more tasks, so a job is comprised of running one or more datasets through a pipeline.
-
+ - **Dataset** - a dataset is an image list or a set of image lists which point to images in the dataset.  Images within an image list can be in different directories, or two dataset's image lists could all point to images in the same directory (for example for splitting test and non-test data).  See **Dataset Manifest** for details.
 ## The GUI
 
 
