@@ -57,15 +57,8 @@ class JobMeta:
             output_config = pipeline.output_group.to_dict()
             for config_name, v in output_config.items():
                 output_pattern = v['default'].replace('[DATASET]', dataset.filename_friendly_name)
-                # output_value = os.path.join(self.root_dir, output_pattern)
                 output_config[config_name]['_value'] = output_pattern
                 output_config[config_name]['_locked'] = True
-
-            # new_output_config = PipelineOutputOptionGroup({'output_config': output_config})
-            ## compile everything including the new outputs
-            # env = {**pipeline.get_parameter_env_ports(),
-            #        **pipeline.get_pipeline_dataset_environment(dataset),
-            #        **new_output_config.get_env_ports()}
 
             # compile everything EXCEPT the new outputs
             env = {**pipeline.get_parameter_env_ports(),
