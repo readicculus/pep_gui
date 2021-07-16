@@ -204,8 +204,8 @@ class Scheduler:
             csv_ports_raw = outputs.get_det_csv_env_ports()
             image_list_raw = outputs.get_image_list_env_ports()
 
-            pipeline_output_csv_env = compile_output_filenames(csv_ports_raw, path=self.job_meta.root_dir, t=t)
-            pipeline_output_image_list_env = compile_output_filenames(image_list_raw, path=self.job_meta.root_dir, t=t)
+            pipeline_output_csv_env = compile_output_filenames(csv_ports_raw, path=self.job_meta.pending_outputs_dir, t=t)
+            pipeline_output_image_list_env = compile_output_filenames(image_list_raw, path=self.job_meta.pending_outputs_dir, t=t)
 
             env = {**pipeline_output_csv_env, **pipeline_output_image_list_env}
 
