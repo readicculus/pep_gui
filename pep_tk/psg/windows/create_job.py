@@ -1,6 +1,5 @@
 from typing import Dict, Any
 
-from psg.windows.popups import popup_error
 
 
 def launch_gui():
@@ -8,14 +7,13 @@ def launch_gui():
 
     from pep_tk.core.configuration import PipelineManifest
     from pep_tk.core.configuration.exceptions import MissingPortsException
-    from pep_tk.core.job import create_job
+    from pep_tk.core.job import create_job, job_exists
     from pep_tk.core.datasets import DatasetManifest
+
     from pep_tk.psg.fonts import Fonts
-    from pep_tk.psg.windows.initial_setup import initial_setup
-    from pep_tk.psg.windows.job_runner import run_job
+    from pep_tk.psg.windows import initial_setup, run_job, popup_error
     from pep_tk.psg.layouts import DatasetSelectionLayout, PipelineSelectionLayout, LayoutSection
     from pep_tk.psg.settings import get_system_settings, SystemSettingsNames
-    from pep_tk.core.job import job_exists
 
     import PySimpleGUI as sg
 
