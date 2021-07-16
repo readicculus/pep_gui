@@ -103,7 +103,7 @@ def run_job(job_path: str):
     sched = Scheduler(job_state=job_state,
                       job_meta=job_meta,
                       manager=manager,
-                      kwiver_setup_path=get_viame_bash_or_bat_file_path(gui_settings))
+                      kwiver_setup_path=get_viame_bash_or_bat_file_path(gui_settings.get(SystemSettingsNames.viame_directory)))
 
     threading.Thread(target=sched.run, daemon=True).start()
 

@@ -154,7 +154,7 @@ def launch_gui():
             if not validate_inputs(window, values):
                 continue
 
-            selected_job_directory = values['-job_dir-IN-']
+            selected_job_directory = system_settings.get(SystemSettingsNames.job_directory)
             selected_job_name = values['-job_name-IN-']
 
             pipeline = pipeline_tab.get_selected_pipeline()
