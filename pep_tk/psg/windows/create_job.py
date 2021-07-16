@@ -110,8 +110,12 @@ def launch_gui():
     RESUME_JOB_PATH = None
     RELOAD_GUI = False  # used for when user changes dataset_manifest
     while True:
-        system_settings.set(SystemSettingsNames.window_location, window.CurrentLocation())
         event, values = window.read()
+        if event == sg.WIN_CLOSED:  # always,  always give a way out!
+            break
+        try:
+            system_settings.set(SystemSettingsNames.window_location, window.CurrentLocation())
+        except: pass
         if '::' in event:
             # handle menu button pressed
             menu_event = event.split('::')[1]  # event
@@ -146,8 +150,6 @@ def launch_gui():
                 break  # exit loop
             continue
 
-        if event == sg.WIN_CLOSED:  # always,  always give a way out!
-            break
         if event == '-CREATE_JOB-':
             if not validate_inputs(window, values):
                 continue
