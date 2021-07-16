@@ -32,9 +32,9 @@ Here you can set:
 - Which dataset manfieset file to use.
 - The base directory for jobs (new jobs will be created in `/path/to/job_base_dir/`)
 
-![img.png](lib/img/screenshots/preoperties_window.png)
+![preoperties_window.png](lib/img/screenshots/preoperties_window.png)
 ### - Creating a Job -
-![img.png](lib/img/screenshots/create_job.png)
+<img src="lib/img/screenshots/create_job.png" width="50%" height="50%">
 When you first launch the program you will be brought to a page to create a job.  To create a job:
 1. Select which datasets you want to run
 2. Select which pipeline to use
