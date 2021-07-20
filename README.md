@@ -94,8 +94,8 @@ color_image_list=/path/to/kotz/fl04/CENT/thermal_images.txt
 transformation_file=/path/to/Homographies/A90_RGB-IR_C_100mm_0deg_20190509_fl4.h5
 
 [Kotz-2019-fl04-LEFT]
-thermal_image_list=/path/to/kotz/fl04/CENT/thermal_images.txt
-color_image_list=/path/to/kotz/fl04/CENT/thermal_images.txt
+thermal_image_list=/path/to/kotz/fl04/LEFT/thermal_images.txt
+color_image_list=/path/to/kotz/fl04/LEFT/thermal_images.txt
 transformation_file=/path/to/Homographies/A90_RGB-IR_L_100mm_25deg_20190509-11_fl4-7.h5
 ```
 This example defines 2 datasets, exactly the same as the CSV example above, which we can select from in the GUI for running pipelines.
