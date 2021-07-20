@@ -6,7 +6,7 @@ import threading
 import time
 from time import sleep
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, IO
 
 try:
     from Queue import Queue, Empty
@@ -131,7 +131,7 @@ def monitor_outputs(stop_event: threading.Event, task_key: TaskKey, manager: Sch
         manager.update_task_progress(task_key, count)
 
 
-def enqueue_output(out, queue, evt: threading.Event, logfile):
+def enqueue_output(out, queue, evt: threading.Event, logfile: IO):
     # don't want it to stop on an emty byte(b'') because we need to detect
     # if an empty byte has come through and we can't do it asynchronously
     for line in iter(out.readline, b'foobar'):
