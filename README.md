@@ -9,10 +9,10 @@
     + [- Job outputs -](#--job-outputs--)
   * [Dataset Manifest](#dataset-manifest)
     + [- Dataset attributes -](#--dataset-attributes--)
-    + [- Example 1 (Basics) -](#--example-1--basics---)
-    + [- Example 2 (arbitrary hierarchy/organization) -](#--example-2--arbitrary-hierarchy-organization---)
-  * [Additional features](#additional-features)
-  * [Future features](#future-features)
+    + [- Example 1 (CSV Format) -](#--example-1-csv-format--)
+    + [- Example 2 (INI Format) -](#--example-2-ini-format--)
+    + [- Example 3 (Relative Paths) -](#--example-3-relative-paths--)
+    + [- Future features -](#--future-features--)
 
 
 #### Terminology
@@ -59,93 +59,65 @@ The `job_base_dir/job_name/logs/` directory contains the underlying kwiver outpu
 
 
 ## Dataset Manifest
-The dataset manifest is a file that defines all of the datasets available in yaml format.  When creating a job you will be able to select and filter which datasets from the dataset manifest to run.
+The dataset manifest is a file that defines all of the datasets available in csv or ini format.  When creating a job you will be able to select and filter which datasets from the dataset manifest to run.
 
 This format allows us to organize datasets as arbitrary hierarchies.  
 
 ### - Dataset attributes -
 Currently a dataset must have one or more of the following attributes:
-- `color_image_list` - the color image list txt file
-- `thermal_image_list` - the thermal image list txt file
+- `dataset_name` - a unique name for this dataset **(required and unique)**
+- `color_image_list` - the color image list txt file **(one required)**
+- `thermal_image_list` - the thermal image list txt file **(one required)**
     
 Additional optional attributes are:
-- `transformation_file` - the .h5 transformation file
+- `transformation_file` - the .h5 transformation file **(optional)**
 
-### - Example 1 (Basics) -
-For example we could seperate things into categories by survey.
-```yaml
-Datasets:
-  Kotz-2019:
-    fl04:
-      CENT:
-        thermal_image_list: /path/to/kotz/fl04/CENT/thermal_images.txt
-        color_image_list: /path/to/kotz/fl04/CENT/color_images.txt
-        transformation_file: /path/to/Homographies/A90_RGB-IR_C_100mm_0deg_20190509_fl4.h5
-      LEFT:
-        thermal_image_list: /path/to/kotz/fl04/LEFT/thermal_images.txt
-        color_image_list: /path/to/kotz/fl04/LEFT/color_images.txt
-        transformation_file: /path/to/Homographies/A90_RGB-IR_L_100mm_25deg_20190509-11_fl4-7.h5
-  JoBSS:
-    fl01:
-      CENT:
-        thermal_image_list: /path/to/jobss/fl01/CENT/thermal_images.txt
-        color_image_list: /path/to/jobss/fl01/CENT/color_images.txt
-        transformation_file: /path/to/Homographies/A90_RGB-IR_C_100mm_0deg_20190509_fl4.h5
-      LEFT:
-        thermal_image_list: /path/to/jobss/fl01/LEFT/thermal_images.txt
-        color_image_list: /path/to/jobss/fl01/LEFT/color_images.txt
-        transformation_file: /path/to/Homographies/A90_RGB-IR_L_100mm_25deg_20190509-11_fl4-7.h5
+### - Example 1 (CSV Format) -
+This format requires `.csv` file extension.
+```csv
+dataset_name, color_image_list, thermal_image_list, transformation_file
+Kotz-2019-fl04-CENT, /path/to/kotz/fl04/CENT/color_images.txt, /path/to/kotz/fl04/CENT/thermal_images.txt, /path/to/Homographies/A90_RGB-IR_C_100mm_0deg_20190509_fl4.h5
+Kotz-2019-fl04-LEFT, /path/to/kotz/fl04/LEFT/color_images.txt, /path/to/kotz/fl04/LEFT/thermal_images.txt, /path/to/Homographies/A90_RGB-IR_L_100mm_25deg_20190509-11_fl4-7.h5
 ```
-This example defines 4 datasets which we can select from in the GUI for running pipelines.
+This example defines 2 datasets, exactly the same as the INI example below, which we can select from in the GUI for running pipelines.
 ```
-Kotz-2019:fl04:CENT
-Kotz-2019:fl04:LEFT
-JoBSS:fl01:LEFT
-JoBSS:fl01:LEFT
+Kotz-2019-fl04-CENT
+Kotz-2019-fl04-LEFT
 ```
 
-### - Example 2 (arbitrary hierarchy/organization) -
-The depth and organization of datasets is arbitrary.  
-When the system see's any of the dataset attributes (`thermal_image_list`, `color_image_list`, etc..) it will know the group is a dataset and not a hierarchy.
-For example, we can use this to define datasets for test imagery and to keep it seperate from our normal dataset of non-test images.
-```yaml
-Datasets:
-  Kotz-2019:
-    fl04:
-      CENT:
-        thermal_image_list: /path/to/kotz/fl04/CENT/thermal_images.txt
-        color_image_list: /path/to/kotz/fl04/CENT/color_images.txt
-        transformation_file: /path/to/Homographies/A90_RGB-IR_C_100mm_0deg_20190509_fl4.h5
+### - Example 2 (INI Format) -
+Can use file extension `.ini` or `.cfg` for this format.  The datset_name in INI format is provided by the section name in brackets as shown below.
+```ini
+[Kotz-2019-fl04-CENT]
+thermal_image_list=/path/to/kotz/fl04/CENT/thermal_images.txt
+color_image_list=/path/to/kotz/fl04/CENT/thermal_images.txt
+transformation_file=/path/to/Homographies/A90_RGB-IR_C_100mm_0deg_20190509_fl4.h5
 
-  Polar-Bear-Dataset:
-    thermal_image_list: /path/to/polarbears/thermal_images.txt
-    color_image_list: /path/to/polarbears/color_images.txt
-
-  test-data:
-      Kotz-2019:
-        fl04:
-          CENT:
-            thermal_image_list: /path/to/kotz/fl04/CENT/thermal_images_test.txt
-            color_image_list: /path/to/kotz/fl04/CENT/color_images_test.txt
-            transformation_file: /path/to/Homographies/A90_RGB-IR_C_100mm_0deg_20190509_fl4.h5
-            
-      Polar-Bear-Dataset:
-        thermal_image_list: /path/to/polarbears/thermal_images_test.txt
-        color_image_list: /path/to/polarbears/color_images_test.txt
+[Kotz-2019-fl04-LEFT]
+thermal_image_list=/path/to/kotz/fl04/LEFT/thermal_images.txt
+color_image_list=/path/to/kotz/fl04/LEFT/thermal_images.txt
+transformation_file=/path/to/Homographies/A90_RGB-IR_L_100mm_25deg_20190509-11_fl4-7.h5
 ```
-This example defines 4 datasets which we can select from in the GUI for running pipelines.
+This example defines 2 datasets, exactly the same as the CSV example above, which we can select from in the GUI for running pipelines.
 ```
-Kotz-2019:fl04:CENT
-Polar-Bear-Dataset
-test-data:Kotz-2019:fl04:CENT
-test-data:Polar-Bear-Dataset
+Kotz-2019-fl04-CENT
+Kotz-2019-fl04-LEFT
 ```
 
+### - Example 3 (Relative Paths) -
+You can use absolute or relative paths.  If using relative paths, the relative path must be relative to the manifest file.
+```ini
+; if this manifest is located at '/path/to/kotz/manifest.cfg'
+; then the two below are equivalent
+[Kotz-2019-fl04-CENT-relative]
+thermal_image_list=fl04/CENT/thermal_images.txt
+color_image_list=fl04/CENT/thermal_images.txt
+transformation_file=/path/to/Homographies/A90_RGB-IR_C_100mm_0deg_20190509_fl4.h5
 
-#### Additional features
- - Can use absolute paths or relative paths.  If using relative paths, files are relative to the dataset manifest location.
- - If a dataset does not define a `transformation_file` the GUI will warn you if you try to use that dataset with a pipeline that requires a transformation (ex. subregion trigger)
-#### Future features
+[Kotz-2019-fl04-CENT-absolute]
+thermal_image_list=/path/to/kotz/fl04/CENT/thermal_images.txt
+color_image_list=/path/to/kotz/fl04/CENT/thermal_images.txt
+transformation_file=/path/to/Homographies/A90_RGB-IR_L_100mm_25deg_20190509-11_fl4-7.h5
+```
+### - Future features -
   - Ability to define a set of images using wildcards instead of having to define an image list. ex `thermal_image_list: /path/to/kotz/fl04/CENT/*_ir.tif`
-  - I want to add a GUI for helping validate a dataset manifest and to point user to where errors are in the yaml file.
-

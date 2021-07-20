@@ -36,19 +36,19 @@ PipelineManifest:
 
     output_config:
       output_optical_detections:
-        default: '[TIMESTAMP]_region-trigger_[DATASET]_EO.csv'
+        default:  '[DATASET]_[TIMESTAMP]_rgb_detections.csv'
         type: output_detections_csv
         env_variable: PIPE_ARG_OPTICAL_OUTPUT_DETS
       output_optical_image_list:
-        default: '[TIMESTAMP]_region-trigger_[DATASET]_EO_images.txt'
+        default: '[DATASET]_[TIMESTAMP]_rgb_images.txt'
         type: output_image_list
         env_variable: PIPE_ARG_OPTICAL_OUTPUT_IMAGE_LIST
       output_thermal_detections:
-        default: '[TIMESTAMP]_region-trigger_[DATASET]_IR.csv'
+        default: '[DATASET]_[TIMESTAMP]_ir_detections.csv'
         type: output_detections_csv
         env_variable: PIPE_ARG_THERMAL_OUTPUT_DETS
       output_thermal_image_list:
-        default: '[TIMESTAMP]_region-trigger_[DATASET]_IR_images.txt'
+        default: '[DATASET]_[TIMESTAMP]_ir_images.txt'
         type: output_image_list
         env_variable: PIPE_ARG_THERMAL_OUTPUT_IMAGE_LIST
 
@@ -75,11 +75,11 @@ PipelineManifest:
 
     output_config:
       output_thermal_detections:
-        default: '[TIMESTAMP]_ir-detector_[DATASET]_IR.csv'
+        default: '[DATASET]_[TIMESTAMP]_ir_detections.csv'
         type: output_detections_csv
         env_variable: PIPE_ARG_THERMAL_OUTPUT_DETS
       output_thermal_image_list:
-        default: '[TIMESTAMP]_ir-detector_[DATASET]_IR_images.txt'
+        default: '[DATASET]_[TIMESTAMP]_ir_images.txt'
         type: output_image_list
         env_variable: PIPE_ARG_THERMAL_OUTPUT_IMAGE_LIST
 
@@ -100,11 +100,11 @@ PipelineManifest:
 
     output_config:
       output_optical_detections:
-        default: '[TIMESTAMP]_seal-detector_[DATASET]_EO.csv'
+        default:  '[DATASET]_[TIMESTAMP]_rgb_detections.csv'
         type: output_detections_csv
         env_variable: PIPE_ARG_OPTICAL_OUTPUT_DETS
       output_optical_image_list:
-        default: '[TIMESTAMP]_seal-detector_[DATASET]_EO_images.txt'
+        default: '[DATASET]_[TIMESTAMP]_rgb_images.txt'
         type: output_image_list
         env_variable: PIPE_ARG_OPTICAL_OUTPUT_IMAGE_LIST
 
@@ -125,11 +125,11 @@ PipelineManifest:
 
     output_config:
       output_optical_detections:
-        default: '[TIMESTAMP]_polarbear-detector_[DATASET]_EO.csv'
+        default:  '[DATASET]_[TIMESTAMP]_rgb_detections.csv'
         type: output_detections_csv
         env_variable: PIPE_ARG_OPTICAL_OUTPUT_DETS
       output_optical_image_list:
-        default: '[TIMESTAMP]_polarbear-detector_[DATASET]_EO_images.txt'
+        default: '[DATASET]_[TIMESTAMP]_rgb_images.txt'
         type: output_image_list
         env_variable: PIPE_ARG_OPTICAL_OUTPUT_IMAGE_LIST
 
@@ -155,11 +155,11 @@ PipelineManifest:
 
     output_config:
       output_optical_detections:
-        default: '[TIMESTAMP]_seal-polarbear-detector_[DATASET]_EO.csv'
+        default:  '[DATASET]_[TIMESTAMP]_rgb_detections.csv'
         type: output_detections_csv
         env_variable: PIPE_ARG_OPTICAL_OUTPUT_DETS
       output_optical_image_list:
-        default: '[TIMESTAMP]_seal-polarbear-detector_[DATASET]_EO_images.txt'
+        default: '[DATASET]_[TIMESTAMP]_rgb_images.txt'
         type: output_image_list
         env_variable: PIPE_ARG_OPTICAL_OUTPUT_IMAGE_LIST
 

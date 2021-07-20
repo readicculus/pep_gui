@@ -4,10 +4,9 @@ from enum import Enum
 from typing import List, Tuple, Optional
 
 import jsonfile
-
+from pep_tk.core.parser import VIAMEDataset
 from pep_tk.core.configuration import PipelineConfig
 from pep_tk.core.configuration.configurations import PipelineOutputOptionGroup
-from pep_tk.core.datasets import VIAMEDataset
 from pep_tk.core.kwiver.pipeline_compiler import compile_pipeline
 
 
@@ -68,7 +67,7 @@ class JobMeta:
                 f.write(compiled_pipe)
 
             compiled_relpath = os.path.relpath(compiled_fp, self.root_dir)
-            self._ds_store.data[dataset.name] = {'compiled_fp': compiled_relpath, 'dataset': dataset.to_dict(),
+            self._ds_store.data[dataset.name] = {'compiled_fp': compiled_relpath, 'dataset': dataset.asdict(),
                                                  'output_config': output_config}
 
     def keys(self):
@@ -80,7 +79,7 @@ class JobMeta:
             return None
         # pipeline_fp = os.path.join(self.root_dir, ds_meta['compiled_fp'])
         pipeline_fp = ds_meta['compiled_fp']
-        ds_obj = VIAMEDataset.from_dict(ds_meta['dataset'])
+        ds_obj = VIAMEDataset(**ds_meta['dataset'].asdict())
         outputs = PipelineOutputOptionGroup(ds_meta)
 
         return pipeline_fp, ds_obj, outputs

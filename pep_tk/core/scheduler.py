@@ -1,13 +1,12 @@
 import abc
 import os
 import shutil
-import signal
 import subprocess
 import threading
 import time
 from time import sleep
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, IO
 
 try:
     from Queue import Queue, Empty
@@ -132,12 +131,13 @@ def monitor_outputs(stop_event: threading.Event, task_key: TaskKey, manager: Sch
         manager.update_task_progress(task_key, count)
 
 
-def enqueue_output(out, queue, evt: threading.Event):
+def enqueue_output(out, queue, evt: threading.Event, logfile: IO):
     # don't want it to stop on an emty byte(b'') because we need to detect
     # if an empty byte has come through and we can't do it asynchronously
     for line in iter(out.readline, b'foobar'):
         if evt.is_set():
             break
+        logfile.write(line)
         queue.put(line)
 
 
@@ -195,8 +195,6 @@ class Scheduler:
             print(current_task_key)
             pipeline_fp, dataset, outputs = self.job_meta.get(current_task_key)
 
-            max_image_count = max(dataset.thermal_image_count, dataset.color_image_count)
-
             # Create the environment variables needed for running
             #  - output ports (image list and viame detection csv file names)
             #  - the kwiver environment required for running kwiver runner
@@ -212,7 +210,10 @@ class Scheduler:
             # Setup error log
             error_log_fp = os.path.join(self.job_meta.logs_dir,
                                         f'stderr-{current_task_key.replace(":", "_")}.log')
+            stdout_log_fp = os.path.join(self.job_meta.logs_dir,
+                                        f'stdout-{current_task_key.replace(":", "_")}.log')
             error_log = open(error_log_fp, 'w+b')
+            stdout_log = open(stdout_log_fp, 'w+b')
 
             # Update Task Started
             self.manager.start_task(current_task_key)
@@ -243,7 +244,7 @@ class Scheduler:
 
             # Stdout Thread
             q = Queue()
-            t = threading.Thread(target=enqueue_output, args=(process.stdout, q, prog_stop_evt))
+            t = threading.Thread(target=enqueue_output, args=(process.stdout, q, prog_stop_evt, stdout_log))
             t.daemon = True  # thread dies with the program
             t.start()
             cancelled = False
@@ -251,6 +252,8 @@ class Scheduler:
                 sleep(0.1)
                 try:
                     line = q.get(timeout=0.2)
+                    if line != b'':
+                        print(line)
                     if line == b'': break  # job is complete if empty byte received
                 except Empty:
                     pass
@@ -322,3 +325,4 @@ class Scheduler:
                 self.manager.update_task_output_files(current_task_key, outputs_new_loc)
 
             error_log.close()
+            stdout_log.close()

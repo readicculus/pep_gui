@@ -1,7 +1,7 @@
 import os
 from typing import Dict, Tuple, List, Optional
 
-from pep_tk.core.datasets import VIAMEDataset
+from pep_tk.core.parser import VIAMEDataset
 from pep_tk.core.configuration.types import parse_type
 from pep_tk.core.configuration.exceptions import *
 from pep_tk.core.configuration import ENV_VARIABLE, VALUE
@@ -50,7 +50,7 @@ class ConfigOption:
             self.__value = self.default
 
     def get_env(self) -> Tuple[ENV_VARIABLE, VALUE]:
-        """ returns a tuple with the first item being the environemnt variable name and the second beign the value """
+        """ returns a tuple with the first item being the environment variable name and the second begin the value """
         return self.env_variable, self.value()
 
     def to_dict(self) -> Dict:

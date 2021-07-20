@@ -5,10 +5,10 @@ from typing import Dict, Any
 def launch_gui():
     import os
 
+    from pep_tk.core.parser import CSVDatasetsParser, INIDatasetsParser, ParserNotFoundException
     from pep_tk.core.configuration import PipelineManifest
     from pep_tk.core.configuration.exceptions import MissingPortsException
     from pep_tk.core.job import create_job, job_exists
-    from pep_tk.core.datasets import DatasetManifest
 
     from pep_tk.psg.fonts import Fonts
     from pep_tk.psg.windows import initial_setup, run_job, popup_error
@@ -18,11 +18,20 @@ def launch_gui():
     import PySimpleGUI as sg
 
     sg.theme('SystemDefaultForReal')
-    setup_window = initial_setup()
+    initial_setup()
     system_settings = get_system_settings()
 
     pm = PipelineManifest()
-    dm = DatasetManifest(manifest_filepath=system_settings[SystemSettingsNames.dataset_manifest_filepath])
+
+    manifest_fp = system_settings[SystemSettingsNames.dataset_manifest_filepath]
+    if manifest_fp.endswith('.csv'):
+        dm = CSVDatasetsParser()
+    elif manifest_fp.endswith('.cfg') or manifest_fp.endswith('.ini'):
+        dm = INIDatasetsParser()
+    else:
+        raise ParserNotFoundException(f'Invalid manifest file format.  Can take csv(.csv) format, or ini format (.ini or .cfg).\n'
+                                      f'"{manifest_fp}"')
+    dm.read(manifest_fp)
 
     dataset_tab = DatasetSelectionLayout(dm)
     pipeline_tab = PipelineSelectionLayout(pm)
@@ -59,7 +68,6 @@ def launch_gui():
 
     window = sg.Window('PEP-TK: Job Configuration', layout,
                        default_element_size=(12, 1), location=location, finalize=True)
-    if setup_window: setup_window.close()
 
     # ======== Handler helper functions =========
     def validate_inputs(window: sg.Window, values: Dict[Any, Any]) -> bool:
@@ -139,8 +147,7 @@ def launch_gui():
                                     window.size)
             elif menu_event == '-properties-menu-btn-':
                 dataset_manifest_before = system_settings[SystemSettingsNames.dataset_manifest_filepath]
-                setup_window = initial_setup(skip_if_complete=False, modal=True)
-                setup_window.close()
+                initial_setup(skip_if_complete=False, modal=True)
                 changed_manifest = dataset_manifest_before != system_settings[
                     SystemSettingsNames.dataset_manifest_filepath]
                 if changed_manifest:

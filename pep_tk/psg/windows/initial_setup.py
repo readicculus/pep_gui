@@ -1,10 +1,8 @@
 # https://github.com/PySimpleGUI/PySimpleGUI/issues/3058
 import os
-from typing import Optional
-
 import PySimpleGUI as sg
-
 from pep_tk.psg.settings import get_system_settings, SystemSettingsNames, get_viame_bash_or_bat_file_path
+
 
 def validate_opt(window, error_key, check_fn, error_msg, value):
     if value or value != '':
@@ -22,8 +20,10 @@ def validate_opt(window, error_key, check_fn, error_msg, value):
     window[error_key](visible=True)
     return False
 
-def initial_setup(skip_if_complete = True, modal=False) -> Optional[sg.Window]:
+
+def initial_setup(skip_if_complete=True, modal=False):
     system_settings = get_system_settings()
+
     def check_complete():
         if system_settings.get(SystemSettingsNames.viame_directory, None) is None:
             return False
@@ -43,10 +43,11 @@ def initial_setup(skip_if_complete = True, modal=False) -> Optional[sg.Window]:
                sg.FolderBrowse(initial_folder=system_settings.get(SystemSettingsNames.viame_directory))],
               [sg.T('', visible=False, size=(0, 1), key='-setup_viame_filepath-ERROR-', text_color='red')],
 
-              [sg.Text('Enter the dataset manfiest filepath:')],
-              [sg.Input(system_settings.get(SystemSettingsNames.dataset_manifest_filepath, ''), key='-dataset_manifest_filepath-IN-'),
+              [sg.Text('Enter the dataset manifest filepath:')],
+              [sg.Input(system_settings.get(SystemSettingsNames.dataset_manifest_filepath, ''),
+                        key='-dataset_manifest_filepath-IN-'),
                sg.FileBrowse(initial_folder=manifest_folder)],
-              [sg.T('', visible=False, size=(0, 1),key='-dataset_manifest_filepath-ERROR-', text_color='red')],
+              [sg.T('', visible=False, size=(0, 1), key='-dataset_manifest_filepath-ERROR-', text_color='red')],
 
               [sg.Text('Enter the job base directory(directory where all jobs go):')],
               [sg.Input(jobs_dir, key='-job_dir-IN-'),
@@ -89,6 +90,7 @@ def initial_setup(skip_if_complete = True, modal=False) -> Optional[sg.Window]:
             def viame_check_fn(viame_dir):
                 setup_viame_fp = get_viame_bash_or_bat_file_path(viame_dir)
                 return os.path.isfile(setup_viame_fp)
+
             viame_dir_val = values['-dataset_manifest_filepath-IN-']
             viame_dir_msg = f'Invalid VIAME/SEAL-TK directory.  Was unable to find setup_viame.sh(linux) or setup_viame.bat(windows) in the selected directory {viame_dir_val}.',
             viame_dir_valid = validate_opt(window,
@@ -115,5 +117,4 @@ def initial_setup(skip_if_complete = True, modal=False) -> Optional[sg.Window]:
             if check_complete():
                 break
 
-    return window
-
+    window.close()

@@ -9,10 +9,3 @@ class Fonts:
     title_medium = (main_font, 16)
     title_small = (main_font, 12)
     tab_text = (main_font, 11)
-#
-#     ('Arial Baltic', 16),
-#     ("Cooper Black", 16),
-#     ("Courier New", 16),
-#     (main_font, 16),
-#     ("Bookman Old Style", 16)
-# ]
