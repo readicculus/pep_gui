@@ -195,8 +195,6 @@ class Scheduler:
             print(current_task_key)
             pipeline_fp, dataset, outputs = self.job_meta.get(current_task_key)
 
-            max_image_count = max(dataset.thermal_image_count, dataset.color_image_count)
-
             # Create the environment variables needed for running
             #  - output ports (image list and viame detection csv file names)
             #  - the kwiver environment required for running kwiver runner

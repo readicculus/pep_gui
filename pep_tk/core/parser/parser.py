@@ -70,7 +70,7 @@ class VIAMEDataset:
     @property
     def filename_friendly_name(self):
         def safe_char(c):
-            if c.isalnum():
+            if c.isalnum() or c == '-':
                 return c
             else:
                 return "_"
