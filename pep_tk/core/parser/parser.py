@@ -40,6 +40,8 @@ class VIAMEDataset:
     thermal_image_list: str
     color_image_list: str
     transformation_file: str
+    thermal_images: ImageList = None
+    color_images: ImageList = None
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -52,19 +54,18 @@ class VIAMEDataset:
 
     @property
     def thermal_image_count(self):
-        thermal_image_list = self.get(self.thermal_image_list)
-        if not thermal_image_list:
-            return 0
-        thermal_images = ImageList(thermal_image_list)
-        return 0 if thermal_images is None else len(thermal_images)
+        if not self.thermal_images:
+            if self.thermal_image_list:
+                self.thermal_images = ImageList(self.thermal_image_list)
+        return 0 if self.thermal_images is None else len(self.thermal_images)
+
 
     @property
     def color_image_count(self):
-        color_image_list = self.get(self.color_image_list)
-        if not color_image_list:
-            return 0
-        color_images = ImageList(color_image_list)
-        return 0 if color_images is None else len(color_images)
+        if not self.color_images:
+            if self.color_image_list:
+                self.color_images = ImageList(self.color_image_list)
+        return 0 if self.color_images is None else len(self.color_images)
 
     @property
     def filename_friendly_name(self):
@@ -75,10 +76,12 @@ class VIAMEDataset:
                 return "_"
 
         return "".join(safe_char(c) for c in self.name).rstrip("_")
-    #
-    #     def __getitem__(self, item: str) -> Union[str, ImageList]:
-    #         return self.get(item)
-    #
+
+    def asdict(self):
+        return {'color_image_list': self.color_image_list,
+                'thermal_image_list': self.thermal_image_list,
+                'transformation_file': self.transformation_file,
+                'name': self.name}
 
 #
 import os
@@ -103,6 +106,8 @@ class ImageListMissingImage(DatasetManifestError):
 class ParserNotFoundException(DatasetManifestError):
     pass
 
+class NoImageListException(DatasetManifestError):
+    pass
 
 def path_to_absolute(cwd, path):
     if os.path.isabs(path):

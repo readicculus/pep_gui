@@ -1,5 +1,5 @@
 import os
-from configparser import ConfigParser
+from configparser import ConfigParser, NoSectionError
 from typing import List, Optional
 
 import regex as re
@@ -74,7 +74,7 @@ class INIDatasetsParser(ConfigParser, ManifestParser):
             return []
 
     def list_dataset_keys(self) -> List[str]:
-        return list(self)
+        return list(self._sections.keys())
 
     def get_dataset(self, name: str) -> Optional[VIAMEDataset]:
         ds = self.as_dict().get(name)

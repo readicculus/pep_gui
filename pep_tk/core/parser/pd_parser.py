@@ -4,7 +4,7 @@ import regex as re
 import pandas as pd
 
 from pep_tk.core.parser import VIAMEDataset
-from pep_tk.core.parser import ImageListMissingImage, DatasetFileNotFound, ManifestParser, path_to_absolute
+from pep_tk.core.parser import ImageListMissingImage, NoImageListException, DatasetFileNotFound, ManifestParser, path_to_absolute
 
 
 class CSVDatasetsParser(ManifestParser):
@@ -17,6 +17,7 @@ class CSVDatasetsParser(ManifestParser):
         df = pd.read_csv(filename, comment='#', header=0,
                          names=[self.attr_dataset_name, self.att_thermal_image_list, self.att_color_image_list,
                                 self.att_transform])
+        df = df.where(pd.notnull(df), None)
         self.validate_dataset_files(filename, df)
 
     def validate_dataset_files(self, manifeset_fp: str, df: pd.DataFrame):
@@ -36,10 +37,11 @@ class CSVDatasetsParser(ManifestParser):
 
         for ds_name, attrs in read_datasets.items():
             # dataset must have an image list
-            if self.att_thermal_image_list not in attrs and self.att_color_image_list not in attrs:
-                raise Exception(f'[{manifeset_fn}][{ds_name}] ERROR: No color or a thermal image list defined.')
+            if not attrs.get(self.att_thermal_image_list) and not attrs.get(self.att_color_image_list):
+                raise NoImageListException(f'[{manifeset_fn}][{ds_name}] ERROR: No color or a thermal image list defined.')
 
             for a, v in attrs.items():
+                if v == None: continue
                 datafile_abspath = path_to_absolute(manifest_wd, v)
                 datafile_wd = os.path.dirname(datafile_abspath)
 

@@ -22,7 +22,7 @@ def validate_opt(window, error_key, check_fn, error_msg, value):
     window[error_key](visible=True)
     return False
 
-def initial_setup(skip_if_complete = True, modal=False) -> Optional[sg.Window]:
+def initial_setup(skip_if_complete = True, modal=False):
     system_settings = get_system_settings()
     def check_complete():
         if system_settings.get(SystemSettingsNames.viame_directory, None) is None:
@@ -115,5 +115,5 @@ def initial_setup(skip_if_complete = True, modal=False) -> Optional[sg.Window]:
             if check_complete():
                 break
 
-    return window
+    window.close()
 

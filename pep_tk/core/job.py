@@ -69,7 +69,7 @@ class JobMeta:
                 f.write(compiled_pipe)
 
             compiled_relpath = os.path.relpath(compiled_fp, self.root_dir)
-            self._ds_store.data[dataset.name] = {'compiled_fp': compiled_relpath, 'dataset': asdict(dataset),
+            self._ds_store.data[dataset.name] = {'compiled_fp': compiled_relpath, 'dataset': dataset.asdict(),
                                                  'output_config': output_config}
 
     def keys(self):

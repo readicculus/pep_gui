@@ -18,7 +18,7 @@ def launch_gui():
     import PySimpleGUI as sg
 
     sg.theme('SystemDefaultForReal')
-    setup_window = initial_setup()
+    initial_setup()
     system_settings = get_system_settings()
 
     pm = PipelineManifest()
@@ -68,7 +68,6 @@ def launch_gui():
 
     window = sg.Window('PEP-TK: Job Configuration', layout,
                        default_element_size=(12, 1), location=location, finalize=True)
-    if setup_window: setup_window.close()
 
     # ======== Handler helper functions =========
     def validate_inputs(window: sg.Window, values: Dict[Any, Any]) -> bool:
