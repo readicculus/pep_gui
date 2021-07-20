@@ -109,7 +109,6 @@ def run_job(job_path: str):
 
     while True:
         event, values = window.read()
-        print(event, values)
         if event == sg.WIN_CLOSED:
             break
 

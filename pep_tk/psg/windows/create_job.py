@@ -127,7 +127,6 @@ def launch_gui():
         if '::' in event:
             # handle menu button pressed
             menu_event = event.split('::')[1]  # event
-            print(menu_event)
             if menu_event == '-resume-menu-btn-':
                 initial_folder = system_settings[SystemSettingsNames.job_directory]
                 location = window.current_location()

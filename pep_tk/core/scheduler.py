@@ -252,8 +252,6 @@ class Scheduler:
                 sleep(0.1)
                 try:
                     line = q.get(timeout=0.2)
-                    if line != b'':
-                        print(line)
                     if line == b'': break  # job is complete if empty byte received
                 except Empty:
                     pass

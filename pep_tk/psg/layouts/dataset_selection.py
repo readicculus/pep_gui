@@ -22,7 +22,6 @@ class DatasetSelectionLayout(LayoutSection):
 
     def get_layout(self):
         dataset_column_size = (40, max(10 , min(15, len(self.datasets)))) # show at minimum 10 rows and at most 25 rows.
-        print(dataset_column_size)
         layout = [[sg.T('Select a dataset or multiple datasets below.\n'
                         'Select multiple by clicking on multiple datasets then pressing the \'>\' button'),
                         help_icon('Use ctrl+click to select multiple, shift-click to select many.')],
