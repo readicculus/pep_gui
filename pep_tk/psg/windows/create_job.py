@@ -147,8 +147,7 @@ def launch_gui():
                                     window.size)
             elif menu_event == '-properties-menu-btn-':
                 dataset_manifest_before = system_settings[SystemSettingsNames.dataset_manifest_filepath]
-                setup_window = initial_setup(skip_if_complete=False, modal=True)
-                setup_window.close()
+                initial_setup(skip_if_complete=False, modal=True)
                 changed_manifest = dataset_manifest_before != system_settings[
                     SystemSettingsNames.dataset_manifest_filepath]
                 if changed_manifest:
