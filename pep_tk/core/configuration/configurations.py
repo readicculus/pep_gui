@@ -50,7 +50,7 @@ class ConfigOption:
             self.__value = self.default
 
     def get_env(self) -> Tuple[ENV_VARIABLE, VALUE]:
-        """ returns a tuple with the first item being the environemnt variable name and the second beign the value """
+        """ returns a tuple with the first item being the environment variable name and the second begin the value """
         return self.env_variable, self.value()
 
     def to_dict(self) -> Dict:

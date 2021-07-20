@@ -11,8 +11,7 @@ except Exception as e:
     import PySimpleGUI as sg
 
     if hasattr(e, 'message'):
-        msg = f'{e.__class__.__name__}\n' \
-              f'{e.message}'
+        msg = f'Error Type:\n{e.__class__.__name__}\nMessage:\n{e.message}'
     else:
         msg = str(e)
 

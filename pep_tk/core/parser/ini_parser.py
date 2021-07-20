@@ -1,5 +1,5 @@
 import os
-from configparser import ConfigParser, NoSectionError
+from configparser import ConfigParser
 from typing import List, Optional
 
 import regex as re

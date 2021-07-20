@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from pep_tk.core.job import TaskStatus
 from pep_tk.psg.layouts import LayoutSection
-from pep_tk.psg.settings import image_resource_path, icon_filepath
+from pep_tk.psg.settings import icon_filepath
 
 
 def task_status_update_key(task_key):
@@ -84,7 +84,7 @@ class TaskTab(LayoutSection):
         counter = sg.T(counter_str, key=self._counter_key)
         iter_str = empty_string('x.xx seconds/iter')
         avg_iteration_time = sg.T(iter_str, key=self._iteration_time_key, size=(len('x.xx seconds/iter'), 1))
-        output_files = sg.Column([[]], key = self._output_files_key)
+        output_files = sg.Column([[]], key=self._output_files_key)
         cancel_button = sg.Button('Cancel', key=self._cancel_event_key, disabled=True)
         layout = [[status_icon, title, pb, time_elapsed, counter, avg_iteration_time],
                   [output_files],
@@ -140,8 +140,6 @@ class TaskTab(LayoutSection):
         new_elems = [[sg.T('Output Files:')]]
         for fp in output_files:
             new_elems.append([sg.T(fp)])
-        # list_txt = ['%s\n' % fp for fp in output_files]
-        # window[self._output_files_key](value=list_txt)
         window.extend_layout(window[self._output_files_key], new_elems)
         pass
 
@@ -166,8 +164,6 @@ class TaskRunnerTab():
         icon_fp = status_icons.get(status, None)
         if icon_fp is None: return
         window[self.tab_status_key].update(filename=icon_fp)
-
-    # def update(self):
 
 
 class TaskRunnerTabGroup(LayoutSection):
@@ -231,11 +227,6 @@ class TaskRunnerTabGroup(LayoutSection):
                                              key='-progress-frame-')]]
         return layout
 
-    # def select_tab(self, window, task_key):
-    #     tab = self.tabs_by_task_key[task_key]
-    #     event = tab.tab_button_k
-    #     self.handle(window, event, None)
-    #
     def handle(self, window, event, values):
         if event in self.tab_event_keys:
             for tab_content_k, tab in self.tabs.items():
@@ -256,10 +247,6 @@ class TaskRunnerTabGroup(LayoutSection):
             progress: ProgressGUIEventData = values[event]
             tab = self.update_event_keys[event]
             tab.update_status(window, progress.task_status)
-
-    # self.Widget.yview_moveto(percent_from_top)
-    # https://github.com/PySimpleGUI/PySimpleGUI/issues/3320
-    # https://github.com/PySimpleGUI/PySimpleGUI/issues/1878
 
     @property
     def layout_name(self):
