@@ -2,14 +2,14 @@ from typing import List
 
 import PySimpleGUI as sg
 
-from pep_tk.core.datasets import DatasetManifest
+from pep_tk.core.parser import ManifestParser
 from pep_tk.psg.fonts import Fonts
 from pep_tk.psg.layouts import LayoutSection, help_icon
 
 
 class DatasetSelectionLayout(LayoutSection):
-    def __init__(self, dataset_manifest, event_key='_dataset_tab_', selected_datasets=None):
-        self.dataset_manifest: DatasetManifest = dataset_manifest
+    def __init__(self, dataset_manifest: ManifestParser, event_key='_dataset_tab_', selected_datasets=None):
+        self.dataset_manifest: ManifestParser = dataset_manifest
         self.datasets: List[str] = self.dataset_manifest.list_dataset_keys()
         self.selected_datasets = selected_datasets or []
         self.event_key = event_key
@@ -21,7 +21,7 @@ class DatasetSelectionLayout(LayoutSection):
         return [self.dataset_manifest[ds_name] for ds_name in self.selected_datasets]
 
     def get_layout(self):
-        dataset_column_size = (40, max(10 , min(25, len(self.datasets)))) # show at minimum 10 rows and at most 25 rows.
+        dataset_column_size = (40, max(10 , min(15, len(self.datasets)))) # show at minimum 10 rows and at most 25 rows.
         print(dataset_column_size)
         layout = [[sg.T('Select a dataset or multiple datasets below.\n'
                         'Select multiple by clicking on multiple datasets then pressing the \'>\' button'),
@@ -62,7 +62,7 @@ class DatasetSelectionLayout(LayoutSection):
             if exp == '':
                 self.datasets = self.dataset_manifest.list_dataset_keys()
             else:
-                self.datasets = self.dataset_manifest.list_dataset_keys_exp(values['datasets_filter'] + '*')
+                self.datasets = self.dataset_manifest.list_dataset_keys_txt(values['datasets_filter'] + '*')
             need_update = True
         elif event == 'clear_filter':
             window['datasets_filter'](value='')
