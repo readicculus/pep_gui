@@ -3,6 +3,7 @@
   * [Terminology](#terminology)
   * [The GUI](#the-gui)
     + [- Configuring the application preferences -](#--configuring-the-application-preferences--)
+    + [- Setup -](#--setup--)
     + [- Creating a Job -](#--creating-a-job--)
     + [- Resuming a job -](#--resuming-a-job--)
     + [- Job progress -](#--job-progress--)
