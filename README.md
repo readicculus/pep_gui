@@ -9,9 +9,9 @@
     + [- Job outputs -](#--job-outputs--)
   * [Dataset Manifest](#dataset-manifest)
     + [- Dataset attributes -](#--dataset-attributes--)
-    + [- Example 1 (CSV Format) -](#--example-1--csv-format---)
-    + [- Example 2 (INI Format) -](#--example-2--ini-format---)
-    + [- Example 3 (Relative Paths) -](#--example-3--relative-paths---)
+    + [- Example 1 (CSV Format) -](#--example-1-csv-format--)
+    + [- Example 2 (INI Format) -](#--example-2-ini-format--)
+    + [- Example 3 (Relative Paths) -](#--example-3-relative-paths--)
     + [- Future features -](#--future-features--)
 
 
