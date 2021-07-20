@@ -20,7 +20,13 @@
  - **Job** - a job is one or more tasks, so a job is comprised of running one or more datasets through a pipeline.
  - **Dataset** - a dataset is an image list or a set of image lists which point to images in the dataset.  Images within an image list can be in different directories, or two dataset's image lists could all point to images in the same directory (for example for splitting test and non-test data).  See [Dataset Manifest](#dataset-manifest) for details.
 ## The GUI
+### - Setup -
+This GUI runs kwiver pipelines using VIAME's underlying kwiver.  Some pipelines(anything requiring a transformation file) 
+may require kwiver plugins only available in the SEAL-TK distribution.  
+Binaries for SEAL-TK or VIAME can be found [here](https://github.com/VIAME/VIAME/#installations).
 
+In addition this project was built and tested with Python3.6 and 3.7 so probably best to use one of those.  To install
+project dependencies run `pip install -r requirements.txt`.
 
 ### - Configuring the application preferences -
 When the application is launched for the first time you will be prompted to configure the following properties.
