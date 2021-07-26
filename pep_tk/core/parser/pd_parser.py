@@ -4,7 +4,9 @@ import regex as re
 import pandas as pd
 
 from pep_tk.core.parser import VIAMEDataset
-from pep_tk.core.parser import ImageListMissingImage, NoImageListException, DatasetFileNotFound, ManifestParser, path_to_absolute
+from pep_tk.core.parser import DuplicateDatasetName, MisingDatasetNameException, ImageListMissingImage, \
+    NoImageListException, DatasetFileNotFound, ManifestParser, path_to_absolute
+
 
 
 class CSVDatasetsParser(ManifestParser):
@@ -25,9 +27,9 @@ class CSVDatasetsParser(ManifestParser):
         for i, row in df.iterrows():
             ds_name = row.get(self.attr_dataset_name)
             if not ds_name:
-                raise Exception(f'row {i} in {manifeset_fp} does not have a {self.attr_dataset_name}.')
+                raise MisingDatasetNameException(f'row {i} in {manifeset_fp} does not have a {self.attr_dataset_name}.')
             if ds_name in read_datasets or ds_name in self._datasets:
-                raise Exception(f'Duplicate {self.attr_dataset_name} found "{ds_name}"')
+                raise DuplicateDatasetName(f'Duplicate {self.attr_dataset_name} found "{ds_name}"')
             read_datasets[ds_name] = {self.att_color_image_list: row[self.att_color_image_list],
                                       self.att_thermal_image_list: row[self.att_thermal_image_list],
                                       self.att_transform: row[self.att_transform]}

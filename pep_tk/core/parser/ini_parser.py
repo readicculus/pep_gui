@@ -1,10 +1,10 @@
 import os
-from configparser import ConfigParser
+from configparser import ConfigParser, DuplicateSectionError, Error
 from typing import List, Optional
 
 import regex as re
 
-from pep_tk.core.parser import ImageListMissingImage, DatasetFileNotFound, ManifestParser, path_to_absolute
+from pep_tk.core.parser import DatasetManifestError, DuplicateDatasetName, ImageListMissingImage, DatasetFileNotFound, ManifestParser, path_to_absolute
 from pep_tk.core.parser import VIAMEDataset
 
 
@@ -16,9 +16,14 @@ class INIDatasetsParser(ConfigParser, ManifestParser):
         for filename in filenames:
             try:
                 with open(filename, encoding=encoding) as fp:
-                    self._read(fp, filename)
+                        self._read(fp, filename)
             except OSError:
                 continue
+            except DuplicateSectionError as e:
+                raise DuplicateDatasetName(e.message)
+            except Error as e:
+                raise DatasetManifestError(e.message)
+
             if isinstance(filename, os.PathLike):
                 filename = os.fspath(filename)
             read_ok.append(filename)

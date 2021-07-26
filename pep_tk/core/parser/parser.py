@@ -98,15 +98,19 @@ class DatasetManifestError(Exception):
 class DatasetFileNotFound(DatasetManifestError):
     pass
 
+class DuplicateDatasetName(DatasetManifestError):
+    pass
 
 class ImageListMissingImage(DatasetManifestError):
     pass
-
 
 class ParserNotFoundException(DatasetManifestError):
     pass
 
 class NoImageListException(DatasetManifestError):
+    pass
+
+class MisingDatasetNameException(DatasetManifestError):
     pass
 
 def path_to_absolute(cwd, path):
