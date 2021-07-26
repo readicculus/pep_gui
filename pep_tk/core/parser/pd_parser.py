@@ -15,14 +15,14 @@ class CSVDatasetsParser(ManifestParser):
     def __init__(self):
         self._datasets = {}
 
-    def read(self, filename):
+    def read(self, filename, fullcheck=False):
         df = pd.read_csv(filename, comment='#', header=0,
                          names=[self.attr_dataset_name, self.att_thermal_image_list, self.att_color_image_list,
                                 self.att_transform])
         df = df.where(pd.notnull(df), None)
-        self.validate_dataset_files(filename, df)
+        self.validate_dataset_files(filename, df, fullcheck)
 
-    def validate_dataset_files(self, manifeset_fp: str, df: pd.DataFrame):
+    def validate_dataset_files(self, manifeset_fp: str, df: pd.DataFrame, fullcheck):
         read_datasets = {}
         for i, row in df.iterrows():
             ds_name = row.get(self.attr_dataset_name)
@@ -51,15 +51,16 @@ class CSVDatasetsParser(ManifestParser):
                 if not os.path.isfile(datafile_abspath):
                     raise DatasetFileNotFound(f'[{manifeset_fn}][{ds_name}] ERROR: File "{a}={v}" does not exist.')
 
-                # check that all images exist in the defined image list
-                if a in [self.att_color_image_list, self.att_thermal_image_list]:
-                    with open(datafile_abspath, 'r') as f:
-                        image_paths = list(line for line in (l.strip() for l in f.readlines()) if line)
-                    for img_fp in image_paths:
-                        img_fp = path_to_absolute(datafile_wd, img_fp)
-                        if not os.path.isfile(img_fp):
-                            raise ImageListMissingImage(
-                                f'[{manifeset_fn}][{ds_name}] ERROR: "{img_fp}" was not found in {a}.')
+                if fullcheck:
+                    # check that all images exist in the defined image list
+                    if a in [self.att_color_image_list, self.att_thermal_image_list]:
+                        with open(datafile_abspath, 'r') as f:
+                            image_paths = list(line for line in (l.strip() for l in f.readlines()) if line)
+                        for img_fp in image_paths:
+                            img_fp = path_to_absolute(datafile_wd, img_fp)
+                            if not os.path.isfile(img_fp):
+                                raise ImageListMissingImage(
+                                    f'[{manifeset_fn}][{ds_name}] ERROR: "{img_fp}" was not found in {a}.')
 
                 # set path to the absolute path
                 read_datasets[ds_name][a] = datafile_abspath
