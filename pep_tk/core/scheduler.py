@@ -152,7 +152,6 @@ def move_output_files(output_fps, destination_dir):
         new_files.append(new_loc)
     return new_files
 
-
 class Scheduler:
     def __init__(self,
                  job_state: JobState,
@@ -265,7 +264,10 @@ class Scheduler:
 
             # if user cancells task
             if cancelled:
-                process.kill()
+                if os.name == 'nt':
+                    subprocess.call(['taskkill', '/F', '/T', '/PID', str(process.pid)])
+                else:
+                    process.kill()
                 print(f'Cancelled {current_task_key}')
 
                 count = poll_image_list(image_list_monitor)
