@@ -248,7 +248,7 @@ class Scheduler:
             t.daemon = True  # thread dies with the program
             t.start()
             cancelled = False
-            while True:  # read line without blocking
+            while not cancelled:  # read line without blocking
                 sleep(0.1)
                 try:
                     line = q.get(timeout=0.2)
@@ -257,9 +257,6 @@ class Scheduler:
                     pass
                 # check if user cancelled task, if cancelled kill kwiver process and stop output reading loop
                 cancelled = self.manager.check_cancelled(current_task_key)
-                if cancelled:
-                    cancelled = True
-                    break
 
             # stop polling for progress and stop polling for stdout
             prog_stop_evt.set()
