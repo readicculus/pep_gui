@@ -7,9 +7,8 @@ import PySimpleGUI as sg
 from pep_tk.core.job import load_job, TaskStatus, TaskKey
 from pep_tk.core.scheduler import Scheduler, SchedulerEventManager
 from pep_tk.psg.fonts import Fonts
-from pep_tk.psg.layouts import TaskTab, ProgressGUIEventData
-from pep_tk.psg.settings import get_system_settings, SystemSettingsNames, get_viame_bash_or_bat_file_path
-from pep_tk.psg.layouts import TaskRunnerTabGroup
+from pep_tk.psg.layouts import TaskTab, ProgressGUIEventData, TaskRunnerTabGroup
+from pep_tk.psg.settings import get_user_settings, SystemSettingsNames, get_viame_bash_or_bat_file_path
 
 sg.theme('SystemDefaultForReal')
 
@@ -94,16 +93,16 @@ def make_main_window(tasks: List[TaskKey], gui_settings: sg.UserSettings):
 
 
 def run_job(job_path: str):
-    gui_settings = get_system_settings()
+    user_settings = get_user_settings()
     job_state, job_meta = load_job(job_path)
 
-    window, progress_bars, tabs_group = make_main_window(job_state.tasks(), gui_settings)
+    window, progress_bars, tabs_group = make_main_window(job_state.tasks(), user_settings)
 
     manager = GUIManager(window=window, progress_bars=progress_bars)
     sched = Scheduler(job_state=job_state,
                       job_meta=job_meta,
                       manager=manager,
-                      kwiver_setup_path=get_viame_bash_or_bat_file_path(gui_settings.get(SystemSettingsNames.viame_directory)))
+                      kwiver_setup_path=get_viame_bash_or_bat_file_path(user_settings.get(SystemSettingsNames.viame_directory)))
 
     threading.Thread(target=sched.run, daemon=True).start()
 

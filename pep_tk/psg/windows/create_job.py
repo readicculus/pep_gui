@@ -13,17 +13,17 @@ def launch_gui():
     from pep_tk.psg.fonts import Fonts
     from pep_tk.psg.windows import initial_setup, run_job, popup_error
     from pep_tk.psg.layouts import DatasetSelectionLayout, PipelineSelectionLayout, LayoutSection
-    from pep_tk.psg.settings import get_system_settings, SystemSettingsNames
+    from pep_tk.psg.settings import get_user_settings, SystemSettingsNames
 
     import PySimpleGUI as sg
 
     sg.theme('SystemDefaultForReal')
     initial_setup()
-    system_settings = get_system_settings()
+    user_settings = get_user_settings()
 
     pm = PipelineManifest()
 
-    manifest_fp = system_settings[SystemSettingsNames.dataset_manifest_filepath]
+    manifest_fp = user_settings[SystemSettingsNames.dataset_manifest_filepath]
     if manifest_fp.endswith('.csv'):
         dm = CSVDatasetsParser()
     elif manifest_fp.endswith('.cfg') or manifest_fp.endswith('.ini'):
@@ -63,8 +63,8 @@ def launch_gui():
     layout += [[sg.Button('Create Job', key='-CREATE_JOB-')]]
 
     location = (0, 0)
-    if SystemSettingsNames.window_location in system_settings.get_dict():
-        location = system_settings[SystemSettingsNames.window_location]
+    if SystemSettingsNames.window_location in user_settings.get_dict():
+        location = user_settings[SystemSettingsNames.window_location]
 
     window = sg.Window('PEP-TK: Job Configuration', layout,
                        default_element_size=(12, 1), location=location, finalize=True)
@@ -72,7 +72,7 @@ def launch_gui():
     # ======== Handler helper functions =========
     def validate_inputs(window: sg.Window, values: Dict[Any, Any]) -> bool:
         input_job_name = values['-job_name-IN-']
-        combined_job_dir = os.path.join(system_settings.get(SystemSettingsNames.job_directory), input_job_name)
+        combined_job_dir = os.path.join(user_settings.get(SystemSettingsNames.job_directory), input_job_name)
         input_datasets = dataset_tab.get_selected_datasets()
         input_pipeline = pipeline_tab.get_selected_pipeline()
         w_loc, w_size = window.current_location(), window.size
@@ -122,13 +122,13 @@ def launch_gui():
         if event == sg.WIN_CLOSED:  # always,  always give a way out!
             break
         try:
-            system_settings.set(SystemSettingsNames.window_location, window.CurrentLocation())
+            user_settings.set(SystemSettingsNames.window_location, window.CurrentLocation())
         except: pass
         if '::' in event:
             # handle menu button pressed
             menu_event = event.split('::')[1]  # event
             if menu_event == '-resume-menu-btn-':
-                initial_folder = system_settings[SystemSettingsNames.job_directory]
+                initial_folder = user_settings[SystemSettingsNames.job_directory]
                 location = window.current_location()
                 job_folder = sg.popup_get_folder('Select the job directory',
                                                  no_window=True,
@@ -145,10 +145,10 @@ def launch_gui():
                         popup_error(f'Job {job_folder} is not a valid job directory.', window.current_location(),
                                     window.size)
             elif menu_event == '-properties-menu-btn-':
-                dataset_manifest_before = system_settings[SystemSettingsNames.dataset_manifest_filepath]
+                dataset_manifest_before = user_settings[SystemSettingsNames.dataset_manifest_filepath]
                 initial_setup(skip_if_complete=False, modal=True)
-                system_settings = get_system_settings()
-                changed_manifest = dataset_manifest_before != system_settings[
+                user_settings = get_user_settings()
+                changed_manifest = dataset_manifest_before != user_settings[
                     SystemSettingsNames.dataset_manifest_filepath]
                 if changed_manifest:
                     RELOAD_GUI = True
@@ -161,7 +161,7 @@ def launch_gui():
             if not validate_inputs(window, values):
                 continue
 
-            selected_job_directory = system_settings.get(SystemSettingsNames.job_directory)
+            selected_job_directory = user_settings.get(SystemSettingsNames.job_directory)
             selected_job_name = values['-job_name-IN-']
 
             pipeline = pipeline_tab.get_selected_pipeline()

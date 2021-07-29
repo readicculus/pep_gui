@@ -35,34 +35,4 @@ def get_viame_bash_or_bat_file_path(viame_dir):
 
     return os.path.normpath(os.path.join(viame_dir, fn))
 
-class JobCache:
-    def __init__(self):
-        self.jobs = set()
-        # get recent jobs from settings and only add if the job folder still exists
-        settings = get_system_settings()
-        for job in settings.get(SystemSettingsNames.recent_jobs_list, []):
-            if os.path.isdir(job):
-                self.jobs.add(job)
-        self.jobs = list(self.jobs)
-
-    def get_jobs(self, max_count: int = 0):
-        if max_count == 0 or max_count > len(self.jobs):
-            return self.jobs
-        return self.jobs[:max]
-
-    def append_job(self, job_dir: str):
-        self.jobs.append(job_dir)
-        settings = get_system_settings()
-        if SystemSettingsNames.recent_jobs_list not in settings.dict:
-            settings[SystemSettingsNames.recent_jobs_list] = []
-        settings[SystemSettingsNames.recent_jobs_list].append(job_dir)
-
-    def remove_job(self, job_dir: str):
-        pass
-
-    def clear_all(self):
-        settings = get_system_settings()
-        settings[SystemSettingsNames.recent_jobs_list] = []
-        self.jobs = []
-
 WINDOW_ICON = image_resource_path('bear.png')

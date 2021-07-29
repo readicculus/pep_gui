@@ -6,7 +6,6 @@ from pep_tk.core.parser import ManifestParser
 from pep_tk.psg.fonts import Fonts
 from pep_tk.psg.layouts import LayoutSection, help_icon
 
-
 class DatasetSelectionLayout(LayoutSection):
     def __init__(self, dataset_manifest: ManifestParser, event_key='_dataset_tab_', selected_datasets=None):
         self.dataset_manifest: ManifestParser = dataset_manifest
