@@ -16,9 +16,10 @@ class CSVDatasetsParser(ManifestParser):
         self._datasets = {}
 
     def read(self, filename, fullcheck=False):
+        cols = [self.attr_dataset_name, self.att_thermal_image_list, self.att_color_image_list,
+                                self.att_transform]
         df = pd.read_csv(filename, comment='#', header=0,
-                         names=[self.attr_dataset_name, self.att_thermal_image_list, self.att_color_image_list,
-                                self.att_transform])
+                         usecols=cols)[cols]
         df = df.where(pd.notnull(df), None)
         self.validate_dataset_files(filename, df, fullcheck)
 
