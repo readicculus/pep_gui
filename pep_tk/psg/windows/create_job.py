@@ -8,7 +8,7 @@ from pep_tk.core.configuration.exceptions import MissingPortsException
 from pep_tk.core.parser import EmptyParser
 from pep_tk.core.job import create_job, job_exists
 from pep_tk.psg.fonts import Fonts
-from pep_tk.psg.windows import show_properties_window, run_job, popup_error
+from pep_tk.psg.windows import show_properties_window, run_job, popup_error, popup_about
 from pep_tk.psg.layouts import DatasetSelectionLayout, PipelineSelectionLayout, LayoutSection
 
 
@@ -136,6 +136,8 @@ def launch_gui(pm: PipelineManifest, dm: ManifestParser) -> bool:
                     return False  # Reload GUI
             elif menu_event == '-exit-menu-btn-':
                 break  # exit loop
+            elif menu_event == '-about-menu-btn-':
+                popup_about(location=window.current_location())
         elif event == '-CREATE_JOB-':
             if validate_inputs(window, values, dataset_tab, pipeline_tab):
                 selected_job_directory = user_settings.get(SystemSettingsNames.job_directory)

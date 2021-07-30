@@ -1,6 +1,7 @@
 from typing import Tuple, Optional
-
 import PySimpleGUI as sg
+
+from pep_tk.psg.fonts import Fonts
 
 
 def popup_error(msg: str, parent_window_loc: Optional[Tuple[int,int]] = None, parent_window_size: Optional[Tuple[int,int]] = None):
@@ -21,3 +22,12 @@ def popup_error(msg: str, parent_window_loc: Optional[Tuple[int,int]] = None, pa
         cx = int(win_w / 2 - popup_w / 2)
         cy = int(win_h / 2 - popup_h / 2)
         sg.popup_ok(msg, title='Uh oh', line_width=popup_w, location=(win_x + cx, win_y + cy), keep_on_top=True)
+
+def popup_about(location=(None,None)):
+    from pep_tk import __version__
+    message = f'PEP GUI Version {__version__}\n' \
+              f'Developed by Yuval Boss\n' \
+              f'Documentation can be found at https://github.com/readicculus/pep_gui'
+
+    sg.popup_no_buttons(message, title='About', line_width=200, location=location, modal=True, keep_on_top=True,
+                         font=Fonts.tab_text)
