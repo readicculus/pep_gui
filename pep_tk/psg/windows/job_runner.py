@@ -87,7 +87,8 @@ def make_main_window(tasks: List[TaskKey], gui_settings: sg.UserSettings):
               [tabs_group.get_layout()]]
 
     location = gui_settings.get(SystemSettingsNames.window_location, (0, 0))
-    window = sg.Window('PEP-TK: Job Runner', layout, location=location, finalize=True)
+    window = sg.Window('PEP-TK: Job Runner', layout, location=location, finalize=True,
+                       enable_close_attempted_event=True)
 
     return window, progress_bars, tabs_group
 
@@ -102,15 +103,28 @@ def run_job(job_path: str):
     sched = Scheduler(job_state=job_state,
                       job_meta=job_meta,
                       manager=manager,
-                      kwiver_setup_path=get_viame_bash_or_bat_file_path(user_settings.get(SystemSettingsNames.viame_directory)))
+                      kwiver_setup_path=get_viame_bash_or_bat_file_path(
+                          user_settings.get(SystemSettingsNames.viame_directory)))
 
     threading.Thread(target=sched.run, daemon=True).start()
 
     while True:
         event, values = window.read()
         if event == sg.WIN_CLOSED:
+            window.close()
             break
-
-        for task_key, pb in progress_bars.items():
-            pb.handle(window, event, values)
-            tabs_group.handle(window, event, values)
+        elif event == sg.WIN_X_EVENT:
+            try:
+                location = window.current_location()
+            except:
+                location = (0, 0)
+            res = sg.popup_ok_cancel("Closing this window will stop any active tasks or jobs, "
+                                     "are you sure you want to close?",
+                                     title='Are you sure?', location=location)
+            if res == 'OK':
+                window.close()
+                break
+        else:
+            for task_key, pb in progress_bars.items():
+                pb.handle(window, event, values)
+                tabs_group.handle(window, event, values)

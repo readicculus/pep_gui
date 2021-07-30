@@ -1,15 +1,17 @@
-from typing import Dict, Any
 import os
+from typing import Dict, Any
+
 import PySimpleGUI as sg
+
 from pep_tk.core.configuration import PipelineManifest
-from pep_tk.core.parser import ManifestParser
-from pep_tk.psg.settings import get_user_settings, SystemSettingsNames, WINDOW_ICON
 from pep_tk.core.configuration.exceptions import MissingPortsException
-from pep_tk.core.parser import EmptyParser
 from pep_tk.core.job import create_job, job_exists
+from pep_tk.core.parser import ManifestParser
 from pep_tk.psg.fonts import Fonts
-from pep_tk.psg.windows import show_properties_window, run_job, popup_error, popup_about
 from pep_tk.psg.layouts import DatasetSelectionLayout, PipelineSelectionLayout, LayoutSection
+from pep_tk.psg.settings import get_user_settings, SystemSettingsNames
+from pep_tk.psg.utils import move_window_onto_screen
+from pep_tk.psg.windows import show_properties_window, run_job, popup_error, popup_about
 
 
 # ======== Handler helper functions =========
@@ -57,16 +59,17 @@ def validate_inputs(window: sg.Window, values: Dict[Any, Any], dataset_tab, pipe
 
     return True
 
+def create_frame(tl: LayoutSection):
+    return sg.Frame(layout=tl.get_layout(), title=tl.layout_name, font=Fonts.title_medium, title_color='#0b64c5')
+
+
 # ======== Create Job Window launcher =========
 def launch_gui(pm: PipelineManifest, dm: ManifestParser) -> bool:
     sg.theme('SystemDefaultForReal')
 
+    # ======== Page sections =========
     dataset_tab = DatasetSelectionLayout(dm)
     pipeline_tab = PipelineSelectionLayout(pm)
-
-    # ======== Layout helpers =========
-    def create_frame(tl: LayoutSection):
-        return sg.Frame(layout=tl.get_layout(), title=tl.layout_name, font=Fonts.title_medium, title_color='#0b64c5')
 
     # ======== Create the Layout =========
     menu_def = [['&File', ['&Resume Job     Ctrl-R::-resume-menu-btn-', '&Properties::-properties-menu-btn-',
@@ -83,9 +86,12 @@ def launch_gui(pm: PipelineManifest, dm: ManifestParser) -> bool:
         [sg.Button('Create Job', key='-CREATE_JOB-')]]
 
     user_settings = get_user_settings()
-    location = user_settings.get(SystemSettingsNames.window_location, (0,0))
+    location = user_settings.get(SystemSettingsNames.window_location, (0, 0))
     window = sg.Window('PEP-TK: Job Configuration', layout,
                        default_element_size=(12, 1), location=location, finalize=True)
+
+    # move back on screen if off screen for some reason
+    move_window_onto_screen(window)
 
     # ======== Show Properties window if properties are not valid =========
     out = show_properties_window(skip_if_valid=True)
@@ -100,14 +106,15 @@ def launch_gui(pm: PipelineManifest, dm: ManifestParser) -> bool:
     CREATED_JOB_PATH = None
     RESUME_JOB_PATH = None
     while True:
-        event, values = window.read()
+        event, values = window.read(timeout=2000)
         if event == sg.WIN_CLOSED:  # always,  always give a way out!
             break
         try:
             user_settings.set(SystemSettingsNames.window_location, window.CurrentLocation())
         except:
             pass
-
+        if event == "__TIMEOUT__":
+            continue
         if '::' in event:
             # handle menu button pressed
             menu_event = event.split('::')[1]  # event
