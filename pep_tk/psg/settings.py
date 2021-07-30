@@ -1,3 +1,4 @@
+import base64
 import os
 import PySimpleGUI as sg
 from pep_tk import PLUGIN_PATH
@@ -61,4 +62,6 @@ class UserProperties:
 
 
 
-WINDOW_ICON = image_resource_path('bear.png')
+WINDOW_ICON = image_resource_path('icon_tiny.png')
+icon = base64.b64encode(open(WINDOW_ICON, 'rb').read())
+sg.set_options(icon=icon, titlebar_icon=icon)

@@ -42,11 +42,15 @@ class DataManifestValidator(Validator):
     input_key = '-dataset_manifest_filepath-IN-'
 
     def validate_ui(self, window: sg.Window) -> bool:
+        if window[self.input_key].get() == "":
+            return False
         dm, error = safe_load_dataset_manifest(self.value(window))
         self.update_error(window, error)
         return error is None
 
     def validate(self, v) -> bool:
+        if v is None or v == '':
+            return False
         dm, error = safe_load_dataset_manifest(v)
         return error is None
 
@@ -55,6 +59,8 @@ class JobBaseDirValidator(Validator):
     input_key = '-job_dir-IN-'
 
     def validate_ui(self, window: sg.Window) -> bool:
+        if window[self.input_key].get() == "":
+            return False
         error = None
         val = self.value(window)
         if not os.path.isdir(val):
@@ -63,6 +69,8 @@ class JobBaseDirValidator(Validator):
         return error is None
 
     def validate(self, v) -> bool:
+        if v is None or v == '':
+            return False
         return os.path.isdir(v)
 
 
@@ -70,6 +78,8 @@ class VIAMEDirValidator(Validator):
     input_key = '-setup_viame_filepath-IN-'
 
     def validate_ui(self, window: sg.Window) -> bool:
+        if window[self.input_key].get() == "":
+            return False
         error = None
         setup_viame_fp = get_viame_bash_or_bat_file_path(self.value(window))
         if not os.path.isfile(setup_viame_fp):
@@ -81,6 +91,8 @@ class VIAMEDirValidator(Validator):
         return error is None
 
     def validate(self, v) -> bool:
+        if v is None or v == '':
+            return False
         setup_viame_fp = get_viame_bash_or_bat_file_path(v)
         return os.path.isfile(setup_viame_fp)
 
@@ -118,7 +130,13 @@ def check_inputs(window: sg.Window, update=True) -> PropertiesWindowOutput:
     return PropertiesWindowOutput(dm_valid=d_valid, viame_valid=v_valid, job_valid=j_valid)
 
 
-
+def check_settings():
+    p = UserProperties()
+    d_valid = dm_validator.validate(p.data_manifest_filepath)
+    v_valid = viame_validator.validate(p.viame_dir)
+    j_valid = jobdir_validator.validate(p.job_base_dir)
+    out = PropertiesWindowOutput(dm_valid=d_valid, job_valid=j_valid, viame_valid=v_valid)
+    return out
 
 def show_properties_window(skip_if_valid=False, modal=True) -> PropertiesWindowOutput:
     """
@@ -128,6 +146,11 @@ def show_properties_window(skip_if_valid=False, modal=True) -> PropertiesWindowO
     :param error_message:
     :return: true if settings were updated, false if not
     """
+    out = check_settings()
+    if out.all_valid and skip_if_valid:
+        out.properties_updated = False
+        return out
+
     p = UserProperties()
     settings_before = p.as_dict()
     def properties_changed() -> bool:
@@ -158,20 +181,11 @@ def show_properties_window(skip_if_valid=False, modal=True) -> PropertiesWindowO
                        location=location,
                        modal=modal)
 
-    out = check_inputs(window)
-    if out.all_valid and skip_if_valid:
-        window.close()
-        out.properties_updated = False
-        return out
-
     while True:
         event, values = window.read()
         if event in (sg.WINDOW_CLOSED, 'Exit'):
-            d_valid = dm_validator.validate(p.data_manifest_filepath)
-            v_valid = viame_validator.validate(p.viame_dir)
-            j_valid = jobdir_validator.validate(p.job_base_dir)
-            out = PropertiesWindowOutput(dm_valid=d_valid, job_valid=j_valid, viame_valid=v_valid,
-                                   properties_updated=False)
+            out = check_settings()
+            out.properties_updated = False
             window.close()
             return out
         elif event == 'Complete Setup':

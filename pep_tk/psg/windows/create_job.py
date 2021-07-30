@@ -3,7 +3,7 @@ import os
 import PySimpleGUI as sg
 from pep_tk.core.configuration import PipelineManifest
 from pep_tk.core.parser import ManifestParser
-from pep_tk.psg.settings import get_user_settings, SystemSettingsNames
+from pep_tk.psg.settings import get_user_settings, SystemSettingsNames, WINDOW_ICON
 from pep_tk.core.configuration.exceptions import MissingPortsException
 from pep_tk.core.parser import EmptyParser
 from pep_tk.core.job import create_job, job_exists
@@ -57,7 +57,7 @@ def validate_inputs(window: sg.Window, values: Dict[Any, Any], dataset_tab, pipe
 
     return True
 
-
+# ======== Create Job Window launcher =========
 def launch_gui(pm: PipelineManifest, dm: ManifestParser) -> bool:
     sg.theme('SystemDefaultForReal')
 
@@ -87,15 +87,14 @@ def launch_gui(pm: PipelineManifest, dm: ManifestParser) -> bool:
     window = sg.Window('PEP-TK: Job Configuration', layout,
                        default_element_size=(12, 1), location=location, finalize=True)
 
-    # if empty parser given, then automatically open properties window
-    if isinstance(dm, EmptyParser):
-        out = show_properties_window()
-        if out.all_valid:
-            window.close()
-            return False  # Reload GUI if properties changed
-        if not out.all_valid:
-            window.close()
-            return True # Don't reload GUI if user doesn't fix properties and exits out
+    # ======== Show Properties window if properties are not valid =========
+    out = show_properties_window(skip_if_valid=True)
+    if out.all_valid and out.properties_updated:
+        window.close()
+        return False  # Reload GUI if properties changed
+    if not out.all_valid and not out.properties_updated:
+        window.close()
+        return True  # Don't reload GUI if user doesn't fix properties and exits out
 
     # ======== Window / Event loop =========
     CREATED_JOB_PATH = None
