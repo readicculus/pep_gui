@@ -35,4 +35,30 @@ def get_viame_bash_or_bat_file_path(viame_dir):
 
     return os.path.normpath(os.path.join(viame_dir, fn))
 
+class UserProperties:
+    def __init__(self):
+        self.settings = get_user_settings()
+
+    def refresh(self):
+        self.settings = get_user_settings()
+
+    @property
+    def viame_dir(self):
+        return self.settings.get(SystemSettingsNames.viame_directory, None)
+
+    @property
+    def data_manifest_filepath(self):
+        return self.settings.get(SystemSettingsNames.dataset_manifest_filepath, None)
+
+    @property
+    def job_base_dir(self):
+        return self.settings.get(SystemSettingsNames.job_directory, None)
+
+    def as_dict(self):
+        return {'viame_dir': self.viame_dir,
+                'data_manifest_filepath':self.data_manifest_filepath,
+                'job_base_dir': self.job_base_dir}
+
+
+
 WINDOW_ICON = image_resource_path('bear.png')

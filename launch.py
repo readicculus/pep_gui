@@ -1,37 +1,43 @@
 import os
 import sys
 
+from pep_tk.core.parser import load_dataset_manifest
+from pep_tk.psg.settings import UserProperties
+from pep_tk.psg.windows import popup_error
 
 PLUGIN_PATH = os.path.dirname(os.path.abspath(__file__))
 plugin_python_lib = os.path.join(PLUGIN_PATH, 'lib', 'python3.6', 'site-packages')
 sys.path.insert(0, plugin_python_lib)
-from pep_tk.psg.windows.create_job import launch_gui
-from pep_tk.core.parser import DatasetManifestError
 
 def main():
-    try:
-        launch_gui()
-    except DatasetManifestError as e:
-        import PySimpleGUI as sg
-        from pep_tk.psg.windows import initial_setup
+    from pep_tk.core.parser import DatasetManifestError
+    from pep_tk.psg.windows.create_job import launch_gui
+    from pep_tk.core.configuration import PipelineManifest
+    from pep_tk.core.parser import EmptyParser
+    success = False
+    while not success:
+        pm = PipelineManifest()
+        try:
+            p = UserProperties()
+            dm = load_dataset_manifest(p.data_manifest_filepath)
+        except DatasetManifestError as e:
+            # Handeled dataset manifest exception on startup - pass an empty dataset manifest
+            if hasattr(e, 'message'):
+                msg = f'Error Type: {e.__class__.__name__}\nMessage:\n{e.message}'
+            else:
+                msg = str(e)
+            dm = EmptyParser(error_message=msg)
+        except Exception as e:
+            # Unhandled exception on startup - show error and end application
+            if hasattr(e, 'message'):
+                msg = f'Unhandled Error Contact Yuval!\nError Type:\n{e.__class__.__name__}\nMessage:\n{e.message}'
+            else:
+                msg = str(e)
 
-        if hasattr(e, 'message'):
-            msg = f'Error Type:\n{e.__class__.__name__}\nMessage:\n{e.message}'
-        else:
-            msg = str(e)
+            popup_error(msg)
+            break
 
-        sg.popup_ok(msg, title="uh oh")
-        initial_setup(skip_if_complete=False)
-        main()
-    except Exception as e:
-        import PySimpleGUI as sg
-
-        if hasattr(e, 'message'):
-            msg = f'Error Type:\n{e.__class__.__name__}\nMessage:\n{e.message}'
-        else:
-            msg = str(e)
-
-        sg.popup_error(msg, title="uh oh")
+        success = launch_gui(pm, dm)
 
 if __name__ == "__main__":
     main()

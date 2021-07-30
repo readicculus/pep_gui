@@ -1,37 +1,65 @@
 from typing import Dict, Any
+import os
+import PySimpleGUI as sg
+from pep_tk.core.configuration import PipelineManifest
+from pep_tk.core.parser import ManifestParser
+from pep_tk.psg.settings import get_user_settings, SystemSettingsNames
+from pep_tk.core.configuration.exceptions import MissingPortsException
+from pep_tk.core.parser import EmptyParser
+from pep_tk.core.job import create_job, job_exists
+from pep_tk.psg.fonts import Fonts
+from pep_tk.psg.windows import show_properties_window, run_job, popup_error
+from pep_tk.psg.layouts import DatasetSelectionLayout, PipelineSelectionLayout, LayoutSection
 
 
-
-def launch_gui():
-    import os
-
-    from pep_tk.core.parser import CSVDatasetsParser, INIDatasetsParser, ParserNotFoundException
-    from pep_tk.core.configuration import PipelineManifest
-    from pep_tk.core.configuration.exceptions import MissingPortsException
-    from pep_tk.core.job import create_job, job_exists
-
-    from pep_tk.psg.fonts import Fonts
-    from pep_tk.psg.windows import initial_setup, run_job, popup_error
-    from pep_tk.psg.layouts import DatasetSelectionLayout, PipelineSelectionLayout, LayoutSection
-    from pep_tk.psg.settings import get_user_settings, SystemSettingsNames
-
-    import PySimpleGUI as sg
-
-    sg.theme('SystemDefaultForReal')
-    initial_setup()
+# ======== Handler helper functions =========
+def validate_inputs(window: sg.Window, values: Dict[Any, Any], dataset_tab, pipeline_tab) -> bool:
     user_settings = get_user_settings()
+    input_job_name = values['-job_name-IN-']
+    combined_job_dir = os.path.join(user_settings.get(SystemSettingsNames.job_directory), input_job_name)
+    input_datasets = dataset_tab.get_selected_datasets()
+    input_pipeline = pipeline_tab.get_selected_pipeline()
+    w_loc, w_size = window.current_location(), window.size
+    # Check if no datasets were selected
+    if len(input_datasets) < 1:
+        popup_error('No datasets were selected.  Must select one or more datasets above.', w_loc, w_size)
+        return False
 
-    pm = PipelineManifest()
+    # if pipeline_tab.selected_pipeline is None:
+    if not pipeline_tab.validate(values):
+        popup_error('Either a pipeline isn\'t selected or error in configuration values.', w_loc, w_size)
+        return False
 
-    manifest_fp = user_settings[SystemSettingsNames.dataset_manifest_filepath]
-    if manifest_fp.endswith('.csv'):
-        dm = CSVDatasetsParser()
-    elif manifest_fp.endswith('.cfg') or manifest_fp.endswith('.ini'):
-        dm = INIDatasetsParser()
-    else:
-        raise ParserNotFoundException(f'Invalid manifest file format.  Can take csv(.csv) format, or ini format (.ini or .cfg).\n'
-                                      f'"{manifest_fp}"')
-    dm.read(manifest_fp)
+    # Check for missing ports(aka if datasets/pipeline are not compatible)
+    missing_ports = {}
+    for dataset in input_datasets:
+        try:
+            input_pipeline.get_pipeline_dataset_environment(dataset)
+        except MissingPortsException as e:
+            missing_ports[e.dataset_name] = e.ports
+    if len(missing_ports) > 0:
+        msg = "Datasets aren't compatible with the selected pipeline: \n"
+        for dataset_name, ports in missing_ports.items():
+            msg += "%s: MISSING(%s)\n" % (dataset_name, ', '.join(ports))
+        popup_error(msg, w_loc, w_size)
+        return False
+
+    # Check if the selected name is an empty string
+    if input_job_name == '':
+        popup_error('No job name entered', w_loc, w_size)
+        return False
+
+    # Check if the job directory(within the base directory) already exists
+    if os.path.isdir(combined_job_dir):
+        popup_error(f'Job {input_job_name} already exists, cannot override an existing job.\n{combined_job_dir}',
+                    w_loc, w_size)
+        return False
+
+    return True
+
+
+def launch_gui(pm: PipelineManifest, dm: ManifestParser) -> bool:
+    sg.theme('SystemDefaultForReal')
 
     dataset_tab = DatasetSelectionLayout(dm)
     pipeline_tab = PipelineSelectionLayout(pm)
@@ -48,82 +76,39 @@ def launch_gui():
     layout = [
         [sg.Menu(menu_def, tearoff=False, pad=(200, 1))],
         [sg.Text('Polar Ecosystems Program Batch Runner', size=(38, 1), justification='center', font=Fonts.title_large,
-                 relief=sg.RELIEF_RIDGE, k='-TEXT HEADING-', enable_events=True, text_color='#063970')]]
+                 relief=sg.RELIEF_RIDGE, k='-TEXT HEADING-', enable_events=True, text_color='#063970')],
+        [create_frame(dataset_tab)],
+        [create_frame(pipeline_tab)],
+        [sg.Text('Job Name', font=Fonts.description), sg.Input('', key='-job_name-IN-', size=(20, 1))],
+        [sg.Button('Create Job', key='-CREATE_JOB-')]]
 
-    layout += [[create_frame(dataset_tab)],
-               [create_frame(pipeline_tab)]]
-
-    layout += [
-        [
-            sg.Text('Job Name', font=Fonts.description),
-            sg.Input('', key='-job_name-IN-', size=(20, 1))
-        ]
-    ]
-
-    layout += [[sg.Button('Create Job', key='-CREATE_JOB-')]]
-
-    location = (0, 0)
-    if SystemSettingsNames.window_location in user_settings.get_dict():
-        location = user_settings[SystemSettingsNames.window_location]
-
+    user_settings = get_user_settings()
+    location = user_settings.get(SystemSettingsNames.window_location, (0,0))
     window = sg.Window('PEP-TK: Job Configuration', layout,
                        default_element_size=(12, 1), location=location, finalize=True)
 
-    # ======== Handler helper functions =========
-    def validate_inputs(window: sg.Window, values: Dict[Any, Any]) -> bool:
-        input_job_name = values['-job_name-IN-']
-        combined_job_dir = os.path.join(user_settings.get(SystemSettingsNames.job_directory), input_job_name)
-        input_datasets = dataset_tab.get_selected_datasets()
-        input_pipeline = pipeline_tab.get_selected_pipeline()
-        w_loc, w_size = window.current_location(), window.size
-        # Check if no datasets were selected
-        if len(input_datasets) < 1:
-            popup_error('No datasets were selected.  Must select one or more datasets above.', w_loc, w_size)
-            return False
-
-        # if pipeline_tab.selected_pipeline is None:
-        if not pipeline_tab.validate(values):
-            popup_error('Either a pipeline isn\'t selected or error in configuration values.', w_loc, w_size)
-            return False
-
-        # Check for missing ports(aka if datasets/pipeline are not compatible)
-        missing_ports = {}
-        for dataset in input_datasets:
-            try:
-                input_pipeline.get_pipeline_dataset_environment(dataset)
-            except MissingPortsException as e:
-                missing_ports[e.dataset_name] = e.ports
-        if len(missing_ports) > 0:
-            msg = "Datasets aren't compatible with the selected pipeline: \n"
-            for dataset_name, ports in missing_ports.items():
-                msg += "%s: MISSING(%s)\n" % (dataset_name, ', '.join(ports))
-            popup_error(msg, w_loc, w_size)
-            return False
-
-        # Check if the selected name is an empty string
-        if input_job_name == '':
-            popup_error('No job name entered', w_loc, w_size)
-            return False
-
-        # Check if the job directory(within the base directory) already exists
-        if os.path.isdir(combined_job_dir):
-            popup_error(f'Job {input_job_name} already exists, cannot override an existing job.\n{combined_job_dir}',
-                        w_loc, w_size)
-            return False
-
-        return True
+    # if empty parser given, then automatically open properties window
+    if isinstance(dm, EmptyParser):
+        out = show_properties_window()
+        if out.all_valid:
+            window.close()
+            return False  # Reload GUI if properties changed
+        if not out.all_valid:
+            window.close()
+            return True # Don't reload GUI if user doesn't fix properties and exits out
 
     # ======== Window / Event loop =========
     CREATED_JOB_PATH = None
     RESUME_JOB_PATH = None
-    RELOAD_GUI = False  # used for when user changes dataset_manifest
     while True:
         event, values = window.read()
         if event == sg.WIN_CLOSED:  # always,  always give a way out!
             break
         try:
             user_settings.set(SystemSettingsNames.window_location, window.CurrentLocation())
-        except: pass
+        except:
+            pass
+
         if '::' in event:
             # handle menu button pressed
             menu_event = event.split('::')[1]  # event
@@ -145,46 +130,38 @@ def launch_gui():
                         popup_error(f'Job {job_folder} is not a valid job directory.', window.current_location(),
                                     window.size)
             elif menu_event == '-properties-menu-btn-':
-                dataset_manifest_before = user_settings[SystemSettingsNames.dataset_manifest_filepath]
-                initial_setup(skip_if_complete=False, modal=True)
-                user_settings = get_user_settings()
-                changed_manifest = dataset_manifest_before != user_settings[
-                    SystemSettingsNames.dataset_manifest_filepath]
-                if changed_manifest:
-                    RELOAD_GUI = True
-                    break
+                out = show_properties_window(modal=True)
+                if out.properties_updated:
+                    window.close()
+                    return False  # Reload GUI
             elif menu_event == '-exit-menu-btn-':
                 break  # exit loop
-            continue
+        elif event == '-CREATE_JOB-':
+            if validate_inputs(window, values, dataset_tab, pipeline_tab):
+                selected_job_directory = user_settings.get(SystemSettingsNames.job_directory)
+                selected_job_name = values['-job_name-IN-']
 
-        if event == '-CREATE_JOB-':
-            if not validate_inputs(window, values):
-                continue
+                pipeline = pipeline_tab.get_selected_pipeline()
+                datasets = dataset_tab.get_selected_datasets()
+                try:
+                    job_dir = os.path.join(selected_job_directory, selected_job_name)
+                    CREATED_JOB_PATH = create_job(pipeline=pipeline, datasets=datasets, directory=job_dir)
+                except Exception as e:
+                    popup_error(
+                        f'There was an error creating the job: \n {str(e)}.\n I would recommend sending this error to Yuval.',
+                        window.current_location(), window.size)
+                    continue
 
-            selected_job_directory = user_settings.get(SystemSettingsNames.job_directory)
-            selected_job_name = values['-job_name-IN-']
+                break  # END: close window
+        else:
+            dataset_tab.handle(window, event, values)
+            pipeline_tab.handle(window, event, values)
 
-            pipeline = pipeline_tab.get_selected_pipeline()
-            datasets = dataset_tab.get_selected_datasets()
-            try:
-                job_dir = os.path.join(selected_job_directory, selected_job_name)
-                CREATED_JOB_PATH = create_job(pipeline=pipeline, datasets=datasets, directory=job_dir)
-            except Exception as e:
-                popup_error(
-                    f'There was an error creating the job: \n {str(e)}.\n I would recommend sending this error to Yuval.',
-                    window.current_location(), window.size)
-                continue
-
-            break  # END: close window
-
-        dataset_tab.handle(window, event, values)
-        pipeline_tab.handle(window, event, values)
     window.close()
-    if RELOAD_GUI:
-        launch_gui()
-    if CREATED_JOB_PATH:  # END: start running job
-        # jc = JobCache(gui_settings)
-        # jc.append_job(CREATED_JOB_PATH)
+
+    if CREATED_JOB_PATH:
         run_job(CREATED_JOB_PATH)
     elif RESUME_JOB_PATH:
         run_job(RESUME_JOB_PATH)
+
+    return True
