@@ -74,7 +74,7 @@ class INIDatasetsParser(ConfigParser, ManifestParser):
         try:
             regkey = '^.*' + txt + '.*$'
             r = re.compile(regkey)
-            return list(filter(r.match, list(self)))
+            return list(filter(r.match, self.list_dataset_keys()))
         except:
             return []
 

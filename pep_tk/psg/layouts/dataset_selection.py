@@ -22,11 +22,11 @@ class DatasetSelectionLayout(LayoutSection):
     def get_layout(self):
         dataset_column_size = (40, max(10 , min(15, len(self.datasets)))) # show at minimum 10 rows and at most 25 rows.
         layout = [[sg.T('Select a dataset or multiple datasets below.\n'
-                        'Select multiple by clicking on multiple datasets then pressing the \'>\' button'),
+                        'Select multiple by clicking on multiple datasets then pressing the \'>\' button', font=Fonts.description),
                         help_icon('Use ctrl+click to select multiple, shift-click to select many.')],
                   [
                       sg.Column([
-                          [sg.Text('Datasets')],
+                          [sg.Text('Datasets', font=Fonts.tab_text)],
                                  [sg.Listbox(key='dataset_options',
                                              values=self.datasets,
                                              size=dataset_column_size,
@@ -38,7 +38,8 @@ class DatasetSelectionLayout(LayoutSection):
                       sg.Column([
                           [sg.Text('Selected Datasets %d' % len(self.selected_datasets),
                                    key=self.selected_datasets_title_key,
-                                   size=(len('selected datasets x') + 5, 1))],
+                                   size=(len('selected datasets x') + 5, 1),
+                                   font=Fonts.tab_text)],
                           [sg.Listbox(key='selected_datasets',
                                       values=self.selected_datasets,
                                       size=dataset_column_size,
@@ -47,10 +48,10 @@ class DatasetSelectionLayout(LayoutSection):
                                       font=Fonts.description)]
                       ])
                   ],
-                  [sg.Text('Filter:'),
+                  [sg.Text('Filter:', font=Fonts.tab_text),
                    sg.InputText(key='datasets_filter', enable_events=True, size=(30, 1)),
-                   sg.Button('clear filter', key='clear_filter')],
-                  [sg.Text('', key='warning', text_color='red', size=(50, 1))]]
+                   sg.Button('clear filter', key='clear_filter', font=Fonts.tab_text)],
+                  [sg.Text('', key='warning', text_color='red', size=(50, 1), font=Fonts.tab_text)]]
         return layout
 
     def handle(self, window, event, values):
@@ -85,9 +86,9 @@ class DatasetSelectionLayout(LayoutSection):
                     unselected_values.append(v)
             unselected_values = sorted(unselected_values)
             datasets_selected = sorted(self.selected_datasets)
-            window.FindElement('dataset_options').Update(values=unselected_values)
-            window.FindElement('selected_datasets').Update(values=datasets_selected)
-            window.FindElement(self.selected_datasets_title_key).Update(
+            window['dataset_options'].Update(values=unselected_values)
+            window['selected_datasets'].Update(values=datasets_selected)
+            window[self.selected_datasets_title_key].Update(
                 value='Selected Datasets (%d)' % len(self.selected_datasets))
 
     @property
