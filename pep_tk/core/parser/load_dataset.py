@@ -27,7 +27,7 @@ def load_dataset_manifest(manifest_fp) -> ManifestParser:
     return dm
 
 
-def safe_load_dataset_manifest(manifest_fp) -> Tuple[Optional[ManifestParser], str]:
+def safe_load_dataset_manifest(manifest_fp) -> Tuple[Optional[ManifestParser], Optional[str]]:
     try:
         dm = load_dataset_manifest(manifest_fp)
         return dm, None

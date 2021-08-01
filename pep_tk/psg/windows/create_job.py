@@ -9,7 +9,7 @@ from pep_tk.core.job import create_job, job_exists
 from pep_tk.core.parser import ManifestParser
 from pep_tk.psg.fonts import Fonts
 from pep_tk.psg.layouts import DatasetSelectionLayout, PipelineSelectionLayout, LayoutSection
-from pep_tk.psg.settings import get_user_settings, SystemSettingsNames
+from pep_tk.psg.settings import get_user_settings, SystemSettingsNames, WINDOW_ICON, image_resource_path
 from pep_tk.psg.utils import move_window_onto_screen
 from pep_tk.psg.windows import show_properties_window, run_job, popup_error, popup_about
 
@@ -59,9 +59,6 @@ def validate_inputs(window: sg.Window, values: Dict[Any, Any], dataset_tab, pipe
 
     return True
 
-def create_frame(tl: LayoutSection):
-    return sg.Frame(layout=tl.get_layout(), title=tl.layout_name, font=Fonts.title_medium, title_color='#0b64c5')
-
 
 # ======== Create Job Window launcher =========
 def launch_gui(pm: PipelineManifest, dm: ManifestParser) -> bool:
@@ -71,9 +68,13 @@ def launch_gui(pm: PipelineManifest, dm: ManifestParser) -> bool:
     dataset_tab = DatasetSelectionLayout(dm)
     pipeline_tab = PipelineSelectionLayout(pm)
 
+    def create_frame(tl: LayoutSection):
+        return sg.Frame(layout=tl.get_layout(), title=tl.layout_name, font=Fonts.title_medium, title_color='#0b64c5')
+
     # ======== Create the Layout =========
     menu_def = [['&File', ['&Resume Job     Ctrl-R::-resume-menu-btn-', '&Properties::-properties-menu-btn-',
                            'E&xit::-exit-menu-btn-']],
+                ['&Tools', '&Validate Datasets::-validate-menu-btn-'],
                 ['&Help', '&About...::-about-menu-btn-'], ]
 
     layout = [
@@ -86,10 +87,9 @@ def launch_gui(pm: PipelineManifest, dm: ManifestParser) -> bool:
         [sg.Button('Create Job', key='-CREATE_JOB-')]]
 
     user_settings = get_user_settings()
-    location = user_settings.get(SystemSettingsNames.window_location, (0, 0))
+    location = user_settings.get(SystemSettingsNames.window_location, (None, None))
     window = sg.Window('PEP-TK: Job Configuration', layout,
                        default_element_size=(12, 1), location=location, finalize=True)
-
     # move back on screen if off screen for some reason
     move_window_onto_screen(window)
 
@@ -115,8 +115,8 @@ def launch_gui(pm: PipelineManifest, dm: ManifestParser) -> bool:
             pass
         if event == "__TIMEOUT__":
             continue
+        # ======== Handle menu button pressed =========
         if '::' in event:
-            # handle menu button pressed
             menu_event = event.split('::')[1]  # event
             if menu_event == '-resume-menu-btn-':
                 initial_folder = user_settings[SystemSettingsNames.job_directory]
@@ -144,6 +144,10 @@ def launch_gui(pm: PipelineManifest, dm: ManifestParser) -> bool:
                 break  # exit loop
             elif menu_event == '-about-menu-btn-':
                 popup_about(location=window.current_location())
+            elif menu_event == '-validate-menu-btn-':
+                pass
+
+        # ======== Handle Create Job button pressed =========
         elif event == '-CREATE_JOB-':
             if validate_inputs(window, values, dataset_tab, pipeline_tab):
                 selected_job_directory = user_settings.get(SystemSettingsNames.job_directory)
@@ -162,6 +166,7 @@ def launch_gui(pm: PipelineManifest, dm: ManifestParser) -> bool:
 
                 break  # END: close window
         else:
+            # ======== Handle other user interactions =========
             dataset_tab.handle(window, event, values)
             pipeline_tab.handle(window, event, values)
 

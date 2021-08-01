@@ -159,15 +159,15 @@ def show_properties_window(skip_if_valid=False, modal=True) -> PropertiesWindowO
 
     manifest_folder = os.path.dirname(p.data_manifest_filepath) if p.data_manifest_filepath else None
     layout = [[sg.Text('Enter the viame directory:')],
-              [sg.Input(xstr(p.viame_dir), key='-setup_viame_filepath-IN-'),
+              [sg.Input(xstr(p.viame_dir), key=VIAMEDirValidator.input_key),
                sg.FolderBrowse(initial_folder=p.viame_dir)],
 
               [sg.Text('Enter the dataset manifest filepath:')],
-              [sg.Input(xstr(p.data_manifest_filepath), key='-dataset_manifest_filepath-IN-'),
+              [sg.Input(xstr(p.data_manifest_filepath), key=DataManifestValidator.input_key),
                sg.FileBrowse(initial_folder=manifest_folder)],
 
               [sg.Text('Enter the job base directory(directory where all jobs go):')],
-              [sg.Input(xstr(p.job_base_dir), key='-job_dir-IN-'),
+              [sg.Input(xstr(p.job_base_dir), key=JobBaseDirValidator.input_key),
                sg.FolderBrowse(initial_folder=p.job_base_dir)],
 
               [sg.B('Complete Setup'), sg.B('Exit', key='Exit')]]

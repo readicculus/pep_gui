@@ -1,4 +1,3 @@
-# Given a job directory, load the job and start/resume running
 import threading
 from typing import List, Dict
 

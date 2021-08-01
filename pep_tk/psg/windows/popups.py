@@ -2,6 +2,7 @@ from typing import Tuple, Optional
 import PySimpleGUI as sg
 
 from pep_tk.psg.fonts import Fonts
+from pep_tk.psg.settings import image_resource_path
 
 
 def popup_error(msg: str, parent_window_loc: Optional[Tuple[int,int]] = None, parent_window_size: Optional[Tuple[int,int]] = None):
@@ -27,7 +28,16 @@ def popup_about(location=(None,None)):
     from pep_tk import __version__
     message = f'PEP GUI Version {__version__}\n' \
               f'Developed by Yuval Boss\n' \
-              f'Documentation can be found at https://github.com/readicculus/pep_gui'
+              f'https://github.com/readicculus/pep_gui'
 
-    sg.popup_no_buttons(message, title='About', line_width=200, location=location, modal=True, keep_on_top=True,
-                         font=Fonts.tab_text)
+    # sg.popup_no_buttons(message, title='About', line_width=200, location=location, modal=True, keep_on_top=True,
+    #                      font=Fonts.tab_text)
+    w=max([len(x) for x in message.split('\n')])
+    l = [[sg.Column([[sg.Image(filename=image_resource_path('icon_160x160.png'))]], vertical_alignment='center', justification='center',  k='-C-')],
+         [sg.Multiline(default_text=message, disabled=True, no_scrollbar=True, expand_y=True, size=(w,3))]]
+    window = sg.Window(layout=l, title='About', modal=True, keep_on_top=True, location=location, font=Fonts.tab_text, finalize=True)
+    while True:
+        event, values = window.read()
+        if event in (sg.WINDOW_CLOSED, 'Exit'):
+            window.close()
+            break
