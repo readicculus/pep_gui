@@ -10,10 +10,9 @@ class ImageList:
         with open(list_file) as f:
             data = f.readlines()
             for d in data:
-                fn = d.strip()
-                # if list is filenames then append thee base dir
-                if os.path.dirname(fn) == '':
-                    fn = os.path.join(base_dir, fn)
+                fn = os.path.normpath(d.strip())
+                if not os.path.isabs(fn):
+                    fn = os.path.normpath(os.path.join(base_dir, fn))
                 self.files.append(fn)
         self.files = sorted(self.files)
         self.current = -1
@@ -40,8 +39,8 @@ class VIAMEDataset:
     thermal_image_list: str
     color_image_list: str
     transformation_file: str
-    thermal_images: ImageList = None
-    color_images: ImageList = None
+    _thermal_images: ImageList = None
+    _color_images: ImageList = None
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -53,18 +52,25 @@ class VIAMEDataset:
         return hasattr(self, item)
 
     @property
-    def thermal_image_count(self):
-        if not self.thermal_images:
+    def thermal_images(self):
+        if not self._thermal_images:
             if self.thermal_image_list:
-                self.thermal_images = ImageList(self.thermal_image_list)
-        return 0 if self.thermal_images is None else len(self.thermal_images)
+                self._thermal_images = ImageList(self.thermal_image_list)
+        return self._thermal_images if self._thermal_images else None
 
+    @property
+    def color_images(self):
+        if not self._color_images:
+            if self.color_image_list:
+                self._color_images = ImageList(self.color_image_list)
+        return self._color_images if self._color_images else None
+
+    @property
+    def thermal_image_count(self):
+        return 0 if not self.thermal_images else len(self.thermal_images)
 
     @property
     def color_image_count(self):
-        if not self.color_images:
-            if self.color_image_list:
-                self.color_images = ImageList(self.color_image_list)
         return 0 if self.color_images is None else len(self.color_images)
 
     @property

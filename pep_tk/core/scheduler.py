@@ -24,8 +24,6 @@ class SchedulerEventManager(metaclass=abc.ABCMeta):
         self.task_end_time = {}
         self.task_status = {}
         self.task_messages = {}
-        self.stdout = {}  # TODO probably issue with storing stdout and stderr for all tasks in memory
-        self.stderr = {}
         self.task_count = {}
         self.task_max_count = {}
         self.initialized_tasks = []
@@ -60,15 +58,9 @@ class SchedulerEventManager(metaclass=abc.ABCMeta):
         return self._update_task_progress(task_key, current_count, self.task_max_count[task_key])
 
     def update_task_stdout(self, task_key: TaskKey, line: str):
-        if task_key not in self.stdout:
-            self.stdout[task_key] = ""
-        self.stdout[task_key] += line
         self._update_task_stdout(task_key, line)
 
     def update_task_stderr(self, task_key: TaskKey, line: str):
-        if task_key not in self.stderr:
-            self.stderr[task_key] = ""
-        self.stderr[task_key] += line
         self._update_task_stdout(task_key, line)
 
     def update_task_output_files(self, task_key: TaskKey, output_files: List[str]):
@@ -233,27 +225,32 @@ class Scheduler:
                                env=env,
                                kwiver_setup_path=self.kwiver_setup_path)
 
-            process = kwr.run(stdout=subprocess.PIPE, stderr=error_log)
+            process = kwr.run(stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             keep_stdout = True
-            stdout = ""
 
             if process.stdout is None:
                 raise RuntimeError("Stdout must not be none")
 
             # Stdout Thread
-            q = Queue()
-            t = threading.Thread(target=enqueue_output, args=(process.stdout, q, prog_stop_evt, stdout_log))
+            kwiver_output_queue = Queue()
+            t = threading.Thread(target=enqueue_output, args=(process.stdout, kwiver_output_queue, prog_stop_evt, stdout_log))
+            t_err = threading.Thread(target=enqueue_output, args=(process.stderr, kwiver_output_queue, prog_stop_evt, error_log))
             t.daemon = True  # thread dies with the program
+            t_err.daemon = True  # thread dies with the program
             t.start()
+            t_err.start()
             cancelled = False
             while not cancelled:  # read line without blocking
                 sleep(0.1)
                 try:
-                    line = q.get(timeout=0.2)
+                    line = kwiver_output_queue.get(timeout=0.2)
                     if line == b'': break  # job is complete if empty byte received
+                    else:
+                        self.manager.update_task_stdout(current_task_key, line.decode("utf-8"))
                 except Empty:
                     pass
+
                 # check if user cancelled task, if cancelled kill kwiver process and stop output reading loop
                 cancelled = self.manager.check_cancelled(current_task_key)
 
