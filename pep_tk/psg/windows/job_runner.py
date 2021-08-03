@@ -110,8 +110,7 @@ def make_main_window(tasks: List[TaskKey], gui_settings: sg.UserSettings):
     window = sg.Window('PEP-TK: Job Runner', layout, location=location, finalize=True,
                        enable_close_attempted_event=True, use_default_focus=False)
 
-    for btn_k in list(tabs_group.tab_button_event_keys.keys()):
-        window[btn_k].expand(True, False, False)
+    window['-progress-frame-'].expand(True, True, True)
     tabs_group.select_tab(window) # ensure first tab is selected
 
     return window, tabs, tabs_group

@@ -96,7 +96,7 @@ class TaskTab(LayoutSection):
         cancel_button = sg.Button('Cancel', key=self._cancel_event_key, disabled=True)
         output_title = sg.T("Output Log", font=Fonts.title_small)
         kwiver_output = sg.Multiline( key=self._kwiver_output_key,
-                                      autoscroll=False, auto_refresh=True, disabled=True, expand_x=True, expand_y=True, size=(50,50))
+                                      autoscroll=False, auto_refresh=True, disabled=True, expand_x=True, expand_y=True, size=(50,10))
         layout = [[status_icon, title, pb, time_elapsed, counter, avg_iteration_time],
                   [output_files],
                   [cancel_button],
@@ -193,7 +193,7 @@ class TaskRunnerTab():
         self.visible = visible
 
     def get_layout(self):
-        return sg.Column(self._layout, visible=self.visible, key=self.tab_contents_key)
+        return sg.Column(self._layout, visible=self.visible, key=self.tab_contents_key, expand_y=True)
 
     def update_status(self, window: sg.Window, status: TaskStatus):
         icon_fp = status_icons.get(status, None)
@@ -215,6 +215,7 @@ class TaskRunnerTabGroup(LayoutSection):
                 self.current_tab = t
         self.tabs_by_task_key : Dict[str, TaskRunnerTab] = {t.task_key: t for t in tabs}
         self.tab_button_event_keys : Dict[str, TaskRunnerTab] = {t.tab_button_key: t for t in tabs}
+        self.tab_contents_event_keys : Dict[str, TaskRunnerTab] = {t.tab_contents_key: t for t in tabs}
         self.update_event_keys : Dict[str, TaskRunnerTab] = {t.tab_status_update_key: t for t in tabs}
         self._tasks_started_flags = []
 
@@ -264,8 +265,9 @@ class TaskRunnerTabGroup(LayoutSection):
         scrollable_tabs = sg.Column(tabs, scrollable=True, vertical_scroll_only=True, size=(col_width, height),
                                     background_color=self.button_color_off, pad=((0, 0), (0, 0)), vertical_alignment='top')
 
-        layout = [[scrollable_tabs, sg.Frame(f'Task Progress: {selected_name}', [contents], vertical_alignment='top',
-                                             key='-progress-frame-')]]
+        tab_contents = sg.Frame(f'Task Progress: {selected_name}', [contents], vertical_alignment='top',
+                 key='-progress-frame-')
+        layout = [[scrollable_tabs, tab_contents]]
         return layout
 
     def select_tab(self, window, event_tab_btn_key = None):
@@ -282,6 +284,7 @@ class TaskRunnerTabGroup(LayoutSection):
         window[tab.tab_contents_key].Update(visible=True)
         window[tab.tab_button_key].Update(button_color=self.button_color_on)
         window[tab.tab_button_key].set_focus(True)
+        window[tab.tab_contents_key].expand(True,True,True)
         window['-progress-frame-'].Update(value=f'Task Progress: {tab.task_key}')
         self.current_tab = tab
 
@@ -292,8 +295,9 @@ class TaskRunnerTabGroup(LayoutSection):
         elif event in self.update_event_keys:
             progress: ProgressGUIEventData = values[event]
             self.update_event_keys[event].update_status(window, progress.task_status)
-            if progress.task_status == TaskStatus.RUNNING and progress.task_status not in self._tasks_started_flags:
-                self._tasks_started_flags.append(self.update_event_keys[event].task_key)
+            task_key = self.update_event_keys[event].task_key
+            if progress.task_status == TaskStatus.RUNNING and task_key not in self._tasks_started_flags:
+                self._tasks_started_flags.append(task_key)
                 self.select_tab(window, self.update_event_keys[event].tab_button_key)
                 # window[self.update_event_keys[event].tab_button_key].click()
 
