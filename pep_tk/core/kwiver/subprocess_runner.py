@@ -44,7 +44,10 @@ class KwiverRunner:
     def run(self, stdout, stderr):
         cmd = get_pipeline_cmd(kwiver_setup_path=self.kwiver_setup_path) + [self.pipeline_fp]
         cmd = ' '.join(cmd)
-        print(cmd)
+        env_str = ""
+        for k, v in self.env.items():
+            env_str += '%s=%s ' % (k,v) + env_str
+        print(cmd.replace('&&', '&& ' + env_str) )
         return execute_command(cmd, self.env, self.cwd, stdout=stdout, stderr=stderr)
 
 

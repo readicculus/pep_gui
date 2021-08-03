@@ -111,7 +111,7 @@ class SchedulerEventManager(metaclass=abc.ABCMeta):
 def poll_image_list(fp: str):
     if not os.path.exists(fp):
         return 0
-    with open(fp) as f:
+    with open(fp, 'r') as f:
         count = sum(1 for _ in f)
     return count
 
@@ -150,7 +150,7 @@ class Scheduler:
                  job_meta: JobMeta,
                  manager: SchedulerEventManager,
                  kwiver_setup_path: str,
-                 progress_poll_freq: int = 5):
+                 progress_poll_freq: int = 2):
         """
         Initialize a Scheduler for proccessing task queue synchronously.
 
@@ -199,12 +199,9 @@ class Scheduler:
             env = {**pipeline_output_csv_env, **pipeline_output_image_list_env}
 
             # Setup error log
-            error_log_fp = os.path.join(self.job_meta.logs_dir,
-                                        f'stderr-{current_task_key.replace(":", "_")}.log')
             stdout_log_fp = os.path.join(self.job_meta.logs_dir,
-                                        f'stdout-{current_task_key.replace(":", "_")}.log')
-            error_log = open(error_log_fp, 'w+b')
-            stdout_log = open(stdout_log_fp, 'w+b')
+                                        f'output-{current_task_key.replace(":", "_")}.log')
+            output_log = open(stdout_log_fp, 'w+b')
 
             # Update Task Started
             self.manager.start_task(current_task_key)
@@ -225,26 +222,24 @@ class Scheduler:
                                env=env,
                                kwiver_setup_path=self.kwiver_setup_path)
 
-            process = kwr.run(stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-            keep_stdout = True
+            process = kwr.run(stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
             if process.stdout is None:
                 raise RuntimeError("Stdout must not be none")
 
             # Stdout Thread
             kwiver_output_queue = Queue()
-            t = threading.Thread(target=enqueue_output, args=(process.stdout, kwiver_output_queue, prog_stop_evt, stdout_log))
-            t_err = threading.Thread(target=enqueue_output, args=(process.stderr, kwiver_output_queue, prog_stop_evt, error_log))
+            t = threading.Thread(target=enqueue_output, args=(process.stdout, kwiver_output_queue, prog_stop_evt, output_log))
             t.daemon = True  # thread dies with the program
-            t_err.daemon = True  # thread dies with the program
             t.start()
-            t_err.start()
+            # t_err = threading.Thread(target=enqueue_output, args=(process.stderr, kwiver_output_queue, prog_stop_evt, error_log))
+            # t_err.daemon = True  # thread dies with the program
+            # t_err.start()
             cancelled = False
             while not cancelled:  # read line without blocking
-                sleep(0.1)
+                sleep(0.01)
                 try:
-                    line = kwiver_output_queue.get(timeout=0.2)
+                    line = kwiver_output_queue.get_nowait()
                     if line == b'': break  # job is complete if empty byte received
                     else:
                         self.manager.update_task_stdout(current_task_key, line.decode("utf-8"))
@@ -283,25 +278,19 @@ class Scheduler:
 
                 continue
 
-            # Wait for exit up to 30 seconds after kill
+            # Wait for exit up to 5 seconds after kill
             code = process.wait(5)
 
             if code > 0:  # ERROR
-                error_log.seek(0)
-                stderr_log = error_log.read().decode()
-                error_log.close()
-
                 # Update Task Ended with error
                 count = poll_image_list(image_list_monitor)
                 self.manager.update_task_progress(current_task_key, count)
                 self.job_state.set_task_status(current_task_key, TaskStatus.ERROR)
-                self.manager.update_task_stderr(current_task_key, stderr_log)
                 self.manager.end_task(current_task_key, TaskStatus.ERROR)
 
                 # Move output files to error dir
                 outputs_to_move = list(pipeline_output_csv_env.values()) + list(pipeline_output_image_list_env.values())
                 move_output_files(outputs_to_move, self.job_meta.error_outputs_dir)
-                # TODO show error in UI, and save in log somewhere
             else:  # SUCCESS
                 # Update Task final count in GUI, has to be done before moving file
                 count = poll_image_list(image_list_monitor)
@@ -318,5 +307,4 @@ class Scheduler:
                 self.manager.end_task(current_task_key, TaskStatus.SUCCESS)
                 self.manager.update_task_output_files(current_task_key, outputs_new_loc)
 
-            error_log.close()
-            stdout_log.close()
+            output_log.close()

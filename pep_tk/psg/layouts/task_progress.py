@@ -8,7 +8,9 @@ from pep_tk.core.job import TaskStatus
 from pep_tk.psg.fonts import Fonts
 from pep_tk.psg.layouts import LayoutSection
 from pep_tk.psg.settings import icon_filepath
+from pep_tk.psg.utils import set_pep_theme
 
+set_pep_theme(sg)
 
 @dataclass
 class ProgressGUIEventData:
@@ -134,19 +136,30 @@ class TaskTab(LayoutSection):
         else:
             window[self._cancel_event_key](disabled=True)
 
-    def _update_kwiver_output(self, window: sg.Window, line: str):
-        # print('_update_kwiver_output:' + str(line))
-        if line is not None and line != "":
-            if self.MAX_STDOUT_LINES is not None:
-                lines = window[self._kwiver_output_key].get().split('\n')
-                line_ct = len(lines)
-                if line_ct > self.MAX_STDOUT_LINES:
-                    end_lines = lines[-self.MAX_STDOUT_LINES:]
-                    end_lines += line.split('\n')
-                    window[self._kwiver_output_key].update(value='\n'.join(end_lines), append=False)
-                    return
+    def _update_kwiver_output(self, window: sg.Window, new_str: str):
+        if new_str is None or new_str == "":
+            return
+        window[self._kwiver_output_key].print(new_str.strip(), autoscroll=True)
 
-            window[self._kwiver_output_key].print(line, end='', autoscroll=False)
+        # if self.MAX_STDOUT_LINES is not None:
+        #     lines = window[self._kwiver_output_key].get().split('\n')
+        #     line_ct = len(lines)
+        #     if line_ct > self.MAX_STDOUT_LINES:
+        #         end_lines = lines[-self.MAX_STDOUT_LINES:]
+        #         end_lines += new_str.split('\n')
+        #         window[self._kwiver_output_key].update(value='\n'.join(end_lines), append=False)
+        #         return
+        #
+        # lines = new_str.split('\n')
+        # for line in lines:
+        #     text_color = None
+        #     if 'INFO' in line:
+        #         text_color = 'blue'
+        #     elif 'WARNING' in line:
+        #         text_color = 'orange'
+        #     elif 'ERROR' in line:
+        #         text_color = 'red'
+        #     window[self._kwiver_output_key].print(line, end='\n', autoscroll=False, text_color=text_color)
 
     def _update_avg_iteration_time(self, window: sg.Window, avg_iteration_time: float):
         if avg_iteration_time is None:
@@ -202,8 +215,8 @@ class TaskRunnerTab():
 
 
 class TaskRunnerTabGroup(LayoutSection):
-    button_color_off = 'snow'
-    button_color_on = 'azure'
+    button_color_off = ('black', sg.LOOK_AND_FEEL_TABLE[sg.CURRENT_LOOK_AND_FEEL]["BACKGROUND"])
+    button_color_on = ('black', 'azure')
 
     def __init__(self, items):
         tabs = []
@@ -252,18 +265,19 @@ class TaskRunnerTabGroup(LayoutSection):
                 [sg.Image(size=(icon_dim, icon_dim),
                                             key=t.tab_status_key,
                                             pad=((0, 0), (0, 0)),
-                                            background_color=self.button_color_off),
+                                            background_color=self.button_color_off[1]),
                                    sg.Button(make_max_name_len(t.task_key),
                                              key=t.tab_button_key,
                                              pad=((0, 0), (0, 0)),
                                              button_color=self.button_color_off,
+                                             use_ttk_buttons=True,
                                              mouseover_colors=self.button_color_on,
                                              border_width=0)]
             tabs.append(tab_col)
             contents.append(t.get_layout())
 
         scrollable_tabs = sg.Column(tabs, scrollable=True, vertical_scroll_only=True, size=(col_width, height),
-                                    background_color=self.button_color_off, pad=((0, 0), (0, 0)), vertical_alignment='top')
+                                    background_color=self.button_color_off[1], pad=((0, 0), (0, 0)), vertical_alignment='top')
 
         tab_contents = sg.Frame(f'Task Progress: {selected_name}', [contents], vertical_alignment='top',
                  key='-progress-frame-')
@@ -299,7 +313,6 @@ class TaskRunnerTabGroup(LayoutSection):
             if progress.task_status == TaskStatus.RUNNING and task_key not in self._tasks_started_flags:
                 self._tasks_started_flags.append(task_key)
                 self.select_tab(window, self.update_event_keys[event].tab_button_key)
-                # window[self.update_event_keys[event].tab_button_key].click()
 
     @property
     def layout_name(self):
