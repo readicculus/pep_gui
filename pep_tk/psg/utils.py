@@ -21,7 +21,3 @@ def set_pep_theme(sg_lib):
                              "PROGRESS": COLOR_SYSTEM_DEFAULT, "BORDER": 1, "SLIDER_DEPTH": 1, "PROGRESS_DEPTH": 0, }
     sg_lib.theme_add_new(name, theme)
     sg_lib.theme(name)
-    # return "LightGrey", {"BACKGROUND": "#FAFAFA", "TEXT": "#000000", "INPUT": "#004EA1", "TEXT_INPUT": "#FFFFFF", "SCROLL": "#5EA7FF",
-    #                      "BUTTON": ("#FFFFFF", "#0079D3"), "PROGRESS": sg.DEFAULT_PROGRESS_BAR_COMPUTE, "BORDER": 0,
-    #                      "SLIDER_DEPTH": 0, "PROGRESS_DEPTH": 0,
-    #                      "ACCENT1": "#FF0266", "ACCENT2": "#FF5C93", "ACCENT3": "#C5003C", },
