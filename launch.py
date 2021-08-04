@@ -1,21 +1,21 @@
 import os
 import sys
+
+# IMPORTANT - add our site-packages to the PYTHONPATH before anything else happens
 PLUGIN_PATH = os.path.dirname(os.path.abspath(__file__))
 plugin_python_lib = os.path.join(PLUGIN_PATH, 'lib', 'python3.6', 'site-packages')
 sys.path.insert(0, plugin_python_lib)
-print(plugin_python_lib)
+print('Added %s to PYTHONPATH' % plugin_python_lib)
 
-from pep_tk.core.parser import load_dataset_manifest
-from pep_tk.psg.settings import UserProperties
-from pep_tk.psg.windows import popup_error
 
 def main():
-    from pep_tk.core.parser import DatasetManifestError
-    from pep_tk.psg.windows.create_job import launch_gui
+    from pep_tk.core.parser import load_dataset_manifest, DatasetManifestError, EmptyParser
+    from pep_tk.psg.settings import UserProperties
+    from pep_tk.psg.windows import launch_gui, popup_error
     from pep_tk.core.configuration import PipelineManifest
-    from pep_tk.core.parser import EmptyParser
     success = False
     while not success:
+        # launch_gui returns False if needs to be refreshed, returns true if program exits
         pm = PipelineManifest()
         try:
             p = UserProperties()
@@ -35,9 +35,10 @@ def main():
                 msg = str(e)
 
             popup_error(msg)
-            break
+            return
 
         success = launch_gui(pm, dm)
+
 
 if __name__ == "__main__":
     main()

@@ -7,6 +7,7 @@ import time
 from time import sleep
 from datetime import datetime
 from typing import List, Optional, IO
+import atexit
 
 try:
     from Queue import Queue, Empty
@@ -119,8 +120,14 @@ def poll_image_list(fp: str):
 def monitor_outputs(stop_event: threading.Event, task_key: TaskKey, manager: SchedulerEventManager,
                     output_file: str, poll_freq: int):
     while not stop_event.wait(poll_freq):
-        count = poll_image_list(output_file)
-        manager.update_task_progress(task_key, count)
+        try:
+            count = poll_image_list(output_file)
+            manager.update_task_progress(task_key, count)
+        except Exception as e:
+            # should not have an issue but this is just to ensure program doesn't crash for user
+            # pretty sure the concurrency stuff here is solid, but hard to be certain
+            print(e)
+
 
 
 def enqueue_output(out, queue, evt: threading.Event, logfile: IO):
@@ -129,8 +136,13 @@ def enqueue_output(out, queue, evt: threading.Event, logfile: IO):
     for line in iter(out.readline, b'foobar'):
         if evt.is_set():
             break
-        logfile.write(line)
-        queue.put(line)
+        try:
+            logfile.write(line)
+            queue.put(line)
+        except Exception as e:
+            # should not have an issue but this is just to ensure program doesn't crash for user
+            # pretty sure the concurrency stuff here is solid, but hard to be certain
+            print(e)
 
 
 def move_output_files(output_fps, destination_dir):
@@ -144,13 +156,25 @@ def move_output_files(output_fps, destination_dir):
         new_files.append(new_loc)
     return new_files
 
+def exit_cleanup(fds, files_to_move, dir_to_move):
+    for f in fds:
+        try:
+            f.close()
+            print('closed')
+        except:
+            print('cant close')
+            pass
+
+    move_output_files(files_to_move, dir_to_move)
+
 class Scheduler:
     def __init__(self,
                  job_state: JobState,
                  job_meta: JobMeta,
                  manager: SchedulerEventManager,
                  kwiver_setup_path: str,
-                 progress_poll_freq: int = 2):
+                 progress_poll_freq: int = 1,
+                 kill_event : threading.Event() = None):
         """
         Initialize a Scheduler for proccessing task queue synchronously.
 
@@ -159,12 +183,15 @@ class Scheduler:
         :param manager: manager for dispatching events, updating progress, etc..
         :param kwiver_setup_path: setup_viame.sh/bat path
         :param progress_poll_freq: frequency to poll progress (reads output file and counts progress)
+        :param kill_event: threading.Event to send the scheduler if the GUI thread is exited or the program is killed
+        which will trigger the scheduler to cleanup and exit cleanly
         """
         self.job_state = job_state
         self.job_meta = job_meta
         self.manager = manager
         self.kwiver_setup_path = kwiver_setup_path
         self.progress_poll_freq = progress_poll_freq
+        self.kill_event : threading.Event() = kill_event
 
     def run(self):
         # if resuming mark already completed tasks as completed
@@ -200,8 +227,12 @@ class Scheduler:
 
             # Setup error log
             stdout_log_fp = os.path.join(self.job_meta.logs_dir,
-                                        f'output-{current_task_key.replace(":", "_")}.log')
+                                        f'kwiver-output-{current_task_key.replace(":", "_")}.log')
             output_log = open(stdout_log_fp, 'w+b')
+
+            atexit.register(exit_cleanup, fds=[output_log],
+                            files_to_move = list(pipeline_output_csv_env.values()) + list(pipeline_output_image_list_env.values()),
+                            dir_to_move=self.job_meta.error_outputs_dir)
 
             # Update Task Started
             self.manager.start_task(current_task_key)
@@ -237,9 +268,16 @@ class Scheduler:
             # t_err.start()
             cancelled = False
             while not cancelled:  # read line without blocking
-                sleep(0.01)
+                if self.kill_event:
+                    if self.kill_event.is_set():
+                        prog_stop_evt.set()
+                        exit_cleanup(fds = [output_log],
+                                     files_to_move = list(pipeline_output_csv_env.values()) + list(
+                                     pipeline_output_image_list_env.values()),
+                                     dir_to_move = self.job_meta.error_outputs_dir)
+                        return
                 try:
-                    line = kwiver_output_queue.get_nowait()
+                    line = kwiver_output_queue.get(timeout=.5)
                     if line == b'': break  # job is complete if empty byte received
                     else:
                         self.manager.update_task_stdout(current_task_key, line.decode("utf-8"))

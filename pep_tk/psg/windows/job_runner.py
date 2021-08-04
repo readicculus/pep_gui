@@ -124,11 +124,12 @@ def run_job(job_path: str):
     window, tabs, tabs_group = make_main_window(job_state.tasks(), user_settings)
     tabs_by_update_key = {t.task_progress_update_key: t for t in tabs}
     manager = GUIManager(window=window, tabs=tabs)
+    kill_event = threading.Event()
     sched = Scheduler(job_state=job_state,
                       job_meta=job_meta,
                       manager=manager,
                       kwiver_setup_path=get_viame_bash_or_bat_file_path(
-                          user_settings.get(SystemSettingsNames.viame_directory)))
+                          user_settings.get(SystemSettingsNames.viame_directory)), kill_event=kill_event)
 
     threading.Thread(target=sched.run, daemon=True).start()
 
@@ -147,6 +148,7 @@ def run_job(job_path: str):
                                      "are you sure you want to close?",
                                      title='Are you sure?', location=location)
             if res == 'OK':
+                kill_event.set()
                 window.close()
                 break
         else:
