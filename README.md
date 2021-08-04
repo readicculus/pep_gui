@@ -1,4 +1,5 @@
-# PEP-TK
+<h1><img src="lib/img/icon_80x80.png" width="80" height="80"/>Polar Ecosystems Program GUI</h1>
+
 #### Table of Contents
   * [Terminology](#terminology)
   * [The GUI](#the-gui)

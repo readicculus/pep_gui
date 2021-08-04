@@ -10,7 +10,7 @@ with open('requirements.txt') as f:
     install_reqs = f.read().splitlines()
 install_reqs = list(filter(None, install_reqs))
 
-setup(name='PEP-TK',
+setup(name='pep_tk',
       version=__version__,
       description='Polar Ecosystems Program Toolkit',
       author='Yuval Boss',
@@ -18,4 +18,8 @@ setup(name='PEP-TK',
       url='https://github.com/readicculus/pep_gui',
       install_requires=install_reqs,
       packages=find_packages(),
+      # package_data={'pep_tk': ['lib']},
+      # entry_points={
+      #     'console_scripts': ['pepgui=pep_tk:launch'],
+      # },
      )

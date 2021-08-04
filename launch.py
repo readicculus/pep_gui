@@ -1,37 +1,43 @@
 import os
 import sys
 
-
-PLUGIN_PATH = os.path.dirname(os.path.abspath(__file__))
-plugin_python_lib = os.path.join(PLUGIN_PATH, 'lib', 'python3.6', 'site-packages')
-sys.path.insert(0, plugin_python_lib)
-from pep_tk.psg.windows.create_job import launch_gui
-from pep_tk.core.parser import DatasetManifestError
-
 def main():
-    try:
-        launch_gui()
-    except DatasetManifestError as e:
-        import PySimpleGUI as sg
-        from pep_tk.psg.windows import initial_setup
+    from pep_tk.core.parser import load_dataset_manifest, DatasetManifestError, EmptyParser
+    from pep_tk.psg.settings import UserProperties
+    from pep_tk.psg.windows import launch_gui, popup_error
+    from pep_tk.core.configuration import PipelineManifest
+    success = False
+    while not success:
+        # launch_gui returns False if needs to be refreshed, returns true if program exits
+        pm = PipelineManifest()
+        try:
+            p = UserProperties()
+            dm = load_dataset_manifest(p.data_manifest_filepath)
+        except DatasetManifestError as e:
+            # Handeled dataset manifest exception on startup - pass an empty dataset manifest
+            if hasattr(e, 'message'):
+                msg = f'Error Type: {e.__class__.__name__}\nMessage:\n{e.message}'
+            else:
+                msg = str(e)
+            dm = EmptyParser(error_message=msg)
+        except Exception as e:
+            # Unhandled exception on startup - show error and end application
+            if hasattr(e, 'message'):
+                msg = f'Unhandled Error Contact Yuval!\nError Type:\n{e.__class__.__name__}\nMessage:\n{e.message}'
+            else:
+                msg = str(e)
 
-        if hasattr(e, 'message'):
-            msg = f'Error Type:\n{e.__class__.__name__}\nMessage:\n{e.message}'
-        else:
-            msg = str(e)
+            popup_error(msg)
+            return
 
-        sg.popup_ok(msg, title="uh oh")
-        initial_setup(skip_if_complete=False)
-        main()
-    except Exception as e:
-        import PySimpleGUI as sg
+        success = launch_gui(pm, dm)
 
-        if hasattr(e, 'message'):
-            msg = f'Error Type:\n{e.__class__.__name__}\nMessage:\n{e.message}'
-        else:
-            msg = str(e)
-
-        sg.popup_error(msg, title="uh oh")
 
 if __name__ == "__main__":
+    # IMPORTANT - add our site-packages to the PYTHONPATH before anything else happens
+    PLUGIN_PATH = os.path.dirname(os.path.abspath(__file__))
+    plugin_python_lib = os.path.join(PLUGIN_PATH, 'lib', 'python3.6', 'site-packages')
+    sys.path.insert(0, plugin_python_lib)
+    print('Added %s to PYTHONPATH' % plugin_python_lib)
+
     main()
