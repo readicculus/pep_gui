@@ -2,7 +2,7 @@
 # global pipeline config
 #
 config _pipeline:_edge
-  :capacity                                    5
+  :capacity                                    40
 
 config global
    # output metadata information
