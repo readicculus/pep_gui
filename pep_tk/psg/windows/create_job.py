@@ -9,7 +9,7 @@ from pep_tk.core.job import create_job, job_exists
 from pep_tk.core.parser import ManifestParser
 from pep_tk.psg.fonts import Fonts
 from pep_tk.psg.layouts import DatasetSelectionLayout, PipelineSelectionLayout, LayoutSection
-from pep_tk.psg.settings import get_user_settings, SystemSettingsNames, WINDOW_ICON, image_resource_path
+from pep_tk.psg.settings import get_user_settings, SystemSettingsNames
 from pep_tk.psg.utils import move_window_onto_screen
 from pep_tk.psg.windows import show_properties_window, run_job, popup_error, popup_about
 

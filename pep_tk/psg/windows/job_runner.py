@@ -2,7 +2,6 @@ import threading
 from typing import List, Dict, Optional
 
 import PySimpleGUI as sg
-from dataclasses import dataclass
 
 from pep_tk.core.job import load_job, TaskStatus, TaskKey
 from pep_tk.core.scheduler import Scheduler, SchedulerEventManager
@@ -11,8 +10,8 @@ from pep_tk.psg.layouts import TaskTab, TaskRunnerTabGroup, ProgressGUIEventData
 from pep_tk.psg.settings import get_user_settings, SystemSettingsNames, get_viame_bash_or_bat_file_path
 from pep_tk.psg.utils import set_pep_theme
 
-# sg.theme('SystemDefaultForReal')
 set_pep_theme(sg)
+
 
 class GUIManager(SchedulerEventManager):
     def __init__(self, window: sg.Window, tabs: List[TaskTab]):
@@ -112,7 +111,7 @@ def make_main_window(tasks: List[TaskKey], gui_settings: sg.UserSettings):
                        enable_close_attempted_event=True, use_default_focus=False)
 
     window['-progress-frame-'].expand(True, True, True)
-    tabs_group.select_tab(window) # ensure first tab is selected
+    tabs_group.select_tab(window)  # ensure first tab is selected
 
     return window, tabs, tabs_group
 
@@ -156,5 +155,3 @@ def run_job(job_path: str):
                 tabs_by_update_key[event].handle(window, event, values)
             tabs_group.handle(window, event, values)
 
-if __name__ == '__main__':
-    run_job('/home/yuval/Desktop/jobs/testa')

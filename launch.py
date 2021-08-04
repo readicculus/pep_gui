@@ -1,13 +1,6 @@
 import os
 import sys
 
-# IMPORTANT - add our site-packages to the PYTHONPATH before anything else happens
-PLUGIN_PATH = os.path.dirname(os.path.abspath(__file__))
-plugin_python_lib = os.path.join(PLUGIN_PATH, 'lib', 'python3.6', 'site-packages')
-sys.path.insert(0, plugin_python_lib)
-print('Added %s to PYTHONPATH' % plugin_python_lib)
-
-
 def main():
     from pep_tk.core.parser import load_dataset_manifest, DatasetManifestError, EmptyParser
     from pep_tk.psg.settings import UserProperties
@@ -41,4 +34,10 @@ def main():
 
 
 if __name__ == "__main__":
+    # IMPORTANT - add our site-packages to the PYTHONPATH before anything else happens
+    PLUGIN_PATH = os.path.dirname(os.path.abspath(__file__))
+    plugin_python_lib = os.path.join(PLUGIN_PATH, 'lib', 'python3.6', 'site-packages')
+    sys.path.insert(0, plugin_python_lib)
+    print('Added %s to PYTHONPATH' % plugin_python_lib)
+
     main()
