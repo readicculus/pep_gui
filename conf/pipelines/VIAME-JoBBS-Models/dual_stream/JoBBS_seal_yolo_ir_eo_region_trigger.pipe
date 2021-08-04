@@ -177,7 +177,7 @@ connect from warp_ir_detections_to_eo.detected_object_set
         to   optical_subregion_selector2.detected_object_set
 
 #  ===================================================
-# Combine Seal + Polar Bear dets then NMS
+# Combine Seal + Polar Bear no NMS
 #  ===================================================
 process optical_detector_output
   :: merge_detection_sets
