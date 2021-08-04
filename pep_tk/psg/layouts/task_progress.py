@@ -56,8 +56,6 @@ class TaskTab(LayoutSection):
         - This then updates the BetterProgressBar with that task_progress_update_key
         - Contains information on elapsed time, a progress counter, avg time/iteration, and task name
      """
-    MAX_STDOUT_LINES = None
-
     def __init__(self, task_key):
         self.task_key = task_key
 
@@ -140,26 +138,6 @@ class TaskTab(LayoutSection):
         if new_str is None or new_str == "":
             return
         window[self._kwiver_output_key].print(new_str.strip(), autoscroll=True)
-
-        # if self.MAX_STDOUT_LINES is not None:
-        #     lines = window[self._kwiver_output_key].get().split('\n')
-        #     line_ct = len(lines)
-        #     if line_ct > self.MAX_STDOUT_LINES:
-        #         end_lines = lines[-self.MAX_STDOUT_LINES:]
-        #         end_lines += new_str.split('\n')
-        #         window[self._kwiver_output_key].update(value='\n'.join(end_lines), append=False)
-        #         return
-        #
-        # lines = new_str.split('\n')
-        # for line in lines:
-        #     text_color = None
-        #     if 'INFO' in line:
-        #         text_color = 'blue'
-        #     elif 'WARNING' in line:
-        #         text_color = 'orange'
-        #     elif 'ERROR' in line:
-        #         text_color = 'red'
-        #     window[self._kwiver_output_key].print(line, end='\n', autoscroll=False, text_color=text_color)
 
     def _update_avg_iteration_time(self, window: sg.Window, avg_iteration_time: float):
         if avg_iteration_time is None:
@@ -276,7 +254,8 @@ class TaskRunnerTabGroup(LayoutSection):
             tabs.append(tab_col)
             contents.append(t.get_layout())
 
-        scrollable_tabs = sg.Column(tabs, scrollable=True, vertical_scroll_only=True, size=(col_width, height),
+        needs_scroll = len(tabs) * row_height > height
+        scrollable_tabs = sg.Column(tabs, scrollable=needs_scroll, vertical_scroll_only=True, size=(col_width, height),
                                     background_color=self.button_color_off[1], pad=((0, 0), (0, 0)), vertical_alignment='top')
 
         tab_contents = sg.Frame(f'Task Progress: {selected_name}', [contents], vertical_alignment='top',

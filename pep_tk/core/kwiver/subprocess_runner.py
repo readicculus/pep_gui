@@ -5,7 +5,6 @@ from typing import Dict
 
 
 def get_pipeline_cmd(debug=False, kwiver_setup_path = None):
-    # return ['kwiver', 'pipe-to-dot', '--setup','-p']
     if os.name == 'nt':
         if kwiver_setup_path:
             return [kwiver_setup_path, '&&', 'kwiver.exe', 'runner']
@@ -40,14 +39,28 @@ class KwiverRunner:
         self.cwd = cwd
         self.kwiver_setup_path = kwiver_setup_path
 
+    def get_windows_env_str(self):
+        env_str = ""
+        for k, v in self.env.items():
+            env_str += 'SET %s=%s & ' % (k, v) + env_str
+        env_str = env_str[:-2]
+        return env_str
+
+    def get_linux_env_str(self):
+        env_str = ""
+        for k, v in self.env.items():
+            env_str += '%s=%s ' % (k, v) + env_str
+        return env_str
 
     def run(self, stdout, stderr):
         cmd = get_pipeline_cmd(kwiver_setup_path=self.kwiver_setup_path) + [self.pipeline_fp]
         cmd = ' '.join(cmd)
-        env_str = ""
-        for k, v in self.env.items():
-            env_str += '%s=%s ' % (k,v) + env_str
-        print(cmd.replace('&&', '&& ' + env_str) )
+        if os.name == 'nt':
+            env_str = self.get_windows_env_str()
+            print(cmd.replace('&&', '&& ' + env_str))
+        else:
+            env_str = self.get_linux_env_str()
+            print(cmd.replace('&&', '&& ' + env_str) )
         return execute_command(cmd, self.env, self.cwd, stdout=stdout, stderr=stderr)
 
 
