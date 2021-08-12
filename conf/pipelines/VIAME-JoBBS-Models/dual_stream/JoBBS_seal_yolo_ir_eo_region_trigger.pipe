@@ -177,7 +177,7 @@ connect from warp_ir_detections_to_eo.detected_object_set
         to   optical_subregion_selector2.detected_object_set
 
 #  ===================================================
-# Combine Seal + Polar Bear no NMS
+# Combine Seal + Polar Bear
 #  ===================================================
 process optical_detector_output
   :: merge_detection_sets
@@ -202,7 +202,7 @@ process optical_writer_csv
 
 connect from optical_detector_output.detected_object_set
         to   optical_writer_csv.detected_object_set
-connect from optical_input.file_name
+connect from align_images.optical_file_name
         to   optical_writer_csv.image_file_name
 
 process thermal_writer_csv
@@ -218,5 +218,5 @@ process thermal_writer_csv
 
 connect from thermal_detector.detected_object_set
         to   thermal_writer_csv.detected_object_set
-connect from thermal_input.file_name
+connect from align_images.thermal_file_name
         to   thermal_writer_csv.image_file_name
