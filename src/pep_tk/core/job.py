@@ -3,7 +3,7 @@ import shutil
 from enum import Enum
 from typing import List, Tuple, Optional
 
-import jsonfile
+from pep_tk.core.utilities import jsonfile
 from pep_tk.core.parser import VIAMEDataset
 from pep_tk.core.configuration import PipelineConfig
 from pep_tk.core.configuration.configurations import PipelineOutputOptionGroup

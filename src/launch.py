@@ -34,9 +34,9 @@ def main():
 
 
 if __name__ == "__main__":
-    PLUGIN_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    plugin_python_lib = os.path.join(PLUGIN_PATH, 'lib', 'python3.6', 'site-packages')
-    sys.path.insert(0, plugin_python_lib)
-    print('Added %s to PYTHONPATH' % plugin_python_lib)
+    # PLUGIN_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    # plugin_python_lib = os.path.join(PLUGIN_PATH, 'lib', 'python3.6', 'site-packages')
+    # sys.path.insert(0, plugin_python_lib)
+    # print('Added %s to PYTHONPATH' % plugin_python_lib)
 
     main()
