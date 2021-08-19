@@ -60,7 +60,7 @@ class GUIManager(SchedulerEventManager):
                                         progress_count=self.task_count[task_key],
                                         max_count=self.task_max_count[task_key],
                                         elapsed_time=self.elapsed_time(task_key),
-                                        output_log=self.pop_stdout(task_key))
+                                        output_log=self.pop_stdout(task_key, min_lines_to_pop=5))
 
         gui_task_event_key = self.task_event_key(task_key)
         self._window.write_event_value(gui_task_event_key, evt_data)

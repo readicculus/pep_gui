@@ -54,6 +54,7 @@ class KwiverRunner:
 
     def run(self, stdout, stderr):
         cmd = get_pipeline_cmd(kwiver_setup_path=self.kwiver_setup_path) + [self.pipeline_fp]
+        cmd[0] = f'"{cmd[0]}"'
         cmd = ' '.join(cmd)
         if os.name == 'nt':
             env_str = self.get_windows_env_str()
