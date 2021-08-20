@@ -28,7 +28,7 @@ class PipelineConfigLayout(LayoutSection):
             self.input_keys_to_config_name[k] = o.name
             row = [
                 sg.T(f'{o.name}:', font=Fonts.description_bold),
-                sg.I(key=k, default_text=o.value(), enable_events=True),
+                sg.I(key=k, default_text=o.value(), enable_events=True, background_color='white'),
                 sg.T(f'({o.validator.description()})', key=self.pipeline_config_warning_key(o.name), text_color='red',
                      visible=False)
             ]
@@ -57,9 +57,9 @@ class PipelineConfigLayout(LayoutSection):
             for key, opt_name in self.input_keys_to_config_name.items():
                 warning_key = self.pipeline_config_warning_key(opt_name)
                 opt = self.selected_pipeline.parameters_group.get_config_option(opt_name)
-                window.FindElement(key).Update(value=opt.value())
-                window.FindElement(key).Update(background_color='White')
-                window.FindElement(warning_key).Update(visible=False)
+                window[key].Update(value=opt.value())
+                window[key].Update(background_color='White')
+                window[warning_key].Update(visible=False)
 
         elif event in list(self.input_keys_to_config_name.keys()):
             for key, opt_name in self.input_keys_to_config_name.items():
@@ -71,11 +71,11 @@ class PipelineConfigLayout(LayoutSection):
                     ok, res = opt.validator.validate(ui_value)
                     if ok:
                         opt.set_value(ui_value)
-                        window.FindElement(key).Update(background_color='White')
-                        window.FindElement(warning_key).Update(visible=False)
+                        window[key].Update(background_color='White')
+                        window[warning_key].Update(visible=False)
                     else:
-                        window.FindElement(key).Update(background_color='Red')
-                        window.FindElement(warning_key).Update(visible=True)
+                        window[key].Update(background_color='Red')
+                        window[warning_key].Update(visible=True)
 
     def layout_name(self) -> str:
         return self.pipeline_name
@@ -154,7 +154,7 @@ class PipelineSelectionLayout(LayoutSection):
 
     # event loop handler
     def handle(self, window, event, values):
-        if self.combobox_key:
+        if event == self.combobox_key:
             selected_pipeline_name = values[self.combobox_key]
             if selected_pipeline_name == '<select a pipeline>' or selected_pipeline_name == '':
                 if self.selected_pipeline is not None:
