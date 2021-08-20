@@ -32,7 +32,8 @@ class DatasetSelectionLayout(LayoutSection):
                                              size=dataset_column_size,
                                              select_mode=sg.SELECT_MODE_EXTENDED,
                                              bind_return_key=True,
-                                             font=Fonts.description)]
+                                             font=Fonts.description,
+                                             background_color='white')]
                       ]),
                       sg.Column([[sg.Text('\n')], [sg.Button('>', key=self.right_button_key)], [sg.Button('<', key=self.left_button_key)]]),
                       sg.Column([
@@ -45,11 +46,12 @@ class DatasetSelectionLayout(LayoutSection):
                                       size=dataset_column_size,
                                       select_mode=sg.SELECT_MODE_EXTENDED,
                                       bind_return_key=True,
-                                      font=Fonts.description)]
+                                      font=Fonts.description,
+                                      background_color='white')]
                       ])
                   ],
                   [sg.Text('Filter:', font=Fonts.tab_text),
-                   sg.InputText(key='datasets_filter', enable_events=True, size=(30, 1)),
+                   sg.InputText(key='datasets_filter', enable_events=True, size=(30, 1), background_color='white'),
                    sg.Button('clear filter', key='clear_filter', font=Fonts.tab_text)],
                   [sg.Text('', key='warning', text_color='red', size=(50, 1), font=Fonts.tab_text)]]
         return layout

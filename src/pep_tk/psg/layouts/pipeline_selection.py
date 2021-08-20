@@ -21,6 +21,7 @@ class PipelineConfigLayout(LayoutSection):
 
     def get_layout(self):
         config_layout = []
+        config_layout.append([sg.T(self.pipeline_name, font=Fonts.title_medium)])
         opts = self.selected_pipeline.parameters_group.options
         for o in opts:
             k = self.pipeline_config_input_key(o.name)
@@ -129,13 +130,13 @@ class PipelineSelectionLayout(LayoutSection):
             config_count = len(pipeline_layout.input_keys_to_config_name)
             if config_count <= 3:
                 frames.append(sg.Column(
-                    [[sg.Frame(n, l, font=Fonts.title_small)]],
+                    [[sg.Frame('', l, font=Fonts.title_small)]],
                     expand_x=True, key=frame_key,
                     visible=False))
             else:
                 # put in a scrollable column if  more than 3 configs
                 col = [[sg.Column(l, expand_x=True, scrollable=True, vertical_scroll_only=True)]]
-                frames.append(sg.Frame(n, col, key=frame_key, visible=False, font=Fonts.title_small))
+                frames.append(sg.Frame('', col, key=frame_key, visible=False, font=Fonts.title_small))
         default_value = '<select a pipeline>'
         return [
             [sg.Text('Select and Configure a pipeline.', font=Fonts.description)],

@@ -179,8 +179,9 @@ class TaskRunnerTab():
         self.task_key = task_key
         self.tab_button_key = f'-tab-button-{self.task_key}-'
         self.tab_contents_key = f'-tab-contents-{self.task_key}-'
-        self.tab_status_key = f'-tab-status-{self.task_key}-'
+        self.tab_status_image_key = f'-tab-status-image-{self.task_key}-'
         self.tab_status_update_key = task_status_update_key(self.task_key)
+        self.tab_key = f'--tab--{self.task_key}--'
         self.visible = visible
 
     def get_layout(self):
@@ -189,11 +190,11 @@ class TaskRunnerTab():
     def update_status(self, window: sg.Window, status: TaskStatus):
         icon_fp = status_icons.get(status, None)
         if icon_fp is None: return
-        window[self.tab_status_key].update(filename=icon_fp)
+        window[self.tab_status_image_key].Update(filename=icon_fp)
 
 
 class TaskRunnerTabGroup(LayoutSection):
-    button_color_off = ('black', sg.LOOK_AND_FEEL_TABLE[sg.CURRENT_LOOK_AND_FEEL]["BACKGROUND"])
+    button_color_off = ('black', '#eff1f3') # (Text Color, Button Color)
     button_color_on = ('black', 'azure')
 
     def __init__(self, items):
@@ -240,23 +241,24 @@ class TaskRunnerTabGroup(LayoutSection):
 
         for t in self.tabs_by_task_key.values():
             tab_col = \
-                [sg.Image(size=(icon_dim, icon_dim),
-                                            key=t.tab_status_key,
-                                            pad=((0, 0), (0, 0)),
-                                            background_color=self.button_color_off[1]),
+                [sg.Frame('', layout=[[sg.Image(size=(icon_dim, icon_dim),
+                                                key=t.tab_status_image_key,
+                                                pad=((5, 5), (5, 5)),
+                                                background_color=self.button_color_off[1]),
                                    sg.Button(make_max_name_len(t.task_key),
                                              key=t.tab_button_key,
                                              pad=((0, 0), (0, 0)),
                                              button_color=self.button_color_off,
                                              use_ttk_buttons=True,
                                              mouseover_colors=self.button_color_on,
-                                             border_width=0)]
+                                             border_width=0)]], key = t.tab_key, background_color=self.button_color_off[1])]
             tabs.append(tab_col)
             contents.append(t.get_layout())
 
         needs_scroll = len(tabs) * row_height > height
-        scrollable_tabs = sg.Column(tabs, scrollable=needs_scroll, vertical_scroll_only=True, size=(col_width, height),
-                                    background_color=self.button_color_off[1], pad=((0, 0), (0, 0)), vertical_alignment='top')
+        scrollable_tabs =sg.Column(tabs, scrollable=needs_scroll, vertical_scroll_only=True, size=(col_width, height),
+                          background_color=self.button_color_off[1], pad=((5, 5), (5, 5)), vertical_alignment='top')
+
 
         tab_contents = sg.Frame(f'Task Progress: {selected_name}', [contents], vertical_alignment='top',
                  key='-progress-frame-')
@@ -270,14 +272,26 @@ class TaskRunnerTabGroup(LayoutSection):
             event_tab_btn_key = self.current_tab.tab_button_key
         # Hide other current tab
         window[self.current_tab.tab_contents_key].Update(visible=False)
+        window[self.current_tab.tab_key].Widget.config(background=self.button_color_off[1])
         window[self.current_tab.tab_button_key].Update(button_color=self.button_color_off)
+
+        window[self.current_tab.tab_button_key].ParentRowFrame.config(background=self.button_color_off[1])
+        window[self.current_tab.tab_button_key].ParentRowFrame.config(highlightbackground=self.button_color_off[1])
+        window[self.current_tab.tab_button_key].ParentRowFrame.config(highlightcolor=self.button_color_off[1])#self.button_color_on[1])
         window[self.current_tab.tab_button_key].set_focus(False)
+
         # Make new tab visible
         tab = self.tab_button_event_keys[event_tab_btn_key]
+
         window[tab.tab_contents_key].Update(visible=True)
         window[tab.tab_button_key].Update(button_color=self.button_color_on)
         window[tab.tab_button_key].set_focus(True)
         window[tab.tab_contents_key].expand(True,True,True)
+
+        window[tab.tab_button_key].ParentRowFrame.config(background=self.button_color_on[1])
+        window[tab.tab_button_key].ParentRowFrame.config(highlightbackground=self.button_color_on[1])
+        window[tab.tab_button_key].ParentRowFrame.config(highlightcolor=self.button_color_on[1])#self.button_color_on[1])
+
         window['-progress-frame-'].Update(value=f'Task Progress: {tab.task_key}')
         self.current_tab = tab
 
