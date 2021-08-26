@@ -1,4 +1,6 @@
+import datetime
 import threading
+import time
 from typing import List, Dict, Optional
 
 import PySimpleGUI as sg
@@ -28,7 +30,8 @@ class GUIManager(SchedulerEventManager):
         evt_data = ProgressGUIEventData(task_status=self.task_status[task_key],
                                         progress_count=count,
                                         max_count=max_count,
-                                        elapsed_time=self.elapsed_time(task_key))
+                                        elapsed_time=self.elapsed_time(task_key),
+                                        completed_on_load=self.task_status[task_key] == TaskStatus.SUCCESS)
 
         gui_task_event_key = self.task_event_key(task_key)
         self._window.write_event_value(gui_task_event_key, evt_data)
@@ -100,10 +103,10 @@ class GUIManager(SchedulerEventManager):
 
 def make_main_window(tasks: List[TaskKey], gui_settings: sg.UserSettings):
     tabs = [TaskTab(task_key) for task_key in tasks]
-    # progress_bars = {tab.task_progress_update_key: tab for tab in tabs}
-
     tabs_group = TaskRunnerTabGroup([(t.get_layout(), t.task_key) for t in tabs])
-    layout = [[sg.Text('Job Progress:', font=Fonts.title_medium)],
+    header = sg.Frame(title='', layout=[[sg.Text('Job Progress:', font=Fonts.title_medium)],
+              [sg.Text('xxxxxxx/xxxxxxx images or XX.XX% complete.', key='--total-progress-ta--')]], expand_x=True)
+    layout = [[header],
               [tabs_group.get_layout()]]
 
     location = gui_settings.get(SystemSettingsNames.window_location, (0, 0))
@@ -132,6 +135,36 @@ def run_job(job_path: str):
 
     threading.Thread(target=sched.run, daemon=True).start()
 
+    def update_total_progress(window: sg.Window, start_time: int):
+        total_progress = 0
+        total = 0
+        completed_on_load_count = 0
+        for tab in tabs:
+            total += tab.max_count
+            if tab.status == TaskStatus.SUCCESS:
+                total_progress += tab.max_count
+                if tab.completed_on_load:
+                    completed_on_load_count += tab.max_count
+            else:
+                total_progress += tab.progress_count
+
+        total_completed_items = total_progress - completed_on_load_count
+        elapsed_time = time.time() - start_time
+        if total_completed_items == 0:
+            time_per_epoch = 0
+        else:
+            time_per_epoch = elapsed_time / total_completed_items
+
+        remaining_time = (total - total_progress) * time_per_epoch
+        percent = (total_progress/total) * 100
+
+        elapsed_str = str(datetime.timedelta(seconds=int(elapsed_time)))
+        remaining_str = str(datetime.timedelta(seconds=int(remaining_time)))
+
+        window['--total-progress-ta--'].update(value=f'{total_progress}/{total} items({percent:.2f}%) complete.  {time_per_epoch:.2f} seconds/iter.  '
+                                                     f'Elapsed time {elapsed_str}. Estimated time remaining {remaining_str}.')
+
+    start_time = time.time()
     while True:
         event, values = window.read()
         if event == sg.WIN_CLOSED:
@@ -153,5 +186,7 @@ def run_job(job_path: str):
         else:
             if event in tabs_by_update_key:
                 tabs_by_update_key[event].handle(window, event, values)
+                update_total_progress(window, start_time)
+
             tabs_group.handle(window, event, values)
 

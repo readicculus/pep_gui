@@ -21,6 +21,7 @@ class ProgressGUIEventData:
     task_status: TaskStatus = None  # current status of the task
     output_files: List[str] = None  # output files from the task (image lists, detections)
     output_log: str = None
+    completed_on_load: bool = False # if task was already completed when initialized/loaded
 
     @property
     def time_per_count(self) -> float:  # average time taken to process each item
@@ -75,9 +76,13 @@ class TaskTab(LayoutSection):
         # GUI Button events
         self._cancel_event_key = f'--cancel-{self.task_key}--'
 
-        self.is_cancelled = False
 
         self.images = {}
+        self.max_count = 0
+        self.progress_count = 0
+        self.is_cancelled = False
+        self.status = None
+        self.completed_on_load = None
 
     def get_layout(self):
         def empty_string(s):
@@ -115,6 +120,8 @@ class TaskTab(LayoutSection):
             return
 
         progress: ProgressGUIEventData = values[event]
+        if not self.completed_on_load:
+            self.completed_on_load = progress.completed_on_load
         self._update_avg_iteration_time(window, progress.time_per_count)
         self._update_time_elapsed(window, progress.elapsed_time, progress.estimated_time_remaining)
         self._update_pb(window, progress.progress_count, progress.max_count)
@@ -123,9 +130,13 @@ class TaskTab(LayoutSection):
         self._update_output_files(window, progress.output_files)
         self._update_kwiver_output(window, progress.output_log)
 
+        self.max_count = progress.max_count
+        self.progress_count = progress.progress_count
+
     def _update_status(self, window: sg.Window, status: TaskStatus):
         if status is None:
             return
+        self.status = status
         icon_fp = status_icons.get(status, None)
         window[self._status_key].update(filename=icon_fp)
 
