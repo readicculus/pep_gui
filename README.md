@@ -27,8 +27,14 @@ This GUI runs kwiver pipelines using VIAME's underlying kwiver.  Some pipelines(
 may require kwiver plugins only available in the SEAL-TK distribution.  
 Binaries for SEAL-TK or VIAME can be found [here](https://github.com/VIAME/VIAME/#installations).
 
-In addition this project was built and tested with Python3.6 and 3.7 so probably best to use one of those.  To install
-project dependencies run `pip install -r requirements.txt`.
+Since model files are large, to checkout with git you will also need to install [Git LFS](https://git-lfs.github.com/).
+
+```bash
+git clone https://github.com/readicculus/pep_gui.git # clone the repository
+cd pep_gui                                           # cd into project
+git lfs pull                                         # pull the model files using Git LFS
+pip install -r requirements.txt                      # install project dependencies
+```
 
 ### - Configuring the application preferences -
 When the application is launched for the first time you will be prompted to configure the following properties.
