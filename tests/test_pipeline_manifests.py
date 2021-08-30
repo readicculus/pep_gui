@@ -23,7 +23,7 @@ class TestPipelineManifest(unittest.TestCase):
         dual_stream_pipe = pm.pipelines['polarbear_seal_yolo_ir_eo_region_trigger']
         self.assertEqual('polarbear_seal_yolo_ir_eo_region_trigger', dual_stream_pipe.name)
         self.assertTrue(
-            '/home/yuval/noaa/pep_gui/conf/pipelines/VIAME-JoBBS-Models/dual_stream' in dual_stream_pipe.directory)
+            'pep_gui/conf/pipelines/VIAME-JoBBS-Models/dual_stream' in dual_stream_pipe.directory)
 
     def test_pipeline_output_group(self):
         pm = PipelineManifest(manifest_file=self.pm_filepath)
