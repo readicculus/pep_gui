@@ -7,7 +7,7 @@ add_src_to_pythonpath()
 from pep_tk.core.parser import load_dataset_manifest, DatasetManifestError
 
 
-class TestManifests(TestCaseRequiringTestData):
+class TestDatasetManifests(TestCaseRequiringTestData):
     def test_load_dataset_manifest(self):
         # Test loading the .csv and the .ini manifests
         csv_manifest = os.path.join(DATA_FILEPATH, 'datasets_manifest.csv')
