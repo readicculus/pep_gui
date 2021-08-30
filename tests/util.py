@@ -7,6 +7,9 @@ import requests
 TEST_DIR = os.path.dirname(__file__)
 DATA_FILEPATH = os.path.join(TEST_DIR, 'pep_tk-testdata')
 CONF_FILEPATH = os.path.join(os.path.dirname(TEST_DIR), 'conf')
+print('TEST_DIR %s' % TEST_DIR)
+print('DATA_FILEPATH %s' % DATA_FILEPATH)
+print('CONF_FILEPATH %s' % CONF_FILEPATH)
 
 def add_src_to_pythonpath():
     import os
@@ -61,7 +64,6 @@ def download_dummy_data():
 class TestCaseRequiringTestData(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-
         download_dummy_data()
 
     @classmethod
