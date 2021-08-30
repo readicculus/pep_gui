@@ -56,15 +56,15 @@ def download_dummy_data():
     download_file_from_google_drive('1C1yNhG0Aoh15IAG7QU2bUrT6X299j1VL', archive_fn)
     print(f'Extracting archive.')
     with tarfile.open(archive_fn) as tar:
-        tar.extractall(path='.')
+        tar.extractall(path=TEST_DIR)
 
     print(f'Cleaning up, removing {archive_fn}.')
     os.remove(archive_fn)
 
-    print('DEBUG listdir .')
-    print(os.listdir('.'))
-    print('DEBUG listdir pep_tk-testdata')
-    print(os.listdir('.'))
+    print('DEBUG listdir TEST_DIR')
+    print(os.listdir(TEST_DIR))
+    print('DEBUG listdir DATA_FILEPATH')
+    print(os.listdir(DATA_FILEPATH))
 
 
 class TestCaseRequiringTestData(unittest.TestCase):
