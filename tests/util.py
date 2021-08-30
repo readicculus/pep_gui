@@ -8,6 +8,13 @@ TEST_DIR = os.path.dirname(__file__)
 DATA_FILEPATH = os.path.join(TEST_DIR, 'pep_tk-testdata')
 CONF_FILEPATH = os.path.join(os.path.dirname(TEST_DIR), 'conf')
 
+def add_src_to_pythonpath():
+    import os
+    import sys
+    src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
+    sys.path.insert(0, src_dir)
+
+
 def download_dummy_data():
     def download_file_from_google_drive(id, destination):
         def get_confirm_token(response):
@@ -54,6 +61,7 @@ def download_dummy_data():
 class TestCaseRequiringTestData(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+
         download_dummy_data()
 
     @classmethod

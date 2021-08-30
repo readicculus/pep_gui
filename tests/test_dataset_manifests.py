@@ -1,8 +1,10 @@
 import os
 import unittest
+from tests.util import DATA_FILEPATH, TestCaseRequiringTestData, add_src_to_pythonpath
+
+add_src_to_pythonpath()
 
 from pep_tk.core.parser import load_dataset_manifest, DatasetManifestError
-from tests.util import DATA_FILEPATH, TestCaseRequiringTestData
 
 
 class TestManifests(TestCaseRequiringTestData):
@@ -54,6 +56,7 @@ class TestManifests(TestCaseRequiringTestData):
             load_dataset_manifest(manifest_fp)
 
         self.assertTrue('duplicatekey' in context.exception.message)
+
 
 if __name__ == "__main__":
     unittest.main()

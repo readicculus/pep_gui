@@ -1,8 +1,10 @@
 import os
 import unittest
+from util import CONF_FILEPATH, add_src_to_pythonpath
+add_src_to_pythonpath()
 
 from pep_tk.core.configuration import PipelineManifest
-from util import CONF_FILEPATH
+
 
 class TestManifests(unittest.TestCase):
     def test_load_pipeline_manifest(self):
