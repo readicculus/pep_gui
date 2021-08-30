@@ -44,4 +44,3 @@ class TestImports(TestCase):
         import pep_tk.psg.windows.properties
         import pep_tk.psg.windows.create_job
         import pep_tk.psg.windows.job_runner
-        import pep_tk.psg.windows.dataset_manifest_checker
