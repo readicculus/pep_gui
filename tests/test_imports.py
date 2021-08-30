@@ -60,3 +60,10 @@ class TestImports(TestCase):
         import pep_tk.psg.windows.properties
         import pep_tk.psg.windows.create_job
         import pep_tk.psg.windows.job_runner
+
+    def test_dependency_imports(self):
+        import PySimpleGUI
+        import dataclasses
+        import pandas
+        import yaml
+        import requests

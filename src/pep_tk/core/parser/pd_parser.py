@@ -16,7 +16,7 @@
 
 import os
 from typing import List, Optional
-import regex as re
+import re
 import pandas as pd
 
 from pep_tk.core.parser import VIAMEDataset

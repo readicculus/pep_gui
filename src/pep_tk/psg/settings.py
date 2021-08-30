@@ -89,5 +89,6 @@ class UserProperties:
 
 
 WINDOW_ICON = image_resource_path('icon_80x80.png')
-icon = base64.b64encode(open(WINDOW_ICON, 'rb').read())
+with open(WINDOW_ICON, 'rb') as f:
+    icon = base64.b64encode(f.read())
 sg.set_options(icon=icon, titlebar_icon=icon, font=Fonts.description)

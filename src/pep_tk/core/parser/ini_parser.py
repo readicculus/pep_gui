@@ -18,7 +18,7 @@ import os
 from configparser import ConfigParser, DuplicateSectionError, Error
 from typing import List, Optional
 
-import regex as re
+import re
 
 from pep_tk.core.parser import DatasetManifestError, DuplicateDatasetName, ImageListMissingImage, DatasetFileNotFound, ManifestParser, path_to_absolute
 from pep_tk.core.parser import VIAMEDataset

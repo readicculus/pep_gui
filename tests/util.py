@@ -21,16 +21,17 @@ import unittest
 import requests
 
 TEST_DIR = os.path.dirname(__file__)
-DATA_FILEPATH = os.path.join(TEST_DIR, 'pep_tk-testdata')
+TESTDATA_DIR = os.path.join(TEST_DIR, 'pep_tk-testdata')
 CONF_FILEPATH = os.path.join(os.path.dirname(TEST_DIR), 'conf')
 print('TEST_DIR %s' % TEST_DIR)
-print('DATA_FILEPATH %s' % DATA_FILEPATH)
+print('DATA_FILEPATH %s' % TESTDATA_DIR)
 print('CONF_FILEPATH %s' % CONF_FILEPATH)
 
 def add_src_to_pythonpath():
     import os
     import sys
-    src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
+    src_dir = os.path.abspath(os.path.normpath(os.path.join(TEST_DIR, "../src")))
+    print('Added PYTHONPATH: %s' % src_dir)
     sys.path.insert(0, src_dir)
 
 
@@ -65,7 +66,8 @@ def download_dummy_data():
         save_response_content(response, destination)
         session.close()
 
-    if os.path.isdir('pep_tk-testdata'):
+    if os.path.isdir(TESTDATA_DIR):
+        print('%s already exists.  Skipping download.' % TESTDATA_DIR)
         return
     archive_fn = 'pep_tk-testdata.tar.gz'
     print(f'Downloading {archive_fn} from Google Drive.....')
@@ -80,7 +82,7 @@ def download_dummy_data():
     print('DEBUG listdir TEST_DIR')
     print(os.listdir(TEST_DIR))
     print('DEBUG listdir DATA_FILEPATH')
-    print(os.listdir(DATA_FILEPATH))
+    print(os.listdir(TESTDATA_DIR))
 
 
 class TestCaseRequiringTestData(unittest.TestCase):

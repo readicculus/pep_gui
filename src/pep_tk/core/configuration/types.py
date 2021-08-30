@@ -16,7 +16,7 @@
 
 import os
 
-import regex as re
+import re
 
 class ConfigType:
     def __init__(self, var_type):

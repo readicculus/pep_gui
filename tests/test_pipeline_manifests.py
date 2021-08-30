@@ -17,7 +17,7 @@
 import os
 import unittest
 
-from util import CONF_FILEPATH, add_src_to_pythonpath, DATA_FILEPATH
+from util import CONF_FILEPATH, add_src_to_pythonpath, TESTDATA_DIR
 
 add_src_to_pythonpath()
 
@@ -80,7 +80,7 @@ class TestPipelineManifest(unittest.TestCase):
         pm = PipelineManifest(manifest_file=self.pm_filepath)
         ports = pm['polarbear_seal_yolo_ir_eo_region_trigger'].dataset_ports
 
-        csv_manifest = os.path.join(DATA_FILEPATH, 'datasets_manifest.csv')
+        csv_manifest = os.path.join(TESTDATA_DIR, 'datasets_manifest.csv')
         dm = load_dataset_manifest(csv_manifest)
         dataset = dm.get_dataset('Kotz-2019-fl04-cent')
 
@@ -94,7 +94,7 @@ class TestPipelineManifest(unittest.TestCase):
     def test_single_stream_dataset_with_dual_stream_pipeline_ports(self):
         pm = PipelineManifest(manifest_file=self.pm_filepath)
 
-        csv_manifest = os.path.join(DATA_FILEPATH, 'datasets_manifest_single_stream.csv')
+        csv_manifest = os.path.join(TESTDATA_DIR, 'datasets_manifest_single_stream.csv')
         dm = load_dataset_manifest(csv_manifest)
         dataset = dm.get_dataset('ir-only')
         with self.assertRaises(MissingPortsException) as context:
@@ -109,7 +109,7 @@ class TestPipelineManifest(unittest.TestCase):
     def test_single_stream_dataset_with_single_stream_pipeline(self):
         pm = PipelineManifest(manifest_file=self.pm_filepath)
 
-        csv_manifest = os.path.join(DATA_FILEPATH, 'datasets_manifest_single_stream.csv')
+        csv_manifest = os.path.join(TESTDATA_DIR, 'datasets_manifest_single_stream.csv')
         dm = load_dataset_manifest(csv_manifest)
         dataset = dm.get_dataset('ir-only')
         pm['ir_hotspot_detector'].dataset_ports.get_env_ports(dataset)
@@ -117,7 +117,7 @@ class TestPipelineManifest(unittest.TestCase):
     def test_dual_stream_dataset_with_single_stream_pipeline(self):
         pm = PipelineManifest(manifest_file=self.pm_filepath)
 
-        csv_manifest = os.path.join(DATA_FILEPATH, 'datasets_manifest.csv')
+        csv_manifest = os.path.join(TESTDATA_DIR, 'datasets_manifest.csv')
         dm = load_dataset_manifest(csv_manifest)
         dataset = dm.get_dataset('Kotz-2019-fl04-cent')
         pm['ir_hotspot_detector'].dataset_ports.get_env_ports(dataset)

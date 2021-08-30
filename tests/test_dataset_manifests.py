@@ -16,7 +16,7 @@
 
 import os
 import unittest
-from tests.util import DATA_FILEPATH, TestCaseRequiringTestData, add_src_to_pythonpath
+from tests.util import TESTDATA_DIR, TestCaseRequiringTestData, add_src_to_pythonpath
 
 add_src_to_pythonpath()
 
@@ -26,8 +26,8 @@ from pep_tk.core.parser import load_dataset_manifest, DatasetManifestError
 class TestDatasetManifests(TestCaseRequiringTestData):
     def test_load_dataset_manifest(self):
         # Test loading the .csv and the .ini manifests
-        csv_manifest = os.path.join(DATA_FILEPATH, 'datasets_manifest.csv')
-        ini_manifest = os.path.join(DATA_FILEPATH, 'datasets_manifest.cfg')
+        csv_manifest = os.path.join(TESTDATA_DIR, 'datasets_manifest.csv')
+        ini_manifest = os.path.join(TESTDATA_DIR, 'datasets_manifest.cfg')
 
         dm_csv = load_dataset_manifest(csv_manifest)
         dm_ini = load_dataset_manifest(ini_manifest)
@@ -51,7 +51,7 @@ class TestDatasetManifests(TestCaseRequiringTestData):
 
     def test_bad_eo_list_filepath(self):
         # Test that a dataset manifest with a bad EO image list path throws an error
-        manifest_fp = os.path.join(DATA_FILEPATH, 'datasets_manifest_bad_eolist_fp.csv')
+        manifest_fp = os.path.join(TESTDATA_DIR, 'datasets_manifest_bad_eolist_fp.csv')
         with self.assertRaises(DatasetManifestError) as context:
             load_dataset_manifest(manifest_fp)
 
@@ -59,7 +59,7 @@ class TestDatasetManifests(TestCaseRequiringTestData):
 
     def test_bad_ir_list_filepath(self):
         # Test that a dataset manifest with a bad IR image list path throws an error
-        manifest_fp = os.path.join(DATA_FILEPATH, 'datasets_manifest_bad_irlist_fp.csv')
+        manifest_fp = os.path.join(TESTDATA_DIR, 'datasets_manifest_bad_irlist_fp.csv')
         with self.assertRaises(DatasetManifestError) as context:
             load_dataset_manifest(manifest_fp)
 
@@ -67,7 +67,7 @@ class TestDatasetManifests(TestCaseRequiringTestData):
 
     def test_bad_manifest_duplicate_keys(self):
         # Test that a dataset manifest with duplicate dataset keys throws an error
-        manifest_fp = os.path.join(DATA_FILEPATH, 'datasets_manifest_duplicate_keys.csv')
+        manifest_fp = os.path.join(TESTDATA_DIR, 'datasets_manifest_duplicate_keys.csv')
         with self.assertRaises(DatasetManifestError) as context:
             load_dataset_manifest(manifest_fp)
 
