@@ -13,7 +13,8 @@ def load_dataset_manifest(manifest_fp) -> ManifestParser:
     if manifest_fp is None:
         raise DatasetManifestError('No Manifest given')
     if not os.path.isfile(manifest_fp):
-        raise DatasetManifestError(f'Dataset manifest file "{manifest_fp}" does not exist.')
+        str = f'Dataset manifest file "{manifest_fp}" does not exist.'
+        raise DatasetManifestError(str)
 
     if manifest_fp.endswith('.csv'):
         dm = CSVDatasetsParser()
