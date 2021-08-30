@@ -15,9 +15,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.8.2' # SemVer's version range syntax
-        env:
-          AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
-          RUNNER_TOOL_CACHE: /opt/hostedtoolcache
+#        env:
+#          AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
+#          RUNNER_TOOL_CACHE: /opt/hostedtoolcache
 
       - name: Install dependencies
         run: |

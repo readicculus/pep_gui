@@ -57,8 +57,14 @@ def download_dummy_data():
     print(f'Extracting archive.')
     with tarfile.open(archive_fn) as tar:
         tar.extractall(path='.')
+
     print(f'Cleaning up, removing {archive_fn}.')
     os.remove(archive_fn)
+
+    print('DEBUG listdir .')
+    print(os.listdir('.'))
+    print('DEBUG listdir pep_tk-testdata')
+    print(os.listdir('.'))
 
 
 class TestCaseRequiringTestData(unittest.TestCase):
