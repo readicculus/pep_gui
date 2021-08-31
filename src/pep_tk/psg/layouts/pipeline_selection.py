@@ -38,6 +38,7 @@ class PipelineConfigLayout(LayoutSection):
     def get_layout(self):
         config_layout = []
         config_layout.append([sg.T(self.pipeline_name, font=Fonts.title_medium)])
+        config_layout.append([sg.HorizontalSeparator(color='black')])
         opts = self.selected_pipeline.parameters_group.options
         for o in opts:
             k = self.pipeline_config_input_key(o.name)
@@ -55,7 +56,7 @@ class PipelineConfigLayout(LayoutSection):
                     sg.T(o.description, font=Fonts.description, pad=((0, 0), (0, 0)))
                  ]
             )
-            config_layout.append([sg.Text('_' * 100, pad=((0, 0), (0, 0)))])
+            config_layout.append([sg.HorizontalSeparator(color='white')])
         config_layout.append([sg.Button('Reset Defaults', key=self.reset_defaults_key)])
         return config_layout
 

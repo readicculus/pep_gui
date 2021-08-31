@@ -16,8 +16,8 @@
 
 from unittest import TestCase
 from util import add_src_to_pythonpath
-
 add_src_to_pythonpath()
+
 
 # noinspection PyUnresolvedReferences
 class TestImports(TestCase):
