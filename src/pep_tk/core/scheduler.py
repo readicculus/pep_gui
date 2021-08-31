@@ -214,8 +214,21 @@ class Scheduler:
         for task_key in self.job_state.tasks(status=TaskStatus.SUCCESS):
             pipeline_fp, dataset, outputs = self.job_meta.get(task_key)
             max_image_count = max(dataset.thermal_image_count, dataset.color_image_count)
+
+            # read output log if exists
+            stdout_log_fp = os.path.join(self.job_meta.logs_dir,
+                                         f'kwiver-output-{task_key.replace(":", "_")}.log')
+            if os.path.isfile(stdout_log_fp):
+                with open(stdout_log_fp, 'r') as f:
+                    log = f.read()
+                self.manager.update_task_stdout(task_key, 'Task already complete.  Log file found: %s\n' % stdout_log_fp)
+                self.manager.update_task_stdout(task_key, log)
+
+            # initialize the task
             task_outputs = self.job_state.get_task_outputs(task_key)
             self.manager.initialize_task(task_key, max_image_count, max_image_count, TaskStatus.SUCCESS, task_outputs)
+
+
 
         for task_key in self.job_state.tasks():
             status = self.job_state.get_status(task_key)

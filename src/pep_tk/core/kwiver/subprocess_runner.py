@@ -1,3 +1,19 @@
+#      This file is part of the PEP GUI detection pipeline batch running tool
+#      Copyright (C) 2021 Yuval Boss yuval@uw.edu
+#
+#      This program is free software: you can redistribute it and/or modify
+#      it under the terms of the GNU General Public License as published by
+#      the Free Software Foundation, either version 3 of the License, or
+#      (at your option) any later version.
+#
+#      This program is distributed in the hope that it will be useful,
+#      but WITHOUT ANY WARRANTY; without even the implied warranty of
+#      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#      GNU General Public License for more details.
+#
+#      You should have received a copy of the GNU General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import os
 import subprocess
 from typing import Dict
@@ -7,7 +23,7 @@ from typing import Dict
 def get_pipeline_cmd(debug=False, kwiver_setup_path = None):
     if os.name == 'nt':
         if kwiver_setup_path:
-            return [kwiver_setup_path, '&&', 'kwiver.exe', 'runner']
+            return [f'"{kwiver_setup_path}"', '&&', 'kwiver.exe', 'runner']
         else:
             return ['kwiver.exe', 'runner']
     else:
@@ -17,7 +33,7 @@ def get_pipeline_cmd(debug=False, kwiver_setup_path = None):
             args = ['kwiver', 'runner']
 
         if kwiver_setup_path:
-            args = ['source', kwiver_setup_path, '&&'] + args
+            args = ['source', kwiver_setup_path, '&&', 'printenv', '&&'] + args
         return args
 
 def execute_command(cmd: str, env: Dict, cwd, stdout=None, stderr=None):
@@ -25,6 +41,7 @@ def execute_command(cmd: str, env: Dict, cwd, stdout=None, stderr=None):
         env = {**env, **os.environ}
         return subprocess.Popen(cmd, cwd=cwd,  stdout=stdout, stderr=subprocess.STDOUT, env=env)
     else:
+        env = {**env, **os.environ}
         return subprocess.Popen(cmd, cwd=cwd, stdout=stdout, stderr=stderr, env= env,  shell=True, executable='/bin/bash')
 
 
@@ -54,7 +71,6 @@ class KwiverRunner:
 
     def run(self, stdout, stderr):
         cmd = get_pipeline_cmd(kwiver_setup_path=self.kwiver_setup_path) + [self.pipeline_fp]
-        cmd[0] = f'"{cmd[0]}"'
         cmd = ' '.join(cmd)
         if os.name == 'nt':
             env_str = self.get_windows_env_str()
@@ -62,7 +78,8 @@ class KwiverRunner:
         else:
             env_str = self.get_linux_env_str()
             print(cmd.replace('&&', '&& ' + env_str) )
-        return execute_command(cmd, self.env, self.cwd, stdout=stdout, stderr=stderr)
+        proc = execute_command(cmd, self.env, self.cwd, stdout=stdout, stderr=stderr)
+        return proc
 
 
 

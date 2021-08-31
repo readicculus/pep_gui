@@ -47,7 +47,8 @@ class GUIManager(SchedulerEventManager):
                                         progress_count=count,
                                         max_count=max_count,
                                         elapsed_time=self.elapsed_time(task_key),
-                                        completed_on_load=self.task_status[task_key] == TaskStatus.SUCCESS)
+                                        completed_on_load=self.task_status[task_key] == TaskStatus.SUCCESS,
+                                        output_log=self.pop_stdout(task_key, min_lines_to_pop=0))
 
         gui_task_event_key = self.task_event_key(task_key)
         self._window.write_event_value(gui_task_event_key, evt_data)
