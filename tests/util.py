@@ -15,10 +15,12 @@
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
+import shutil
 import tarfile
 import unittest
 
 import requests
+import pathlib as pl
 
 TEST_DIR = os.path.dirname(__file__)
 TESTDATA_DIR = os.path.join(TEST_DIR, 'pep_tk-testdata')
@@ -26,6 +28,7 @@ CONF_FILEPATH = os.path.join(os.path.dirname(TEST_DIR), 'conf')
 print('TEST_DIR %s' % TEST_DIR)
 print('DATA_FILEPATH %s' % TESTDATA_DIR)
 print('CONF_FILEPATH %s' % CONF_FILEPATH)
+
 
 def add_src_to_pythonpath():
     import os
@@ -85,11 +88,27 @@ def download_dummy_data():
     print(os.listdir(TESTDATA_DIR))
 
 
-class TestCaseRequiringTestData(unittest.TestCase):
+class TestCaseBase(unittest.TestCase):
+    def assertIsFile(self, path):
+        if not pl.Path(path).resolve().is_file():
+            raise AssertionError("File does not exist: %s" % str(path))
+
+    def assertIsDir(self, path):
+        if not pl.Path(path).resolve().is_dir():
+            raise AssertionError("Directory does not exist: %s" % str(path))
+
+
+class TestCaseRequiringTestData(TestCaseBase):
+    temp_dir = os.path.join(os.getcwd(), 'tmp')
+
     @classmethod
     def setUpClass(cls):
         download_dummy_data()
+        if os.path.isdir(cls.temp_dir):
+            shutil.rmtree(cls.temp_dir)
+
+        os.makedirs(cls.temp_dir, exist_ok=True)
 
     @classmethod
     def tearDownClass(cls) -> None:
-        pass
+        shutil.rmtree(cls.temp_dir)

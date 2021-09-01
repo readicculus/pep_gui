@@ -17,7 +17,7 @@
 import os
 import unittest
 
-from util import CONF_FILEPATH, add_src_to_pythonpath, TESTDATA_DIR
+from util import CONF_FILEPATH, add_src_to_pythonpath, TESTDATA_DIR, TestCaseBase
 
 add_src_to_pythonpath()
 
@@ -26,7 +26,7 @@ from pep_tk.core.parser import load_dataset_manifest
 from pep_tk.core.configuration.exceptions import MissingPortsException
 
 
-class TestPipelineManifest(unittest.TestCase):
+class TestPipelineManifest(TestCaseBase):
     pm_filepath = os.path.join(CONF_FILEPATH, 'pipeline_manifest.yaml')
 
     def test_load_pipeline_manifest(self):
@@ -38,8 +38,8 @@ class TestPipelineManifest(unittest.TestCase):
 
         dual_stream_pipe = pm.pipelines['polarbear_seal_yolo_ir_eo_region_trigger']
         self.assertEqual('polarbear_seal_yolo_ir_eo_region_trigger', dual_stream_pipe.name)
-        self.assertTrue(
-            'pep_gui/conf/pipelines/VIAME-JoBBS-Models/dual_stream' in dual_stream_pipe.directory)
+        expected_dir = os.path.join('pep_gui', 'conf', 'pipelines', 'VIAME-JoBBS-Models', 'dual_stream')
+        self.assertTrue(expected_dir in dual_stream_pipe.directory)
 
     def test_pipeline_output_group(self):
         pm = PipelineManifest(manifest_file=self.pm_filepath)
