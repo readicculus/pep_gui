@@ -14,13 +14,12 @@
 #      You should have received a copy of the GNU General Public License
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from unittest import TestCase
-from util import add_src_to_pythonpath
+from util import add_src_to_pythonpath, TestCaseBase
 add_src_to_pythonpath()
 
 
 # noinspection PyUnresolvedReferences
-class TestImports(TestCase):
+class TestImports(TestCaseBase):
     def test_import_core(self):
         import pep_tk.core
 
