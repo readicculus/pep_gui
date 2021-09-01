@@ -38,3 +38,25 @@ jobs:
       - name: Run Tests
         run:  python3 -m unittest discover -s tests -t tests
 
+  tests-windows-latest:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; fi
+          if [ -f tests/requirements.txt ]; then python3 -m pip install -r tests/requirements.txt; fi
+
+      - name: Run Tests
+        run:  python3 -m unittest discover -s tests -t tests
