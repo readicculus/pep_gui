@@ -45,7 +45,7 @@ def compile_pipeline(pipeline: PipelineConfig, env: Dict) -> str:
     relative_paths = list(set(re.findall(r"relativepath.*=\s*(.*)$", pipeline_content, re.M)))
     absolute_paths = {}
     for path in relative_paths:
-        absolute_paths[path] = os.path.abspath(os.path.join(pipeline.directory, path))
+        absolute_paths[path] = os.path.abspath(os.path.normpath(os.path.join(pipeline.directory, path)))
 
     for prev, new in absolute_paths.items():
         pipeline_content = pipeline_content.replace(prev, new)

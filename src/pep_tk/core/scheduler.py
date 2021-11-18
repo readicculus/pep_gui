@@ -15,15 +15,15 @@
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import abc
+import atexit
 import os
 import shutil
 import subprocess
 import threading
 import time
-from time import sleep
 from datetime import datetime
+from time import sleep
 from typing import List, Optional, IO
-import atexit
 
 try:
     from Queue import Queue, Empty
@@ -178,10 +178,8 @@ def exit_cleanup(fds, files_to_move, dir_to_move):
     for f in fds:
         try:
             f.close()
-            print('closed')
         except:
-            print('cant close')
-            pass
+            print(f'Warning: Unable to close {f.name}')
 
     move_output_files(files_to_move, dir_to_move)
 
@@ -218,6 +216,7 @@ class Scheduler:
         self.kill_event : threading.Event() = kill_event
 
     def run(self):
+        print('Scheduler Started (pid: %d)' % os.getpid())
         # if resuming mark already completed tasks as completed
         for task_key in self.job_state.tasks(status=TaskStatus.SUCCESS):
             pipeline_fp, dataset, outputs = self.job_meta.get(task_key)
@@ -247,7 +246,6 @@ class Scheduler:
 
         while not self.job_state.is_job_complete():
             current_task_key = self.job_state.current_task()
-            print(current_task_key)
             pipeline_fp, dataset, outputs = self.job_meta.get(current_task_key)
 
             # Create the environment variables needed for running
@@ -292,6 +290,7 @@ class Scheduler:
                                kwiver_setup_path=self.kwiver_setup_path)
 
             process = kwr.run(stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            print('Kwiver Runner Started (pid: %d)' % process.pid)
 
             if process.stdout is None:
                 raise RuntimeError("Stdout must not be none")
@@ -306,7 +305,8 @@ class Scheduler:
             while not cancelled:  # read line without blocking
                 if self.kill_event:
                     if self.kill_event.is_set():
-                        prog_stop_evt.set()
+                        # Kill all incomplete tasks
+                        self._kill_all_tasks(process, prog_stop_evt)
                         exit_cleanup(fds = [output_log],
                                      files_to_move = list(pipeline_output_csv_env.values()) + list(
                                      pipeline_output_image_list_env.values()),
@@ -382,3 +382,16 @@ class Scheduler:
                 # Update GUI with success
                 self.manager.end_task(current_task_key, TaskStatus.SUCCESS)
                 self.manager.update_task_output_files(current_task_key, outputs_new_loc)
+
+
+    def _kill_all_tasks(self, process: subprocess.Popen, prog_stop_evt: threading.Event):
+        for task_to_end in self.job_state.tasks():
+            if self.job_state.is_task_complete(task_to_end):
+                continue  # do not modify state of complete tasks
+
+            # set all tasks statuses to cancelled
+            self.job_state.set_task_status(task_to_end, TaskStatus.ERROR)
+            self.manager.end_task(task_to_end, TaskStatus.ERROR)
+        prog_stop_evt.set()
+        process.kill()
+        process.wait(timeout=30)

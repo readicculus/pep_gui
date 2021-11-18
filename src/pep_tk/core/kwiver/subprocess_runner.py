@@ -69,7 +69,7 @@ class KwiverRunner:
             env_str += '%s=%s ' % (k, v) + env_str
         return env_str
 
-    def run(self, stdout, stderr):
+    def run(self, stdout, stderr) -> subprocess.Popen:
         cmd = get_pipeline_cmd(kwiver_setup_path=self.kwiver_setup_path) + [self.pipeline_fp]
         cmd = ' '.join(cmd)
         if os.name == 'nt':

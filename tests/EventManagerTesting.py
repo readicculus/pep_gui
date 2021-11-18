@@ -50,8 +50,9 @@ class EventManagerTesting(SchedulerEventManager):
 
         self.task_events[task_key].append(('_initialize_task', evt_data))
 
-    def _check_cancelled(self, task_key: TaskKey):
+    def _check_cancelled(self, task_key: TaskKey) -> bool:
         self.task_events[task_key].append(('_check_cancelled', None))
+        return self.task_status[task_key] == TaskStatus.CANCELLED
 
     def _start_task(self, task_key: TaskKey):
         self.task_events[task_key].append(('_start_task', None))
@@ -107,6 +108,17 @@ class EventManagerTesting(SchedulerEventManager):
         res = []
         for event_name, event_data in events:
             if event_data:
+                res.append((event_name, event_data))
+
+        return res
+
+    def get_events_by_type(self, task_key, type: str) -> List[Tuple[str, TestProgressGUIEventData]]:
+        events = self.task_events.get(task_key)
+        if not events:
+            return []
+        res = []
+        for event_name, event_data in events:
+            if event_name == type:
                 res.append((event_name, event_data))
 
         return res

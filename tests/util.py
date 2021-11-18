@@ -19,9 +19,8 @@ import pathlib as pl
 import shutil
 import tarfile
 import unittest
-
+import configparser
 import requests
-
 
 logging.basicConfig(format='%(asctime)s [%(levelname)s][%(name)s] - %(message)s', level=logging.DEBUG)
 global_logger = logging.getLogger(f'')
@@ -32,6 +31,10 @@ CONF_FILEPATH = os.path.join(os.path.dirname(TEST_DIR), 'conf')
 global_logger.debug('TEST_DIR %s' % TEST_DIR)
 global_logger.debug('DATA_FILEPATH %s' % TESTDATA_DIR)
 global_logger.debug('CONF_FILEPATH %s' % CONF_FILEPATH)
+
+test_config = os.path.join(TEST_DIR, 'config.ini')
+config = configparser.ConfigParser()
+config.read(test_config)
 
 def add_src_to_pythonpath():
     import os
@@ -73,21 +76,22 @@ def download_dummy_data():
         session.close()
     archive_fn = 'pep_tk-testdata.tar.gz'
     archive_fp = os.path.join(TEST_DIR, archive_fn)
-    # if os.path.isfile(archive_fp):
-    #     os.remove(archive_fp)
+    if os.path.isfile(archive_fp):
+        os.remove(archive_fp)
 
     if os.path.isdir(TESTDATA_DIR):
         global_logger.debug('%s already exists.  Skipping download.' % TESTDATA_DIR)
         return
     global_logger.debug(f'Downloading {archive_fn} from Google Drive.....')
-    download_file_from_google_drive('1C1yNhG0Aoh15IAG7QU2bUrT6X299j1VL', archive_fn)
+    gdrive_testdata_id = config['TestConfig'].get('gdrive_testdata_id')
+    download_file_from_google_drive(gdrive_testdata_id, archive_fp)
     global_logger.debug(f'Extracting archive.')
     with tarfile.open(archive_fn) as tar:
         tar.extractall(path=TEST_DIR)
 
     global_logger.debug(f'Cleaning up, removing {archive_fn}.')
-    # if os.path.isfile(archive_fp):
-    #     os.remove(archive_fp)
+    if os.path.isfile(archive_fp):
+        os.remove(archive_fp)
 
     global_logger.debug('DEBUG listdir TEST_DIR')
     global_logger.debug(os.listdir(TEST_DIR))
@@ -139,16 +143,13 @@ class TestCaseRequiringTestData(TestCaseBase):
         shutil.rmtree(cls.temp_dir)
 
 
-import configparser
 class TestCaseRequiringSEALTK(TestCaseRequiringTestData):
-    test_config = os.path.join(TEST_DIR, 'config.ini')
+
     def __init__(self, *args, **kwargs):
         super(TestCaseRequiringTestData, self).__init__(*args, **kwargs)
         self.sealtk_dir = ""
         self.is_valid_sealtk_dir = False
 
-        config = configparser.ConfigParser()
-        config.read(self.test_config)
         sealtk_directory = config['TestConfig'].get('sealtk_dir')
         self.sealtk_dir = sealtk_directory
         from pep_tk.psg.settings import get_viame_bash_or_bat_file_path
@@ -159,6 +160,7 @@ class TestCaseRequiringSEALTK(TestCaseRequiringTestData):
 
     def setUp(self) -> None:
         if not self.is_valid_sealtk_dir:
+            self.print('Test Skipped', logging.INFO)
             self.skipTest(f'TestConfig SEAL-TK directory is not defined or is not a valid seal-tk directory: '
                           f'"{self.sealtk_dir}".\n'
                           f'In order to run tests that actuall run a pipeline SEAL-TK needs to be downloaded. '
