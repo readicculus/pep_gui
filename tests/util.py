@@ -97,6 +97,8 @@ def download_dummy_data():
     global_logger.debug(os.listdir(TESTDATA_DIR))
 
 class TestCaseBase(unittest.TestCase):
+    log = None
+
     def assertIsFile(self, path):
         if not pl.Path(path).resolve().is_file():
             raise AssertionError("File does not exist: %s" % str(path))
@@ -107,6 +109,9 @@ class TestCaseBase(unittest.TestCase):
 
     # print to test log
     def print(self, message, loglevel=logging.INFO):
+        if not self.log:
+            self.setUp()
+
         self.log.log(level=loglevel, msg=message)
 
 
