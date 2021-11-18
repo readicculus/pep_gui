@@ -86,7 +86,7 @@ def download_dummy_data():
     gdrive_testdata_id = config['TestConfig'].get('gdrive_testdata_id')
     download_file_from_google_drive(gdrive_testdata_id, archive_fp)
     global_logger.debug(f'Extracting archive to {TEST_DIR}.')
-    with tarfile.open(archive_fn) as tar:
+    with tarfile.open(archive_fp) as tar:
         tar.extractall(path=TEST_DIR)
 
     global_logger.debug(f'Cleaning up, removing {archive_fn}.')
