@@ -45,6 +45,9 @@ def add_src_to_pythonpath():
 
 
 def download_dummy_data():
+    if os.path.isdir(TESTDATA_DIR):
+        global_logger.debug('%s already exists.  Skipping download.' % TESTDATA_DIR)
+        return
     def download_file_from_google_drive(id, destination):
         def get_confirm_token(response):
             for key, value in response.cookies.items():
@@ -74,24 +77,19 @@ def download_dummy_data():
 
         save_response_content(response, destination)
         session.close()
+
+
     archive_fn = 'pep_tk-testdata.tar.gz'
     archive_fp = os.path.join(TEST_DIR, archive_fn)
-    # if os.path.isfile(archive_fp):
-    #     os.remove(archive_fp)
 
-    if os.path.isdir(TESTDATA_DIR):
-        global_logger.debug('%s already exists.  Skipping download.' % TESTDATA_DIR)
-        return
     global_logger.debug(f'Downloading {archive_fn} from Google Drive.....')
     gdrive_testdata_id = config['TestConfig'].get('gdrive_testdata_id')
     download_file_from_google_drive(gdrive_testdata_id, archive_fp)
-    global_logger.debug(f'Extracting archive.')
+    global_logger.debug(f'Extracting archive to {TEST_DIR}.')
     with tarfile.open(archive_fn) as tar:
         tar.extractall(path=TEST_DIR)
 
     global_logger.debug(f'Cleaning up, removing {archive_fn}.')
-    # if os.path.isfile(archive_fp):
-    #     os.remove(archive_fp)
 
     global_logger.debug('DEBUG listdir TEST_DIR')
     global_logger.debug(os.listdir(TEST_DIR))
