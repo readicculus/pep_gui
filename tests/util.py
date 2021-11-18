@@ -73,8 +73,8 @@ def download_dummy_data():
         session.close()
     archive_fn = 'pep_tk-testdata.tar.gz'
     archive_fp = os.path.join(TEST_DIR, archive_fn)
-    if os.path.isfile(archive_fp):
-        os.remove(archive_fp)
+    # if os.path.isfile(archive_fp):
+    #     os.remove(archive_fp)
 
     if os.path.isdir(TESTDATA_DIR):
         global_logger.debug('%s already exists.  Skipping download.' % TESTDATA_DIR)
@@ -86,7 +86,8 @@ def download_dummy_data():
         tar.extractall(path=TEST_DIR)
 
     global_logger.debug(f'Cleaning up, removing {archive_fn}.')
-    os.remove(archive_fp)
+    # if os.path.isfile(archive_fp):
+    #     os.remove(archive_fp)
 
     global_logger.debug('DEBUG listdir TEST_DIR')
     global_logger.debug(os.listdir(TEST_DIR))
@@ -157,7 +158,6 @@ class TestCaseRequiringSEALTK(TestCaseRequiringTestData):
             self.is_valid_sealtk_dir = True
 
     def setUp(self) -> None:
-        super(TestCaseRequiringTestData, self).setUp()
         if not self.is_valid_sealtk_dir:
             self.skipTest(f'TestConfig SEAL-TK directory is not defined or is not a valid seal-tk directory: '
                           f'"{self.sealtk_dir}".\n'
@@ -165,3 +165,5 @@ class TestCaseRequiringSEALTK(TestCaseRequiringTestData):
                           f'You can find SEAL-TK binaries at https://github.com/VIAME/VIAME/.\n'
                           'To configure the location for tests, change the location of your SEAL-TK directory in '
                           'pep_gui/tests/config.ini')
+        else:
+            super(TestCaseRequiringTestData, self).setUp()
