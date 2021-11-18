@@ -22,7 +22,6 @@ import unittest
 
 import requests
 
-from pep_tk.psg.settings import get_viame_bash_or_bat_file_path
 
 logging.basicConfig(format='%(asctime)s [%(levelname)s][%(name)s] - %(message)s', level=logging.DEBUG)
 global_logger = logging.getLogger(f'')
@@ -151,6 +150,7 @@ class TestCaseRequiringSEALTK(TestCaseRequiringTestData):
         config.read(self.test_config)
         sealtk_directory = config['TestConfig'].get('sealtk_dir')
         self.sealtk_dir = sealtk_directory
+        from pep_tk.psg.settings import get_viame_bash_or_bat_file_path
 
         if sealtk_directory is not None and os.path.isdir(sealtk_directory) and \
                 os.path.isfile(get_viame_bash_or_bat_file_path(sealtk_directory)):
