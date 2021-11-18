@@ -76,8 +76,8 @@ def download_dummy_data():
         session.close()
     archive_fn = 'pep_tk-testdata.tar.gz'
     archive_fp = os.path.join(TEST_DIR, archive_fn)
-    if os.path.isfile(archive_fp):
-        os.remove(archive_fp)
+    # if os.path.isfile(archive_fp):
+    #     os.remove(archive_fp)
 
     if os.path.isdir(TESTDATA_DIR):
         global_logger.debug('%s already exists.  Skipping download.' % TESTDATA_DIR)
@@ -90,8 +90,8 @@ def download_dummy_data():
         tar.extractall(path=TEST_DIR)
 
     global_logger.debug(f'Cleaning up, removing {archive_fn}.')
-    if os.path.isfile(archive_fp):
-        os.remove(archive_fp)
+    # if os.path.isfile(archive_fp):
+    #     os.remove(archive_fp)
 
     global_logger.debug('DEBUG listdir TEST_DIR')
     global_logger.debug(os.listdir(TEST_DIR))
