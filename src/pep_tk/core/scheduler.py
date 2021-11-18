@@ -151,6 +151,8 @@ def enqueue_output(out, queue, evt: threading.Event, logfile: IO):
     # if an empty byte has come through and we can't do it asynchronously
     for line in iter(out.readline, b'foobar'):
         if evt.is_set():
+            logfile.close()
+            out.close()
             break
         try:
             logfile.write(line)
@@ -182,6 +184,12 @@ def exit_cleanup(fds, files_to_move, dir_to_move):
             pass
 
     move_output_files(files_to_move, dir_to_move)
+
+def kill_process(process):
+    if os.name == 'nt':
+        subprocess.call(['taskkill', '/F', '/T', '/PID', str(process.pid)])
+    else:
+        process.kill()
 
 class Scheduler:
     def __init__(self,
@@ -245,18 +253,19 @@ class Scheduler:
             # Create the environment variables needed for running
             #  - output ports (image list and viame detection csv file names)
             #  - the kwiver environment required for running kwiver runner
-            t = datetime.now()
+            stdout_enqueue_thread = datetime.now()
             csv_ports_raw = outputs.get_det_csv_env_ports()
             image_list_raw = outputs.get_image_list_env_ports()
 
-            pipeline_output_csv_env = compile_output_filenames(csv_ports_raw, path=self.job_meta.pending_outputs_dir, t=t)
-            pipeline_output_image_list_env = compile_output_filenames(image_list_raw, path=self.job_meta.pending_outputs_dir, t=t)
+            pipeline_output_csv_env = compile_output_filenames(csv_ports_raw, path=self.job_meta.pending_outputs_dir, t=stdout_enqueue_thread)
+            pipeline_output_image_list_env = compile_output_filenames(image_list_raw, path=self.job_meta.pending_outputs_dir, t=stdout_enqueue_thread)
 
             env = {**pipeline_output_csv_env, **pipeline_output_image_list_env}
 
             # Setup error log
             stdout_log_fp = os.path.join(self.job_meta.logs_dir,
                                         f'kwiver-output-{current_task_key.replace(":", "_")}.log')
+
             output_log = open(stdout_log_fp, 'w+b')
 
             atexit.register(exit_cleanup, fds=[output_log],
@@ -289,12 +298,10 @@ class Scheduler:
 
             # Stdout Thread
             kwiver_output_queue = Queue()
-            t = threading.Thread(target=enqueue_output, args=(process.stdout, kwiver_output_queue, prog_stop_evt, output_log))
-            t.daemon = True  # thread dies with the program
-            t.start()
-            # t_err = threading.Thread(target=enqueue_output, args=(process.stderr, kwiver_output_queue, prog_stop_evt, error_log))
-            # t_err.daemon = True  # thread dies with the program
-            # t_err.start()
+            stdout_enqueue_thread = threading.Thread(target=enqueue_output, args=(process.stdout, kwiver_output_queue, prog_stop_evt, output_log))
+            stdout_enqueue_thread.daemon = True  # thread dies with the program
+            stdout_enqueue_thread.start()
+
             cancelled = False
             while not cancelled:  # read line without blocking
                 if self.kill_event:
@@ -316,6 +323,9 @@ class Scheduler:
                 # check if user cancelled task, if cancelled kill kwiver process and stop output reading loop
                 cancelled = self.manager.check_cancelled(current_task_key)
 
+            # Wait for exit up to 5 seconds after kill
+            code = process.wait(5)
+
             # stop polling for progress and stop polling for stdout
             prog_stop_evt.set()
 
@@ -323,10 +333,7 @@ class Scheduler:
 
             # if user cancells task
             if cancelled:
-                if os.name == 'nt':
-                    subprocess.call(['taskkill', '/F', '/T', '/PID', str(process.pid)])
-                else:
-                    process.kill()
+                kill_process(process)
                 print(f'Cancelled {current_task_key}')
 
                 count = poll_image_list(image_list_monitor)
@@ -336,17 +343,19 @@ class Scheduler:
 
                 # Move outputs to error folder, attempt until process releases lock on files
                 moved = False
+                attempts = 0
                 while not moved:
+                    if attempts > 30:
+                        # try for 30 seconds
+                        break
                     try:
                         move_output_files(outputs_to_move, self.job_meta.error_outputs_dir)
                         moved = True
                     except PermissionError:
                         sleep(1)
+                        attempts += 1
 
                 continue
-
-            # Wait for exit up to 5 seconds after kill
-            code = process.wait(5)
 
             if code > 0:  # ERROR
                 # Update Task Ended with error
@@ -373,5 +382,3 @@ class Scheduler:
                 # Update GUI with success
                 self.manager.end_task(current_task_key, TaskStatus.SUCCESS)
                 self.manager.update_task_output_files(current_task_key, outputs_new_loc)
-
-            output_log.close()
