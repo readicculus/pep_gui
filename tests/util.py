@@ -36,6 +36,7 @@ test_config = os.path.join(TEST_DIR, 'config.ini')
 config = configparser.ConfigParser()
 config.read(test_config)
 
+
 def add_src_to_pythonpath():
     import os
     import sys
@@ -48,6 +49,7 @@ def download_dummy_data():
     if os.path.isdir(TESTDATA_DIR):
         global_logger.debug('%s already exists.  Skipping download.' % TESTDATA_DIR)
         return
+
     def download_file_from_google_drive(id, destination):
         def get_confirm_token(response):
             for key, value in response.cookies.items():
@@ -78,7 +80,6 @@ def download_dummy_data():
         save_response_content(response, destination)
         session.close()
 
-
     archive_fn = 'pep_tk-testdata.tar.gz'
     archive_fp = os.path.join(TEST_DIR, archive_fn)
 
@@ -96,6 +97,7 @@ def download_dummy_data():
     global_logger.debug('DEBUG listdir DATA_FILEPATH')
     global_logger.debug(os.listdir(TESTDATA_DIR))
 
+
 class TestCaseBase(unittest.TestCase):
     log = None
 
@@ -107,18 +109,19 @@ class TestCaseBase(unittest.TestCase):
         if not pl.Path(path).resolve().is_dir():
             raise AssertionError("Directory does not exist: %s" % str(path))
 
+    def _setup(self):
+        self.log = logging.getLogger(self.id())
+        self.print('Test Started', logging.DEBUG)
+
     # print to test log
     def print(self, message, loglevel=logging.INFO):
         if not self.log:
-            self.setUp()
+            self._setup()
 
         self.log.log(level=loglevel, msg=message)
 
-
     def setUp(self) -> None:
-        # self.log = logging.getLogger(f'({self.test_count}) {type(self).__name__}.{self._testMethodName}')
-        self.log = logging.getLogger(self.id())
-        self.print('Test Started', logging.DEBUG)
+        self._setup()
 
     def tearDown(self) -> None:
         try:
