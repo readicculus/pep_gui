@@ -13,6 +13,7 @@ config global
 process optical_input
   :: video_input
   :video_filename                              $ENV{PIPE_ARG_OPTICAL_INPUT}
+  :no_path_in_name                             false
   :frame_time                                  0
   :exit_on_invalid                             true
   :video_reader:type                           image_list

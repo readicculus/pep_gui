@@ -13,6 +13,7 @@ config global
 process thermal_input
   :: video_input
   :video_filename                                       $ENV{PIPE_ARG_THERMAL_INPUT}
+  :no_path_in_name                                      false
   :video_reader:type                                    image_list
   :video_reader:image_list:sort_by_time                 true
   block video_reader:image_list:image_reader
