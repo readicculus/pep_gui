@@ -1,0 +1,65 @@
+name: Run Tests
+on:
+  workflow_dispatch:
+  issue_comment:
+    types: [created]
+    
+
+jobs:
+  tests-ubuntu-latest:
+    runs-on: ubuntu-latest
+    if: github.event.issue.pull_request && ${{ github.event.comment.body == '!test'}}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+          ref: github.event.issue.pull_request.commit_id
+        run: hub pr checkout ${{ github.event.issue.number }}
+#      - name: Set up Python
+#        uses: actions/setup-python@v2
+#        with:
+#          python-version: '3.9' # SemVer's version range syntax
+#        env:
+#          AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
+#          RUNNER_TOOL_CACHE: /opt/hostedtoolcache
+      - name: Install Python
+        run: |
+          sudo add-apt-repository -y ppa:deadsnakes/ppa
+          sudo apt-get update -y
+          sudo apt-get install -y python3.9
+          sudo apt install python3-pip -y
+          sudo apt-get install python3-tk -y
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; fi
+          if [ -f tests/requirements.txt ]; then python3 -m pip install -r tests/requirements.txt; fi
+
+      - name: Run Tests
+        run:  python3 -m unittest discover -s tests -t tests
+
+  tests-windows-latest:
+    runs-on: windows-latest
+    if: github.event.issue.pull_request && ${{ github.event.comment.body == '!test'}}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+          ref: github.event.issue.pull_request.commit_id
+        
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r requirements.txt
+          python3 -m pip install -r tests\requirements.txt
+
+      - name: Run Tests
+        run:  python3 -m unittest discover -s tests -t tests
