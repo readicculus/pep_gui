@@ -39,7 +39,7 @@ class TestImports(TestCaseBase):
 
         import pep_tk.core.kwiver
         import pep_tk.core.kwiver.pipeline_compiler
-        import pep_tk.core.kwiver.subprocess_runner
+        import pep_tk.core.kwiver.runner
 
         import pep_tk.core.job
         import pep_tk.core.scheduler

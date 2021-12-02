@@ -32,7 +32,7 @@ except ImportError:
 
 from pep_tk.core.job import JobState, JobMeta, TaskStatus, TaskKey
 from pep_tk.core.kwiver.pipeline_compiler import compile_output_filenames
-from pep_tk.core.kwiver.subprocess_runner import KwiverRunner
+from pep_tk.core.kwiver.runner import KwiverRunner
 
 
 class SchedulerEventManager(metaclass=abc.ABCMeta):
@@ -47,7 +47,7 @@ class SchedulerEventManager(metaclass=abc.ABCMeta):
         self.task_output_files = {}
 
     def initialize_task(self, task_key: TaskKey, count: int, max_count: int, status: TaskStatus,
-                        task_outputs : Optional[List[str]] = None):
+                        task_outputs: Optional[List[str]] = None):
         self.task_count[task_key] = count
         self.task_max_count[task_key] = max_count
         self.task_status[task_key] = status
@@ -120,7 +120,7 @@ class SchedulerEventManager(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def _update_task_output_files(self, task_key: TaskKey, output_files : List[str]):
+    def _update_task_output_files(self, task_key: TaskKey, output_files: List[str]):
         pass
 
 
@@ -143,7 +143,6 @@ def monitor_outputs(stop_event: threading.Event, task_key: TaskKey, manager: Sch
             # should not have an issue but this is just to ensure program doesn't crash for user
             # pretty sure the concurrency stuff here is solid, but hard to be certain
             print(e)
-
 
 
 def enqueue_output(out, queue, evt: threading.Event, logfile: IO):
@@ -174,6 +173,7 @@ def move_output_files(output_fps, destination_dir):
         new_files.append(new_loc)
     return new_files
 
+
 def exit_cleanup(fds, files_to_move, dir_to_move):
     for f in fds:
         try:
@@ -183,11 +183,13 @@ def exit_cleanup(fds, files_to_move, dir_to_move):
 
     move_output_files(files_to_move, dir_to_move)
 
+
 def kill_process(process):
     if os.name == 'nt':
         subprocess.call(['taskkill', '/F', '/T', '/PID', str(process.pid)])
     else:
         process.kill()
+
 
 class Scheduler:
     def __init__(self,
@@ -196,7 +198,7 @@ class Scheduler:
                  manager: SchedulerEventManager,
                  kwiver_setup_path: str,
                  progress_poll_freq: int = 1,
-                 kill_event : threading.Event() = None):
+                 kill_event: threading.Event() = None):
         """
         Initialize a Scheduler for proccessing task queue synchronously.
 
@@ -213,7 +215,7 @@ class Scheduler:
         self.manager = manager
         self.kwiver_setup_path = kwiver_setup_path
         self.progress_poll_freq = progress_poll_freq
-        self.kill_event : threading.Event() = kill_event
+        self.kill_event: threading.Event() = kill_event
 
     def run(self):
         print('Scheduler Started (pid: %d)' % os.getpid())
@@ -228,14 +230,13 @@ class Scheduler:
             if os.path.isfile(stdout_log_fp):
                 with open(stdout_log_fp, 'r') as f:
                     log = f.read()
-                self.manager.update_task_stdout(task_key, 'Task already complete.  Log file found: %s\n' % stdout_log_fp)
+                self.manager.update_task_stdout(task_key,
+                                                'Task already complete.  Log file found: %s\n' % stdout_log_fp)
                 self.manager.update_task_stdout(task_key, log)
 
             # initialize the task
             task_outputs = self.job_state.get_task_outputs(task_key)
             self.manager.initialize_task(task_key, max_image_count, max_image_count, TaskStatus.SUCCESS, task_outputs)
-
-
 
         for task_key in self.job_state.tasks():
             status = self.job_state.get_status(task_key)
@@ -255,19 +256,23 @@ class Scheduler:
             csv_ports_raw = outputs.get_det_csv_env_ports()
             image_list_raw = outputs.get_image_list_env_ports()
 
-            pipeline_output_csv_env = compile_output_filenames(csv_ports_raw, path=self.job_meta.pending_outputs_dir, t=stdout_enqueue_thread)
-            pipeline_output_image_list_env = compile_output_filenames(image_list_raw, path=self.job_meta.pending_outputs_dir, t=stdout_enqueue_thread)
+            pipeline_output_csv_env = compile_output_filenames(csv_ports_raw, path=self.job_meta.pending_outputs_dir,
+                                                               t=stdout_enqueue_thread)
+            pipeline_output_image_list_env = compile_output_filenames(image_list_raw,
+                                                                      path=self.job_meta.pending_outputs_dir,
+                                                                      t=stdout_enqueue_thread)
 
             env = {**pipeline_output_csv_env, **pipeline_output_image_list_env}
 
             # Setup error log
             stdout_log_fp = os.path.join(self.job_meta.logs_dir,
-                                        f'kwiver-output-{current_task_key.replace(":", "_")}.log')
+                                         f'kwiver-output-{current_task_key.replace(":", "_")}.log')
 
             output_log = open(stdout_log_fp, 'w+b')
 
             atexit.register(exit_cleanup, fds=[output_log],
-                            files_to_move = list(pipeline_output_csv_env.values()) + list(pipeline_output_image_list_env.values()),
+                            files_to_move=list(pipeline_output_csv_env.values()) + list(
+                                pipeline_output_image_list_env.values()),
                             dir_to_move=self.job_meta.error_outputs_dir)
 
             # Update Task Started
@@ -297,7 +302,8 @@ class Scheduler:
 
             # Stdout Thread
             kwiver_output_queue = Queue()
-            stdout_enqueue_thread = threading.Thread(target=enqueue_output, args=(process.stdout, kwiver_output_queue, prog_stop_evt, output_log))
+            stdout_enqueue_thread = threading.Thread(target=enqueue_output, args=(
+            process.stdout, kwiver_output_queue, prog_stop_evt, output_log))
             stdout_enqueue_thread.daemon = True  # thread dies with the program
             stdout_enqueue_thread.start()
 
@@ -307,14 +313,15 @@ class Scheduler:
                     if self.kill_event.is_set():
                         # Kill all incomplete tasks
                         self._kill_all_tasks(process, prog_stop_evt)
-                        exit_cleanup(fds = [output_log],
-                                     files_to_move = list(pipeline_output_csv_env.values()) + list(
-                                     pipeline_output_image_list_env.values()),
-                                     dir_to_move = self.job_meta.error_outputs_dir)
+                        exit_cleanup(fds=[output_log],
+                                     files_to_move=list(pipeline_output_csv_env.values()) + list(
+                                         pipeline_output_image_list_env.values()),
+                                     dir_to_move=self.job_meta.error_outputs_dir)
                         return
                 try:
                     line = kwiver_output_queue.get(timeout=.5)
-                    if line == b'': break  # job is complete if empty byte received
+                    if line == b'':
+                        break  # job is complete if empty byte received
                     else:
                         self.manager.update_task_stdout(current_task_key, line.decode("utf-8"))
                 except Empty:
@@ -323,8 +330,8 @@ class Scheduler:
                 # check if user cancelled task, if cancelled kill kwiver process and stop output reading loop
                 cancelled = self.manager.check_cancelled(current_task_key)
 
-            # Wait for exit up to 5 seconds after kill
-            code = process.wait(5)
+            # Wait for exit up to 30 seconds after kill
+            code = process.wait(30)
 
             # stop polling for progress and stop polling for stdout
             prog_stop_evt.set()
