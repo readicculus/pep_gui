@@ -18,40 +18,15 @@ import datetime
 from typing import List, Optional, Dict
 
 import PySimpleGUI as sg
-from dataclasses import dataclass
 
 from pep_tk.core.job import TaskStatus
+from pep_tk.psg.events import ProgressGUIEventData
 from pep_tk.psg.fonts import Fonts
 from pep_tk.psg.layouts import LayoutSection
 from pep_tk.psg.settings import icon_filepath
 from pep_tk.psg.utils import set_pep_theme
 
 set_pep_theme(sg)
-
-@dataclass
-class ProgressGUIEventData:
-    """ Data message communicated between the Scheduler thread and the main GUI thread """
-    progress_count: int = None  # number of items processed already in task
-    max_count: int = None  # number of items being processed in task
-    elapsed_time: float = None  # time elapsed so far
-    task_status: TaskStatus = None  # current status of the task
-    output_files: List[str] = None  # output files from the task (image lists, detections)
-    output_log: str = None
-    completed_on_load: bool = False # if task was already completed when initialized/loaded
-
-    @property
-    def time_per_count(self) -> float:  # average time taken to process each item
-        if self.progress_count == None:
-            return 0
-        if self.progress_count == 0:
-            return 0
-        return self.elapsed_time / self.progress_count
-
-    @property
-    def estimated_time_remaining(self) -> Optional[float]:
-        if self.progress_count == None or self.max_count == None:
-            return None
-        return self.time_per_count * (self.max_count - self.progress_count)
 
 def task_status_update_key(task_key):
     return f'--task-update-{task_key}--'

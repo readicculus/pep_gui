@@ -17,13 +17,14 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Optional, Tuple
 
+from pep_tk.psg.events import ProgressGUIEventData
 from util import add_src_to_pythonpath
 
 add_src_to_pythonpath()
 
 from pep_tk.core.scheduler import SchedulerEventManager
 from pep_tk.core.job import TaskKey, TaskStatus
-from pep_tk.psg.layouts import ProgressGUIEventData
+
 
 
 @dataclass
