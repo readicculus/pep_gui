@@ -3,27 +3,28 @@
 ### Overview of project structure
 ```
 pep_gui/
-├── conf/
-│   ├── pipeline_manifest.yaml   # Pipeline manifest for defining pipelines for GUI to use.
-│   └── pipelines/               # folder containing pipelines, models, etc..
-├── tests/                       # tests for pep_gui
-│   ├── config.ini               # test configuration required for running kwiver runner tests
+├── tests/                               # tests for pep_gui
+│   ├── config.ini                       # test configuration required for running kwiver runner tests
 │   └── tests...
 ├── src/                       
 │   ├── pep_tk/
-│   │   ├── core/                 # backend functionality for pep_tk
-│   │   │   ├── configuration/    # reading pipeline manifest and other configurations
-│   │   │   ├── kwiver/           # code for running kwiver pipelinees and compiling pipeleins     
-│   │   │   ├── parser/           # for parsing user supplied dataset manifests in different formats
-│   │   │   ├── utilities/        # miscellaneous utilities
-│   │   │   ├── job.py            # serializing, reading, and saving job state data
-│   │   │   └── scheduler.py      # the scheduler which runs tasks and communicates progress/user interactions with the GUI
-│   │   └─── psg/                 # user interface related code
-│   │       ├── layouts/          # components that exist within windows
-│   │       ├── windows/          # windows of the GUI application
-│   │       ├── events/           # event data and manager for communication with scheduler
-│   │       └── settings.py       # GUI user-defined setting uitilities
-│   └── launch.py                 # program entry point/launch script                              
+│   │   ├── core/                        # backend functionality for pep_tk
+│   │   │   ├── configuration/           # reading pipeline manifest and other configurations
+│   │   │   ├── kwiver/                  # code for running kwiver pipelinees and compiling pipeleins     
+│   │   │   ├── parser/                  # for parsing user supplied dataset manifests in different formats
+│   │   │   ├── utilities/               # miscellaneous utilities
+│   │   │   ├── job.py                   # serializing, reading, and saving job state data
+│   │   │   └── scheduler.py             # the scheduler which runs tasks and communicates progress/user interactions with the GUI
+│   │   └─── psg/                        # user interface related code
+│   │   │   ├── layouts/                 # components that exist within windows
+│   │   │   ├── windows/                 # windows of the GUI application
+│   │   │   ├── events/                  # event data and manager for communication with scheduler
+│   │   │   └── settings.py              # GUI user-defined setting uitilities
+│   │   ├──  conf/
+│   │   │   ├── pipeline_manifest.yaml   # Pipeline manifest for defining pipelines for GUI to use.
+│   │   │   └── pipelines/               # folder containing pipelines, models, etc..
+│   │   ├──  lib/                        # folder containing icons/image resources
+│   │   └──  launch.py                   # program entry point/launch script                              
 └── ...
 
 ```

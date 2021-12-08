@@ -16,7 +16,7 @@
 
 import os
 __version__ = "N/A"
-PLUGIN_PATH = os.path.normpath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+PLUGIN_PATH = os.path.normpath(os.path.dirname(os.path.abspath(__file__)))
 
 version_txt_fp = os.path.join(os.path.dirname(__file__), 'VERSION.txt')
 with open(version_txt_fp, 'r') as file:

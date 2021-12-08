@@ -215,9 +215,12 @@ def job_exists(job_path: str):
         return False
     return True
 
-def create_job(directory, pipeline: PipelineConfig, datasets: List[VIAMEDataset]) -> str:
+def create_job(directory, pipeline: PipelineConfig, datasets: List[VIAMEDataset], force=False) -> str:
     if os.path.isdir(directory) or os.path.isfile(directory):
-        raise Exception('Either directory already exists or is a file an not a directory')
+        if force:
+            shutil.rmtree(directory, ignore_errors=True)
+        else:
+            raise Exception('Either directory already exists or is a file an not a directory')
 
     pipeline_directory = pipelines_dir(directory)
     meta_directory = meta_dir(directory)

@@ -3,3 +3,8 @@
 /.tmp/
 archive
 /tests/pep_tk-testdata/
+!.idea
+
+.idea/*
+!.idea/runConfigurations
+/.directory

@@ -27,7 +27,7 @@ global_logger = logging.getLogger(f'')
 
 TEST_DIR = os.path.dirname(__file__)
 TESTDATA_DIR = os.path.join(TEST_DIR, 'pep_tk-testdata')
-CONF_FILEPATH = os.path.join(os.path.dirname(TEST_DIR), 'conf')
+CONF_FILEPATH = os.path.join(os.path.dirname(TEST_DIR),'src', 'pep_tk/conf')
 global_logger.debug('TEST_DIR %s' % TEST_DIR)
 global_logger.debug('DATA_FILEPATH %s' % TESTDATA_DIR)
 global_logger.debug('CONF_FILEPATH %s' % CONF_FILEPATH)
