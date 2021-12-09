@@ -35,9 +35,8 @@ jobs:
         run: python setup.py test
       
   deploy-tests-windows-latest:
+    needs: deploy-tests-linux-latest
     runs-on: windows-latest
-    env:
-      VERSION: 1.0.8
     
     steps:
       - uses: actions/checkout@v2
@@ -50,9 +49,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install build
           python3 -m pip install -r tests\requirements.txt
-      - name: Build package
-        run: python -m build
-      - name: Install package
-        run: pip install dist\*.whl
+      - name: Install pep-tk from test.pypi
+        run: |
+          python3 -m pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple pep-tk
       - name: Run tests
-        run: python setup.py test
+        run: |
+          python3 setup.py test
