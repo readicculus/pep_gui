@@ -21,7 +21,7 @@ import sys
 sys.path.append('src')
 from setuptools import find_packages
 import os
-
+import unittest
 
 # Parse Version information
 version_txt_fp = os.path.normpath('src/pep_tk/VERSION.txt')
@@ -53,6 +53,13 @@ def package_files(directory):
 
 extra_files = package_files('src/pep_tk/conf') + package_files('src/pep_tk/lib') + package_files('src/pep_tk')
 
+# define function for python setup.py test
+def test_suit():
+    test_loader = unittest.TestLoader()
+    test_suite = test_loader.discover('tests', pattern='test_*.py')
+    return test_suite
+
+
 setup(
         name='pep_tk',
         version=_v_,
@@ -71,4 +78,5 @@ setup(
           'console_scripts': ['pep_gui=pep_tk:launch.main'],
         },
         python_requires='>=3.8',
+        test_suite="setup.test_suit",
 )

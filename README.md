@@ -27,16 +27,23 @@ This GUI runs kwiver pipelines using VIAME's underlying kwiver.  Some pipelines(
 may require kwiver plugins only available in the SEAL-TK distribution.  
 Binaries for SEAL-TK or VIAME can be found [here](https://github.com/VIAME/VIAME/#installations).
 
+
 ```bash
 pip install pep_tk
 pep_gui # command to run the GUI
 ```
-Because by default this was installed for your user you may need to add the user bin/ path to your PATH variable for pep_gui to work.
+Because by default this was installed for your user you may need to add the user bin/ path to your PATH variable for pep_gui to work `export PATH=~/.local/bin:$PATH`.
 I tested this on Windows11 and succeeded with the above instructions. I recommend creating a conda environment especially on our windows VMs where 
 you may have limited permissions with the global python.
 
 #### Other
-If for some reason you are struggling and the pep_gui target doesn't work
+If for some reason you are struggling and the pep_gui target doesn't work a simple script like this could be used to launch the GUI.
+```python
+# example my_custom_launcher.py
+from pep_tk import launch
+
+launch.main()  # launch GUI
+```
 
 ### - Configuring the application preferences -
 When the application is launched for the first time you will be prompted to configure the following properties.
