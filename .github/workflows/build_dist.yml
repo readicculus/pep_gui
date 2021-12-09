@@ -6,7 +6,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Build Python Package
+name:  Build & Publish To PyPi
 
 on:
   workflow_dispatch:
@@ -63,11 +63,12 @@ jobs:
           --wheel
           --outdir dist/
       - name: Add artifact
-      - uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v2
         with:
           name: dist
           path: |
             dist/*
+            
       - name: Publish distribution 📦 to Test PyPI
         uses: pypa/gh-action-pypi-publish@master
         with:
@@ -131,6 +132,7 @@ jobs:
           ls -R
           mkdir dist
           mv pep_tk* dist/
+        
       - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@master
         with:
