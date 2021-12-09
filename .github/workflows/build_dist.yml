@@ -62,6 +62,12 @@ jobs:
           --sdist
           --wheel
           --outdir dist/
+      - name: Add artifact
+      - uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: |
+            dist/*
       - name: Publish distribution 📦 to Test PyPI
         uses: pypa/gh-action-pypi-publish@master
         with:
@@ -83,11 +89,15 @@ jobs:
       - name: Install TestPyPi Release
         run: pip install --index-url https://test.pypi.org/simple/  --extra-index-url https://pypi.org/simple pep-tk
         
-      - name: Run Tests on TestPyPi Release
-        run:  python3 -m setup.py test
+      - name: Install test requirements
+        run: pip install -r tests/requirements.txt
         
-  tests-windows-latest:
+      - name: Run Tests on TestPyPi Release
+        run:  python setup.py test
+        
+  test-windows-latest-install:
     needs: build-n-publish-to-testpypi
+    name: Test installing from TestPyPi on windows-latest
     runs-on: windows-latest
 
     steps:
@@ -102,10 +112,26 @@ jobs:
       - name: Install TestPyPi Release
         run: pip install --index-url https://test.pypi.org/simple/  --extra-index-url https://pypi.org/simple pep-tk
         
-      - name: Run Tests on TestPyPi Release
-        run:  python3 -m setup.py test
+      - name: Install test requirements
+        run: pip install -r tests/requirements.txt
         
-#       - name: Publish distribution 📦 to PyPI
-#         uses: pypa/gh-action-pypi-publish@master
-#         with:
-#           password: ${{ secrets.PYPI_API_TOKEN }}
+      - name: Run Tests on TestPyPi Release
+        run:  python setup.py test
+        
+  publish-to-pypi:
+    name: Publish To PyPi 📦
+    needs: [test-ubuntu-latest-install, test-windows-latest-install]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+      - name: ls
+        run: |
+          ls -R
+          mkdir dist
+          mv pep_tk* dist/
+      - name: Publish distribution 📦 to PyPI
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
