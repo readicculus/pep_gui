@@ -19,4 +19,4 @@ jobs:
       - name: Install test requirements
         run: pip install -r tests/requirements.txt
       - name: Run Tests on TestPyPi Release
-        run:  python3 -m setup.py test
+        run:  python setup.py test
