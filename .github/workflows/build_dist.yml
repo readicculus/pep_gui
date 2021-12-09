@@ -13,37 +13,36 @@ on:
 
     
 jobs:
-  build-test-linux:
+#   build-test-linux:
 
-    runs-on: ubuntu-latest
+#     runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install build
-          python3 -m pip install -r tests/requirements.txt
-      - name: Build package
-        run: python -m build
-      - name: Install package
-        run: pip install dist/*.whl
-      - name: Run tests
-        run: python setup.py test
+#     steps:
+#       - uses: actions/checkout@v2
+#       - name: Set up Python
+#         uses: actions/setup-python@v2
+#         with:
+#           python-version: '3.9'
+#       - name: Install dependencies
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install build
+#           python3 -m pip install -r tests/requirements.txt
+#       - name: Build package
+#         run: python -m build
+#       - name: Install package
+#         run: pip install dist/*.whl
+#       - name: Run tests
+#         run: python setup.py test
         
-      - uses: actions/upload-artifact@v2
-        with:
-          name: dist
-          path: |
-            dist/*
-  build-n-publish:
-    needs: build-test-linux
-    name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
-    runs-on: ubuntu-18.04
+#       - uses: actions/upload-artifact@v2
+#         with:
+#           name: dist
+#           path: |
+#             dist/*
+  build-n-publish-to-testpypi:
+    name: Build and publish Python 🐍 distributions 📦 to TestPyPI
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
       - name: Set up Python 3.9
@@ -68,11 +67,44 @@ jobs:
         with:
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
           repository_url: https://test.pypi.org/legacy/
-        
+          
+          
+  test-ubuntu-latest-install:
+    needs: build-n-publish-to-testpypi
+    name: Test installing from TestPyPi on ubuntu-latest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.9
+          
       - name: Install TestPyPi Release
         run: pip install --index-url https://test.pypi.org/simple/  --extra-index-url https://pypi.org/simple pep-tk
+        
       - name: Run Tests on TestPyPi Release
         run:  python3 -m setup.py test
+        
+  tests-windows-latest:
+    needs: build-n-publish-to-testpypi
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+          
+      - name: Install TestPyPi Release
+        run: pip install --index-url https://test.pypi.org/simple/  --extra-index-url https://pypi.org/simple pep-tk
+        
+      - name: Run Tests on TestPyPi Release
+        run:  python3 -m setup.py test
+        
 #       - name: Publish distribution 📦 to PyPI
 #         uses: pypa/gh-action-pypi-publish@master
 #         with:
