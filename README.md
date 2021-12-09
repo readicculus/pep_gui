@@ -1,5 +1,7 @@
 <h1><img src="https://raw.githubusercontent.com/readicculus/pep_gui/master/src/pep_tk/lib/img/icon_80x80.png" width="80" height="80"/>Polar Ecosystems Program GUI</h1>
 
+[![PyPI version fury.io](https://badge.fury.io/py/pep-tk.svg)](https://pypi.python.org/pypi/ansicolortags/)
+![example workflow](https://github.com/readicculus/pep_gui/actions/workflows/main.yml/badge.svg)
 #### Table of Contents
   * [Terminology](#terminology)
   * [The GUI](#the-gui)
