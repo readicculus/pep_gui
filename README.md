@@ -1,4 +1,4 @@
-<h1><img src="src/pep_tk/lib/img/icon_80x80.png" width="80" height="80"/>Polar Ecosystems Program GUI</h1>
+<h1><img src="https://raw.githubusercontent.com/readicculus/pep_gui/master/src/pep_tk/lib/img/icon_80x80.png" width="80" height="80"/>Polar Ecosystems Program GUI</h1>
 
 #### Table of Contents
   * [Terminology](#terminology)
@@ -27,14 +27,16 @@ This GUI runs kwiver pipelines using VIAME's underlying kwiver.  Some pipelines(
 may require kwiver plugins only available in the SEAL-TK distribution.  
 Binaries for SEAL-TK or VIAME can be found [here](https://github.com/VIAME/VIAME/#installations).
 
-Since model files are large, to checkout with git you will also need to install [Git LFS](https://git-lfs.github.com/).
-
 ```bash
-git clone https://github.com/readicculus/pep_gui.git # clone the repository
-cd pep_gui                                           # cd into project
-git lfs pull                                         # pull the model files using Git LFS
-pip install -r requirements.txt                      # install project dependencies
+pip install pep_tk
+pep_gui # command to run the GUI
 ```
+Because by default this was installed for your user you may need to add the user bin/ path to your PATH variable for pep_gui to work.
+I tested this on Windows11 and succeeded with the above instructions. I recommend creating a conda environment especially on our windows VMs where 
+you may have limited permissions with the global python.
+
+#### Other
+If for some reason you are struggling and the pep_gui target doesn't work
 
 ### - Configuring the application preferences -
 When the application is launched for the first time you will be prompted to configure the following properties.
@@ -44,9 +46,9 @@ Here you can set:
 - Which dataset manfieset file to use.
 - The base directory for jobs (new jobs will be created in `/path/to/job_base_dir/`)
 
-![preoperties_window.png](src/pep_tk/lib/img/screenshots/preoperties_window.png)
+![preoperties_window.png](https://raw.githubusercontent.com/readicculus/pep_gui/master/src/pep_tk/lib/img/screenshots/preoperties_window.png)
 ### - Creating a Job -
-<img src="src/pep_tk/lib/img/screenshots/create_job.png" width="75%" height="75%">
+<img src="https://raw.githubusercontent.com/readicculus/pep_gui/master/src/pep_tk/lib/img/screenshots/create_job.png" width="75%" height="75%">
 
 When you first launch the program you will be brought to a page to create a job.  To create a job:
 1. Select which datasets you want to run
@@ -60,7 +62,7 @@ To resume a Job click `File > Resume Job` which will open a prompt to select a f
 _Since a task is the smallest unit of work, if a task fails half way through, resuming a job will re-run that task from the beginning.  If a task is successful resuming a job will not re-run that task._ 
 
 ### - Job progress -
-<img src="src/pep_tk/lib/img/screenshots/progress_window.png" width="75%" height="75%">
+<img src="https://raw.githubusercontent.com/readicculus/pep_gui/master/src/pep_tk/lib/img/screenshots/progress_window.png" width="75%" height="75%">
 
 The job progress GUI allows you to track individual task's progress, to cancel a task, and to see metrics such as seconds/iteration and estimated time to completion.
 ### - Job outputs -

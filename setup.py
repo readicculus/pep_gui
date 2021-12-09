@@ -53,20 +53,22 @@ def package_files(directory):
 
 extra_files = package_files('src/pep_tk/conf') + package_files('src/pep_tk/lib') + package_files('src/pep_tk')
 
-setup(name='pep_tk',
-      version=_v_,
-      description='Polar Ecosystems Program Toolkit',
-      long_description=long_description,
-      long_description_content_type="text/markdown",
-      author='Yuval Boss',
-      author_email='yuval@uw.edu',
-      url='https://github.com/readicculus/pep_gui',
-      install_requires=install_reqs,
-      packages=find_packages('src'),
-      package_dir={'pep_tk': 'src/pep_tk'},
-      package_data={"pep_tk": extra_files},
-      include_package_data=True,
-      entry_points={
+setup(
+        name='pep_tk',
+        version=_v_,
+        description='Polar Ecosystems Program Toolkit',
+        long_description=long_description,
+        long_description_content_type="text/markdown",
+        author='Yuval Boss',
+        author_email='yuval@uw.edu',
+        url='https://github.com/readicculus/pep_gui',
+        install_requires=install_reqs,
+        packages=find_packages('src'),
+        package_dir={'pep_tk': 'src/pep_tk'},
+        package_data={"pep_tk": extra_files},
+        include_package_data=True,
+        entry_points={
           'console_scripts': ['pep_gui=pep_tk:launch.main'],
-      },
-      )
+        },
+        python_requires='>=3.8',
+)

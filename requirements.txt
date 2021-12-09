@@ -1,5 +1,5 @@
 PyYAML==5.4.1
 dataclasses==0.8; python_version < '3.7'
 setuptools~=52.0.0
-pandas~=1.1.5
+pandas
 PySimpleGUI==4.47.0
