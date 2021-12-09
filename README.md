@@ -2,8 +2,8 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5770966.svg)](https://doi.org/10.5281/zenodo.5770966)
 [![PyPI version pep-tk](https://badge.fury.io/py/pep-tk.svg)](https://pypi.python.org/pypi/pep-tk/)
-![example workflow](https://github.com/readicculus/pep_gui/actions/workflows/main.yml/badge.svg)
-
+![Tests Workflow](https://github.com/readicculus/pep_gui/actions/workflows/main.yml/badge.svg)
+[![PyPI pyversions](https://img.shields.io/badge/python-%3E%3D3.8-red)](https://pypi.python.org/pypi/pep-tk/)
 
 #### Table of Contents
   * [Terminology](#terminology)
