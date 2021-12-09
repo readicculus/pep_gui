@@ -20,3 +20,24 @@ jobs:
         run: pip install -r tests/requirements.txt
       - name: Run Tests on TestPyPi Release
         run:  python setup.py test
+        
+  tests-windows-latest-install:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+          
+      - name: Install TestPyPi Release
+        run: pip install --index-url https://test.pypi.org/simple/  --extra-index-url https://pypi.org/simple pep-tk
+        
+      - name: Install test requirements
+        run: pip install -r tests/requirements.txt
+        
+      - name: Run Tests on TestPyPi Release
+        run:  python setup.py test
