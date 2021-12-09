@@ -33,25 +33,31 @@ jobs:
         run: pip install dist/*.whl
       - name: Run tests
         run: python setup.py test
-      
-  deploy-tests-windows-latest:
-    needs: deploy-tests-linux-latest
-    runs-on: windows-latest
-    
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
+        
+      - uses: actions/upload-artifact@v2
         with:
-          python-version: '3.9'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install build
-          python3 -m pip install -r tests\requirements.txt
-      - name: Install pep-tk from test.pypi
-        run: |
-          python3 -m pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple pep-tk
-      - name: Run tests
-        run: |
-          python3 setup.py test
+          name: dist
+          path: |
+            dist/*
+      
+#   deploy-tests-windows-latest:
+#     needs: deploy-tests-linux-latest
+#     runs-on: windows-latest
+    
+#     steps:
+#       - uses: actions/checkout@v2
+#       - name: Set up Python
+#         uses: actions/setup-python@v2
+#         with:
+#           python-version: '3.9'
+#       - name: Install dependencies
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install build
+#           python3 -m pip install -r tests\requirements.txt
+#       - name: Install pep-tk from test.pypi
+#         run: |
+#           python3 -m pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple pep-tk
+#       - name: Run tests
+#         run: |
+#           python3 setup.py test
