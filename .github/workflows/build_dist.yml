@@ -75,7 +75,7 @@ jobs:
           repository_url: https://test.pypi.org/legacy/
           
           
-  test-ubuntu-latest-install:
+  test-pypi-ubuntu-latest-install:
     needs: build-n-publish-to-testpypi
     name: Test installing from TestPyPi on ubuntu-latest
     runs-on: ubuntu-latest
@@ -95,7 +95,7 @@ jobs:
       - name: Run Tests on TestPyPi Release
         run:  python setup.py test
         
-  test-windows-latest-install:
+  test-pypi-windows-latest-install:
     needs: build-n-publish-to-testpypi
     name: Test installing from TestPyPi on windows-latest
     runs-on: windows-latest
