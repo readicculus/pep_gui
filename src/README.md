@@ -45,3 +45,9 @@ wanted to completely scrap this GUI and make their own, you would just have to i
 The `GUIManager` creates instances of `ProgressGUIEventData` (in `src/psg/events/data.py`) which it then communicates to 
 the PySimpleGUI window via `window.write_event_value`.  This allows the scheduler to pass information to the GUI which 
 can then update progress bars, task statuses, etc...
+
+### Workflows/Tests
+
+I've added some CI for testing and deploying packages.  The current test coverage is limited but there are tests
+for both core functionality along with tests that actually run the scheduler if you define a kwiver path in `tests/config.ini`.
+In addition `python setup.py test` can be used to run the tests which is helpful when deploying to pypi.
