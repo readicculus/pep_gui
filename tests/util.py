@@ -87,11 +87,10 @@ def download_dummy_data():
     gdrive_testdata_id = config['TestConfig'].get('gdrive_testdata_id')
     download_file_from_google_drive(gdrive_testdata_id, archive_fp)
     global_logger.debug(f'Extracting archive to {TEST_DIR}.')
-    if not os.path.isdir(TEST_DIR):
-        with tarfile.open(archive_fp) as tar:
-            tar.extractall(path=TEST_DIR)
-
-    global_logger.debug(f'Cleaning up, removing {archive_fn}.')
+    print(os.listdir())
+    with tarfile.open(archive_fp) as tar:
+        tar.extractall(path=TEST_DIR)
+    global_logger.debug(os.listdir(os.path.join(TEST_DIR, 'pep_tk-testdata')))
 
     global_logger.debug('DEBUG listdir TEST_DIR')
     global_logger.debug(os.listdir(TEST_DIR))
