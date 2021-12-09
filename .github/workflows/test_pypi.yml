@@ -6,7 +6,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Build Python Package
+name: test
 
 on:
   workflow_dispatch:
@@ -76,9 +76,9 @@ jobs:
     name: Publish To PyPi 📦
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/download-artifact@v2
-      with:
-        name: dist
-    - name: ls
-      run: ls -R
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+      - name: ls
+        run: ls -R
     
