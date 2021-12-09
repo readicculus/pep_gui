@@ -1,7 +1,10 @@
 <h1><img src="https://raw.githubusercontent.com/readicculus/pep_gui/master/src/pep_tk/lib/img/icon_80x80.png" width="80" height="80"/>Polar Ecosystems Program GUI</h1>
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5770966.svg)](https://doi.org/10.5281/zenodo.5770966)
 [![PyPI version pep-tk](https://badge.fury.io/py/pep-tk.svg)](https://pypi.python.org/pypi/pep-tk/)
 ![example workflow](https://github.com/readicculus/pep_gui/actions/workflows/main.yml/badge.svg)
+
+
 #### Table of Contents
   * [Terminology](#terminology)
   * [The GUI](#the-gui)
