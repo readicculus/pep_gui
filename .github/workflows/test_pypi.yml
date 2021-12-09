@@ -1,11 +1,47 @@
-name: Pull From Test Pypi
+# This workflow will upload a Python Package using Twine when a release is created
+# For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Build Python Package
 
 on:
   workflow_dispatch:
-  
+
+    
 jobs:
-  test-ubuntu-latest-install:
-    name: Test installing from TestPyPi on ubuntu-latest
+#   build-test-linux:
+
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - uses: actions/checkout@v2
+#       - name: Set up Python
+#         uses: actions/setup-python@v2
+#         with:
+#           python-version: '3.9'
+#       - name: Install dependencies
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install build
+#           python3 -m pip install -r tests/requirements.txt
+#       - name: Build package
+#         run: python -m build
+#       - name: Install package
+#         run: pip install dist/*.whl
+#       - name: Run tests
+#         run: python setup.py test
+        
+#       - uses: actions/upload-artifact@v2
+#         with:
+#           name: dist
+#           path: |
+#             dist/*
+  build-n-publish-to-testpypi:
+    name: Build and publish Python 🐍 distributions 📦 to TestPyPI
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
@@ -13,31 +49,36 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: 3.9
-          
-      - name: Install TestPyPi Release
-        run: pip install --index-url https://test.pypi.org/simple/  --extra-index-url https://pypi.org/simple pep-tk
-      - name: Install test requirements
-        run: pip install -r tests/requirements.txt
-      - name: Run Tests on TestPyPi Release
-        run:  python setup.py test
-        
-  tests-windows-latest-install:
-    runs-on: windows-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - name: Install pypa/build
+        run: >-
+          python -m
+          pip install
+          build
+          --user
+      - name: Build a binary wheel and a source tarball
+        run: >-
+          python -m
+          build
+          --sdist
+          --wheel
+          --outdir dist/
+      - name: Add artifact
+      - uses: actions/upload-artifact@v2
         with:
-          python-version: '3.9'
+          name: dist
+          path: |
+            dist/*
           
-      - name: Install TestPyPi Release
-        run: pip install --index-url https://test.pypi.org/simple/  --extra-index-url https://pypi.org/simple pep-tk
+  
         
-      - name: Install test requirements
-        run: pip install -r tests/requirements.txt
-        
-      - name: Run Tests on TestPyPi Release
-        run:  python setup.py test
+  publish-to-pypi:
+    needs: build-n-publish-to-testpypi
+    name: Publish To PyPi 📦
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: dist
+    - name: ls
+      run: ls -R
+    
