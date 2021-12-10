@@ -37,11 +37,13 @@ Binaries for SEAL-TK or VIAME can be found [here](https://github.com/VIAME/VIAME
 pip install pep_tk
 pep_gui # command to run the GUI
 ```
-Because by default this was installed for your user you may need to add the user bin/ path to your PATH variable for pep_gui to work `export PATH=~/.local/bin:$PATH`.
 I tested this on Windows11 and succeeded with the above instructions. I recommend creating a conda environment especially on our windows VMs where 
 you may have limited permissions with the global python.
 
-#### Other
+Because by default this was installed for your user you may need to add the user bin/ path to your PATH variable for pep_gui to work `export PATH=~/.local/bin:$PATH`.  On Windows this worked for me without any changes but if there are issues the pep_gui command should be located in the `Scripts` folder of the python/conda environment you used to install.
+
+
+#### pep_gui command not working
 If for some reason you are struggling and the pep_gui target doesn't work a simple script like this could be used to launch the GUI.
 ```python
 # example my_custom_launcher.py
