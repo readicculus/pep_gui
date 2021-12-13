@@ -6,44 +6,17 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Build Python Package
+name:  Build & Publish To PyPi
 
 on:
   workflow_dispatch:
 
-jobs:
-  deploy-tests-linux-latest:
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install build
-          python3 -m pip install -r tests/requirements.txt
-      - name: Build package
-        run: python -m build
-      - name: Install package
-        run: pip install dist/*.whl
-      - name: Run tests
-        run: python setup.py test
-        
-      - uses: actions/upload-artifact@v2
-        with:
-          name: dist
-          path: |
-            dist/*
-      
-#   deploy-tests-windows-latest:
-#     needs: deploy-tests-linux-latest
-#     runs-on: windows-latest
     
+jobs:
+#   build-test-linux:
+
+#     runs-on: ubuntu-latest
+
 #     steps:
 #       - uses: actions/checkout@v2
 #       - name: Set up Python
@@ -54,10 +27,113 @@ jobs:
 #         run: |
 #           python -m pip install --upgrade pip
 #           pip install build
-#           python3 -m pip install -r tests\requirements.txt
-#       - name: Install pep-tk from test.pypi
-#         run: |
-#           python3 -m pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple pep-tk
+#           python3 -m pip install -r tests/requirements.txt
+#       - name: Build package
+#         run: python -m build
+#       - name: Install package
+#         run: pip install dist/*.whl
 #       - name: Run tests
-#         run: |
-#           python3 setup.py test
+#         run: python setup.py test
+        
+#       - uses: actions/upload-artifact@v2
+#         with:
+#           name: dist
+#           path: |
+#             dist/*
+  build-n-publish-to-testpypi:
+    name: Build and publish Python 🐍 distributions 📦 to TestPyPI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.9
+      - name: Install pypa/build
+        run: >-
+          python -m
+          pip install
+          build
+          --user
+      - name: Build a binary wheel and a source tarball
+        run: >-
+          python -m
+          build
+          --sdist
+          --wheel
+          --outdir dist/
+      - name: Add artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: |
+            dist/*
+            
+      - name: Publish distribution 📦 to Test PyPI
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          repository_url: https://test.pypi.org/legacy/
+          
+          
+  test-ubuntu-latest-install:
+    needs: build-n-publish-to-testpypi
+    name: Test installing from TestPyPi on ubuntu-latest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.9
+          
+      - name: Install TestPyPi Release
+        run: pip install --index-url https://test.pypi.org/simple/  --extra-index-url https://pypi.org/simple pep-tk
+        
+      - name: Install test requirements
+        run: pip install -r tests/requirements.txt
+        
+      - name: Run Tests on TestPyPi Release
+        run:  python setup.py test
+        
+  test-windows-latest-install:
+    needs: build-n-publish-to-testpypi
+    name: Test installing from TestPyPi on windows-latest
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+          
+      - name: Install TestPyPi Release
+        run: pip install --index-url https://test.pypi.org/simple/  --extra-index-url https://pypi.org/simple pep-tk
+        
+      - name: Install test requirements
+        run: pip install -r tests/requirements.txt
+        
+      - name: Run Tests on TestPyPi Release
+        run:  python setup.py test
+        
+  publish-to-pypi:
+    name: Publish To PyPi 📦
+    needs: [test-ubuntu-latest-install, test-windows-latest-install]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+      - name: ls
+        run: |
+          ls -R
+          mkdir dist
+          mv pep_tk* dist/
+        
+      - name: Publish distribution 📦 to PyPI
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
