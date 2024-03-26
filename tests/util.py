@@ -66,7 +66,7 @@ def download_dummy_data():
                     if chunk:  # filter out keep-alive new chunks
                         f.write(chunk)
 
-        URL = "https://drive.google.com/uc?export=download"
+        URL = "https://drive.google.com/uc?export=download&confirm=1"
 
         session = requests.Session()
 
