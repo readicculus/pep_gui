@@ -66,11 +66,11 @@ def download_dummy_data():
                     if chunk:  # filter out keep-alive new chunks
                         f.write(chunk)
 
-        URL = "https://drive.google.com/uc?export=download"
+        URL = "https://drive.usercontent.google.com/download?"
 
         session = requests.Session()
 
-        response = session.get(URL, params={'id': id}, stream=True)
+        response = session.get(URL, params={'id': id, 'confirm': 'yy'}, stream=True)
         token = get_confirm_token(response)
 
         if token:
