@@ -66,11 +66,11 @@ def download_dummy_data():
                     if chunk:  # filter out keep-alive new chunks
                         f.write(chunk)
 
-        URL = "https://drive.google.com/uc?export=download"
+        URL = "https://drive.usercontent.google.com/download?"
 
         session = requests.Session()
 
-        response = session.get(URL, params={'id': id}, stream=True)
+        response = session.get(URL, params={'id': id, 'confirm': 'yy'}, stream=True)
         token = get_confirm_token(response)
 
         if token:
@@ -87,10 +87,10 @@ def download_dummy_data():
     gdrive_testdata_id = config['TestConfig'].get('gdrive_testdata_id')
     download_file_from_google_drive(gdrive_testdata_id, archive_fp)
     global_logger.debug(f'Extracting archive to {TEST_DIR}.')
+    print(os.listdir())
     with tarfile.open(archive_fp) as tar:
         tar.extractall(path=TEST_DIR)
-
-    global_logger.debug(f'Cleaning up, removing {archive_fn}.')
+    global_logger.debug(os.listdir(os.path.join(TEST_DIR, 'pep_tk-testdata')))
 
     global_logger.debug('DEBUG listdir TEST_DIR')
     global_logger.debug(os.listdir(TEST_DIR))
